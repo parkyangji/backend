@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#03c75a">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://kit.fontawesome.com/b0822c7a94.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
+      <!-- 네비/헤더 -->
+      <div th:insert="~{fragments/header::header}" class="container-sm fixed-top main-bg-color main-text-ligth-color"></div>
+
+      <!-- 컨텐츠 : 메인 슬라이드 -->
+      <div class="px-0 container-sm">
+        <div class="scrollNone">
+          <div class="d-inline-flex">
+            <div th:each="ex : ${exList}" class="position-relative" style="width: 100vw;">
+              <img class="img-fluid" th:src="|/uploadFiles/${ex}|" alt="Slide Image" >
+              <div style="position: absolute;
+              left: 0px;
+              right: 0px;
+              bottom: 0px;
+              height: 200px;
+              opacity: 0.7;
+              background: linear-gradient(rgba(0, 0, 0, 0) 0%, #3f3c36  100%);"></div>
+              <div class="fs-4 p-4 fw-bold position-absolute bottom-0 start-0" style="width: 300px; color: #fef9ed;">
+                <span class="d-block">지금 인기있는 겨울</span> 
+                <span class="d-block">이너 아이템 제안</span>
+                <span class="d-block fs-6 fw-normal mt-2">탑텐, 스파오 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 컨텐츠 : 본문-->
+      <div class="container-sm">
+        <!-- <div>본문</div> -->
+      </div>
+
+
+      <!-- 하단 푸터 -->
+      <div th:insert="~{fragments/footer::footer}" class="container-sm fixed-bottom"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

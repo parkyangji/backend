@@ -1,0 +1,29 @@
+<!-- <div th:fragment="footer" class="container-sm fixed-bottom" > -->
+  <div th:fragment="footer" class="row fs-2 bg-white text-center align-items-center border-top border-light-subtle" style="min-height: 45px;">
+    <a th:href="@{/home}" class="col">
+      <div>
+        <i class="bi bi-house-door-fill"></i>
+      </div>
+    </a>
+    <a th:href="@{/menu}" class="col">
+      <div>
+        <i class="fs-1 bi bi-list"></i>
+      </div>
+    </a>
+    <a th:href="@{/home}" class="col">
+      <div>
+        <i class="bi bi-search"></i>
+      </div>
+    </a>
+    <a th:if="${session.sessionInfo != null}" th:href="@{/mypage}" class="col">
+      <div>
+        <i class="fa-solid fa-user"></i>
+      </div>
+    </a>
+    <a th:unless="${session.sessionInfo != null}" th:href="@{/login}" class="col">
+      <div>
+        <i class="fa-solid fa-user"></i>
+      </div>
+    </a>
+  </div>
+<!-- </div> -->
