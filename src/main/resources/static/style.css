@@ -29,10 +29,35 @@ ul, ol {
   margin: 0;
   padding: 0;
 }
+
+button {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+  background: none;
+}
 /* rgba(122,81,227,.9) */
 /* #ff6767 */
 /* #eaeef4 */
 
+
+.button-style{
+  border: none;
+  color: white;
+  font-weight: 500;
+  border-radius: 10px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  background: #09aa5c;
+}
+
+.back-bg {
+  background: #f4f6f8;
+}
 
 .main-bg-color {
   background: #03c75a !important;
@@ -57,6 +82,10 @@ ul, ol {
 .main-text-ligth-color {
   color: #c3f5d8 !important;
   /* background: linear-gradient(to right,#04ce6d,#03cb87) */
+}
+
+.rating-color {
+  color: #ffa723;
 }
 
 .menu-active {

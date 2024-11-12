@@ -27,7 +27,59 @@
     SELECT * FROM product WHERE product_id = #{product_id}
   </select>
 
-  <select id="searchStoreName" resultType="String">
+  <select id="selectStoreName" resultType="String">
     SELECT store_name FROM seller WHERE seller_id = #{seller_id};
+  </select>
+  
+  <insert id="insertOrder">
+      <!-- MySQL의 경우 LAST_INSERT_ID() 등을 활용 -->
+      <selectKey keyProperty="order_id" resultType="int" order="AFTER">
+          SELECT LAST_INSERT_ID()
+      </selectKey>
+      INSERT INTO product_order(customer_id, product_id, quantity, delivery_address, status)
+      VALUES(#{customer_id}, #{product_id}, #{quantity}, #{delivery_address}, #{status})
+  </insert>
+
+  <select id="selectAddressList" resultType="String">
+    SELECT address FROM address WHERE customer_id = #{customer_id};
+  </select>
+
+  <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.ProductOrderDto">
+    SELECT * FROM product_order WHERE customer_id = #{customer_id} ORDER BY order_id DESC;
+  </select>
+
+  <select id="selectReviewByProductAndCustomer" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
+      SELECT * FROM product_review
+      WHERE product_id = #{product_id} AND customer_id = #{customer_id} AND order_id = #{order_id}
+  </select>
+
+  <insert id="insertReview">
+      INSERT INTO product_review (product_id, customer_id, order_id, content, rating, created_date)
+      VALUES (#{product_id}, #{customer_id}, #{order_id}, #{content}, #{rating}, NOW())
+  </insert>
+
+  <update id="updateReview">
+      UPDATE product_review
+      <set>
+          <if test="content != null">content = #{content},</if>
+          <if test="rating != 0">rating = #{rating},</if>
+      </set>
+      WHERE review_id = #{review_id}
+  </update>
+
+  <select id="selectLike" resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
+    select * from product_favorite where customer_id = #{customer_id} and product_id = #{product_id}
+  </select>
+
+  <insert id="insertLike">
+    insert into product_favorite(customer_id,product_id) values(#{customer_id},#{product_id})
+  </insert>
+
+  <delete id="deleteLike">
+    delete from product_favorite where customer_id = #{customer_id} and product_id = #{product_id}
+  </delete>
+
+  <select id="selectUserFavoriteList"  resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
+    select * from product_favorite where customer_id = #{customer_id}
   </select>
 </mapper>

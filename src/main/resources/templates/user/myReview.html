@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <meta name="theme-color" content="#03c75a"> -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://kit.fontawesome.com/b0822c7a94.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" th:href="@{/style.css}">
+  <!-- <style>
+    .rating-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .star {
+        cursor: pointer;
+        transition: fill 0.3s;
+        fill: #ccc; /* 기본 별 색상 */
+    }
+    .star.selected {
+        fill: #FFD700; /* 선택된 별 색상 */
+    }
+  </style> -->
+</head>
+<body>
+  <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
+    <!-- 네비/헤더 -->
+    <div th:insert="~{fragments/sideheader::sideheader('주문·배송')}" class="px-0 container-sm fixed-top"></div>
+
+    <!-- 컨텐츠 -->
+    <div class="container-sm p-4">
+      <div class="row mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
+        <!-- <p th:text="${order.ProductOrderDto.order_date}"></p> -->
+        <p th:text="${order.ProductOrderDto.status}"></p>
+        <p class="m-0" th:text="|구매일 : ${order.ProductOrderDto.order_date}|"></p>
+        <a class="my-2 text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}"
+          th:text="${order.ProductDto.title}"></a>
+
+        <p class="m-0">리뷰 작성</p>
+        <form action="/reviewContentProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.content == null}">
+          <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
+          <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
+          <input class="flex-fill" type="text" name="content" id="content">
+          <button class="btn btn-primary main-bg-color border-0">등록</button>
+        </form>
+        
+        <!-- 리뷰가 있을 때는 content를 <span> 태그로 출력 -->
+        <div class="d-flex" th:if="${order.ProductReview != null}">
+          <span class="flex-fill" th:text="${order.ProductReview.content}"></span>
+        </div>
+        
+        <!-- 평점 부분 -->
+        <form action="/ratingProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.rating == 0}">
+          <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
+          <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
+          <button id="star1" name="rating" value="1"></button>
+          <label for="star1" title="text">☆</label>
+          <button id="star2" name="rating" value="2"></button>
+          <label for="star2" title="text">☆</label>
+          <button id="star3" name="rating" value="3"></button>
+          <label for="star3" title="text">☆</label>
+          <button id="star4" name="rating" value="4"></button>
+          <label for="star4" title="text">☆</label>
+          <button id="star5" name="rating" value="5"></button>
+          <label for="star5" title="text">☆</label>
+        </form>
+        
+        <div class="rating" th:if="${order.ProductReview != null && order.ProductReview.rating != 0}">
+          <span th:each="i : ${#numbers.sequence(1, 5)}" 
+                th:classappend="${i <= order.ProductReview.rating} ? 'rating-color' : ''">★</span>
+        </div>      
+        
+        <!-- <div class="rating-container">
+          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="1" xmlns="http://www.w3.org/2000/svg">
+              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
+          </svg>
+          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="2" xmlns="http://www.w3.org/2000/svg">
+              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
+          </svg>
+          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="3" xmlns="http://www.w3.org/2000/svg">
+              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
+          </svg>
+          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="4" xmlns="http://www.w3.org/2000/svg">
+              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
+          </svg>
+          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="5" xmlns="http://www.w3.org/2000/svg">
+              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
+          </svg>
+        </div> -->
+        <!-- <p>현재 평점: <span class="ratingValue">0</span>/5</p> -->
+      </div>
+    </div>
+
+    <!-- 하단 푸터 -->
+    <div th:insert="~{fragments/footer::footer}" class="container-sm fixed-bottom"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+  </script>
+  <!-- <script>
+      // 각 상품별로 별점 컨테이너와 이벤트를 개별 설정
+      document.querySelectorAll(".rating-container").forEach((productRating,idx) => {
+          const stars = productRating.querySelectorAll(".star");
+          const ratingValue = document.querySelectorAll(".ratingValue");
+
+          function handleStarClick(event) {
+              const clickedIndex = Array.from(stars).indexOf(event.currentTarget);
+
+              // 선택한 별과 이전 별까지 모두 'selected' 클래스 추가
+              stars.forEach((star, index) => {
+                  star.classList.toggle("selected", index <= clickedIndex);
+              });
+
+              // 평점 값 업데이트
+              const rating = clickedIndex + 1;
+              ratingValue[idx].innerText = rating;
+              console.log("평점:", rating);
+
+              // 모든 별에서 클릭 이벤트 제거
+              stars.forEach(star => {
+                  star.removeEventListener("click", handleStarClick);
+              });
+          }
+
+          // 각 별에 클릭 이벤트 리스너 추가
+          stars.forEach(star => {
+              star.addEventListener("click", handleStarClick);
+          });
+      });
+  </script> -->
+</body>
+
+</html>

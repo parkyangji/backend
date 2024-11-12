@@ -1,29 +1,25 @@
 <!-- <div th:fragment="footer" class="container-sm fixed-bottom" > -->
-  <div th:fragment="buyfooter" class="row fs-2 bg-white text-center align-items-center border-top border-light-subtle" style="min-height: 45px;">
-    <a th:href="@{/home}" class="col">
-      <div>
-        <i class="bi bi-house-door-fill"></i>
+  <div th:fragment="buyfooter(productId)" class="row fs-2 bg-white text-center align-items-center border-top border-light-subtle" style="min-height: 68px;">
+    <!-- <a th:href="@{/home}" class="col-2 pe-0">
+      <div class="border border-subtle d-flex align-items-center justify-content-between" style="height: 50px; border-radius: 10px; color: #09aa5c;">
+        <i class="flex-fill fs-5 bi bi-heart"></i>
       </div>
-    </a>
-    <a th:href="@{/menu}" class="col">
-      <div>
-        <i class="fs-1 bi bi-list"></i>
+    </a> -->
+    <form action="/likeProgress" method="post" class="col-2 pe-0">
+      <input type="hidden" name="productId" th:value="${productId}">
+      <button class="border border-subtle d-flex align-items-center justify-content-between" style="width: 100%; height: 50px; border-radius: 10px; color: #09aa5c;">
+        <i th:if="${likeData==null}" class="flex-fill fs-5 bi bi-heart"></i>
+        <i th:if="${likeData!=null}" class="flex-fill fs-5 bi bi-heart-fill"></i>
+      </button>
+    </form>
+    <form id="orderForm" action="/order" method="POST" class="col-10">
+      <input type="hidden" name="productId" th:value="${productId}">
+      <input class="button-style m-0 fs-1-5" type="submit" value="구매하기">
+    </form>
+    <!-- <a th:href="@{/order}" class="col-10">
+      <div class="d-flex align-items-center justify-content-between button-style m-0 fs-1-5 main-bg-strong-color">
+        <span class="flex-fill">구매하기</span>
       </div>
-    </a>
-    <a th:href="@{/home}" class="col">
-      <div>
-        <i class="bi bi-search"></i>
-      </div>
-    </a>
-    <a th:if="${session.sessionInfo != null}" th:href="@{/mypage}" class="col">
-      <div>
-        <i class="fa-solid fa-user"></i>
-      </div>
-    </a>
-    <a th:unless="${session.sessionInfo != null}" th:href="@{/login}" class="col">
-      <div>
-        <i class="fa-solid fa-user"></i>
-      </div>
-    </a>
+    </a> -->
   </div>
 <!-- </div> -->

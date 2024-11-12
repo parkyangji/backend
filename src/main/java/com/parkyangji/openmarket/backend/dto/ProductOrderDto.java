@@ -12,5 +12,5 @@ public class ProductOrderDto {
   private int quantity;
   private String delivery_address;
   private Date order_date;
-  private String status;
+  private String status; // "결제완료","결제대기","배송준비중","배송중","배송완료"
 }

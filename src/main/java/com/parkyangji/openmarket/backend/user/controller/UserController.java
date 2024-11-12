@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
+import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
+import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
+import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
 
@@ -112,11 +116,15 @@ public class UserController {
   @RequestMapping("category")
   public String productListPage(
     Model model,
+    HttpSession httpSession,
     @RequestParam("depth") int depth, 
     @RequestParam("menu_id") int category_id){
 
     System.out.println("카테고리뎁스"+ depth);
     System.out.println("카테고리넘버"+ category_id);
+
+    boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;
+    model.addAttribute("isLoggedIn", isLoggedIn);
 
     List<String> productList = Arrays.asList("ProductImage/Women/Top/Topten/3599319_16995905976345_big.webp", "ProductImage/Women/Top/Topten/3588843_16995835333549_big.webp", "ProductImage/Women/Top/Topten/3587760_16953655495488_big.webp", "ProductImage/Women/Top/Topten/3327837_16850679163243_big.webp");
     model.addAttribute("productList", productList);
@@ -125,8 +133,18 @@ public class UserController {
   }
 
   @RequestMapping("product")
-  public String productPage(@RequestParam("id") int product_id, Model model){
+  public String productPage(HttpSession httpSession, Model model, @RequestParam("id") int product_id){
     System.out.println("상품번호" + product_id);
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    if (customerDto != null) {
+      ProductFavoriteDto productFavoriteDto = new ProductFavoriteDto();
+      productFavoriteDto.setCustomer_id(customerDto.getCustomer_id());
+      productFavoriteDto.setProduct_id(product_id);
+
+      ProductFavoriteDto likeData = userService.findLike(productFavoriteDto);
+      model.addAttribute("likeData", likeData);
+    }
 
     Map<String, Object> productData = userService.getProductDate(product_id);
     model.addAllAttributes(productData);
@@ -136,4 +154,146 @@ public class UserController {
     return "user/product";
   }
   
+  @RequestMapping("order")
+  public String orderPage(HttpSession httpSession, Model model, @RequestParam("productId") int product_id){
+    if (httpSession.getAttribute("sessionInfo")==null) {
+      return "redirect:/login";
+    }
+    // 로그인 고객 정보
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    List<String> address = userService.getAddressList(customerDto.getCustomer_id());
+    
+    model.addAttribute("product_id", product_id);
+    model.addAttribute("customer_id", customerDto.getCustomer_id());
+    model.addAttribute("address", address);
+    //model.addAttribute("address", customerDto);
+    
+    return "user/order";
+  }
+
+  @RequestMapping("orderProcess")
+  public String orderProcess(
+    @RequestParam("productId") int product_id,
+    @RequestParam("customerId") int customer_id,
+    @RequestParam("quantity") int quantity,
+    @RequestParam("delivery_address") String delivery_address
+  ){
+    //System.out.println(product_id);
+
+    //제품 번호, 수량 정보 => 나중에 옵션 추가하면 변경, 배송지, 진행상태("결제완료") => 결제수단 따로 있으면 "결제대기"
+    ProductOrderDto productOrderDto = new ProductOrderDto();
+    productOrderDto.setProduct_id(product_id);
+    productOrderDto.setCustomer_id(customer_id);
+    productOrderDto.setQuantity(quantity); 
+    productOrderDto.setDelivery_address(delivery_address);
+    productOrderDto.setStatus("결제완료");
+    // System.out.println(productOrderDto);
+
+    userService.createOrder(productOrderDto);
+
+    return "redirect:/orderComplete";
+  }
+
+  @RequestMapping("orderComplete")
+  public String orderComplete(){
+    return "user/orderComplete";
+  }
+  
+  @RequestMapping("likeProgress")
+  public String likeProcess(HttpSession httpSession, Model model, @RequestParam("productId") int product_id){
+    if (httpSession.getAttribute("sessionInfo")==null) {
+      return "redirect:/login";
+    }
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    ProductFavoriteDto productFavoriteDto = new ProductFavoriteDto();
+    productFavoriteDto.setCustomer_id(customerDto.getCustomer_id());
+    productFavoriteDto.setProduct_id(product_id);
+    
+    userService.toggleLike(productFavoriteDto);
+    
+    return "redirect:/product?id=" + product_id;
+  }
+
+  @RequestMapping("/mypage/like")
+  public String myLike(HttpSession httpSession, Model model){
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    List<Map<String, Object>> likeList = userService.getLikeList(customerDto.getCustomer_id());
+
+    model.addAttribute("likeList", likeList);
+
+    return "user/myLike";
+  }
+
+
+  @RequestMapping("/mypage/order")
+  public String myorder(HttpSession httpSession, Model model){
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    
+    // 주문 정보 + 상품 정보
+    List<Map<String, Object>> orderList = userService.getOrderList(customerDto.getCustomer_id());
+
+    // System.out.println(orderList);
+    model.addAttribute("orderList", orderList);
+
+    return "user/myOrder";
+  }
+
+  @RequestMapping("/mypage/review")
+  public String myreview(HttpSession httpSession, Model model){
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    // 주문 정보 + 상품 정보
+    List<Map<String, Object>> orderList = userService.getOrderList(customerDto.getCustomer_id());
+
+    model.addAttribute("orderList", orderList);
+    System.out.println(orderList);
+
+    return "user/myReview";
+  }
+
+  @RequestMapping("/ratingProcess")
+  public String ratingProcess(HttpSession httpSession, 
+    @RequestParam("rating") int rating, 
+    @RequestParam("order_id") int order_id,
+    @RequestParam("product_id") int product_id) {
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    ProductReviewDto productReviewDto = new ProductReviewDto();
+    productReviewDto.setProduct_id(product_id);
+    productReviewDto.setCustomer_id(customerDto.getCustomer_id());
+    productReviewDto.setOrder_id(order_id);
+    productReviewDto.setRating(rating);
+
+    userService.saveOrUpdateReview(productReviewDto);
+    
+    return "redirect:/mypage/review";
+  }
+
+  @RequestMapping("/reviewContentProcess")
+  public String reviewContentProcess(HttpSession httpSession, 
+    @RequestParam("content") String content, 
+    @RequestParam("order_id") int order_id,
+    @RequestParam("product_id") int product_id) {
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    ProductReviewDto productReviewDto = new ProductReviewDto();
+    productReviewDto.setProduct_id(product_id);
+    productReviewDto.setCustomer_id(customerDto.getCustomer_id());
+    productReviewDto.setOrder_id(order_id);
+    productReviewDto.setContent(content);
+
+    userService.saveOrUpdateReview(productReviewDto);
+    
+    return "redirect:/mypage/review";
+  }
+
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 @Data // 상품 리뷰
 public class ProductReviewDto { 
   private int review_id;
+  private int order_id; // 추가해야함...
   private int product_id;
   private int customer_id;
   private String content;

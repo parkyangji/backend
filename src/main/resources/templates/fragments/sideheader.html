@@ -8,7 +8,7 @@
   </div> -->
   <!-- <div th:fragment="header" class="container-sm sticky-top main-bg-color main-text-ligth-color"> -->
     <div th:fragment="sideheader(titleText)" class="bg-white border-bottom border-light-subtle d-flex px-2 text-center align-items-center justify-content-between" style="min-height: 48px;">
-      <div class="back-icon position-absolute"><i class="fs-4 bi bi-arrow-left"></i></div>
+      <div class="back-icon position-absolute" onclick="window.history.back()"><i class="fs-4 bi bi-arrow-left"></i></div>
       <div class="flex-fill fs-1-5" th:text="${titleText}" style="font-weight: 600;">메뉴</div>
     </div>
   <!-- </div> -->
