@@ -16,8 +16,8 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
-      <div th:each="order : ${orderList}">
-        <p th:text="${order.ProductOrderDto.order_date}"></p>
+      <div class="mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
+        <p class="m-0" th:text="${order.ProductOrderDto.order_date}"></p>
         <p th:text="${order.ProductOrderDto.status}"></p>
         <a class="text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}"></a>
       </div>

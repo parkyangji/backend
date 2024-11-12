@@ -29,7 +29,7 @@
 <body>
   <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
     <!-- 네비/헤더 -->
-    <div th:insert="~{fragments/sideheader::sideheader('주문·배송')}" class="px-0 container-sm fixed-top"></div>
+    <div th:insert="~{fragments/sideheader::sideheader('리뷰')}" class="px-0 container-sm fixed-top"></div>
 
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
@@ -40,39 +40,43 @@
         <a class="my-2 text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}"
           th:text="${order.ProductDto.title}"></a>
 
-        <p class="m-0">리뷰 작성</p>
-        <form action="/reviewContentProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.content == null}">
-          <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
-          <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
-          <input class="flex-fill" type="text" name="content" id="content">
-          <button class="btn btn-primary main-bg-color border-0">등록</button>
-        </form>
-        
-        <!-- 리뷰가 있을 때는 content를 <span> 태그로 출력 -->
-        <div class="d-flex" th:if="${order.ProductReview != null}">
-          <span class="flex-fill" th:text="${order.ProductReview.content}"></span>
+        <div th:if="${order.ProductOrderDto.status != '배송완료'}">배송이 완료되어야 리뷰를 작성할 수 있어요!</div>
+        <div th:if="${order.ProductOrderDto.status == '배송완료'}">
+          <p class="m-0">리뷰 작성</p>
+          <form action="/reviewContentProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.content == null}">
+            <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
+            <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
+            <input class="flex-fill" type="text" name="content" id="content">
+            <button class="btn btn-primary main-bg-color border-0">등록</button>
+          </form>
+          
+          <!-- 리뷰가 있을 때는 content를 <span> 태그로 출력 -->
+          <div class="d-flex" th:if="${order.ProductReview != null}">
+            <span class="flex-fill" th:text="${order.ProductReview.content}"></span>
+          </div>
+          
+          <!-- 평점 부분 -->
+          <form action="/ratingProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.rating == 0}">
+            <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
+            <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
+            <button id="star1" name="rating" value="1"></button>
+            <label for="star1" title="text">☆</label>
+            <button id="star2" name="rating" value="2"></button>
+            <label for="star2" title="text">☆</label>
+            <button id="star3" name="rating" value="3"></button>
+            <label for="star3" title="text">☆</label>
+            <button id="star4" name="rating" value="4"></button>
+            <label for="star4" title="text">☆</label>
+            <button id="star5" name="rating" value="5"></button>
+            <label for="star5" title="text">☆</label>
+          </form>
+          
+          <div class="rating" th:if="${order.ProductReview != null && order.ProductReview.rating != 0}">
+            <span th:each="i : ${#numbers.sequence(1, 5)}" 
+                  th:classappend="${i <= order.ProductReview.rating} ? 'rating-color' : ''">★</span>
+          </div>  
         </div>
-        
-        <!-- 평점 부분 -->
-        <form action="/ratingProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.rating == 0}">
-          <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
-          <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
-          <button id="star1" name="rating" value="1"></button>
-          <label for="star1" title="text">☆</label>
-          <button id="star2" name="rating" value="2"></button>
-          <label for="star2" title="text">☆</label>
-          <button id="star3" name="rating" value="3"></button>
-          <label for="star3" title="text">☆</label>
-          <button id="star4" name="rating" value="4"></button>
-          <label for="star4" title="text">☆</label>
-          <button id="star5" name="rating" value="5"></button>
-          <label for="star5" title="text">☆</label>
-        </form>
-        
-        <div class="rating" th:if="${order.ProductReview != null && order.ProductReview.rating != 0}">
-          <span th:each="i : ${#numbers.sequence(1, 5)}" 
-                th:classappend="${i <= order.ProductReview.rating} ? 'rating-color' : ''">★</span>
-        </div>      
+    
         
         <!-- <div class="rating-container">
           <svg viewBox="0 0 576 512" height="2em" class="star" data-value="1" xmlns="http://www.w3.org/2000/svg">
