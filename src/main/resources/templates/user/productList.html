@@ -19,11 +19,11 @@
       <div class="container-sm" style="padding-bottom: 48px;">
         <!-- <div>필터</div> -->
         <div class="row flex-wrap">
-          <div class="p-0 col-5 flex-fill position-relative" th:each="product : ${productList}">
-            <a th:href="@{/product?id=1}">
+          <div class="p-0 col-6 position-relative" th:each="product : ${productList}">
+            <a th:href="@{/product(id=${product.product_id})}">
               <div class="d-flex flex-column" style="font-size: 14px;">
                 <div class="position-relative">
-                  <img class="img-fluid" th:src="|/uploadFiles/${product}|" alt="Slide Image" >
+                  <img class="img-fluid" th:src="|/uploadFiles/${product.main_page_url}|" alt="Slide Image" >
                   <!-- <span class="p-2 position-absolute z-2 bottom-0 end-0"><i style="color: #c70303;" class="bi bi-heart-fill"></i></span> -->
                   <!-- <span th:if="${isLoggedIn}" data-product-id="1" onclick="" class="px-2 py-1 position-absolute z-2 bottom-0 end-0"><i style="color: white; text-shadow: #c7c7c7 0px 0 5px" class="fs-5 bi bi-heart"></i></span> -->
                   <span class="position-absolute z-1 bottom-0 start-0 badge rounded-0 main-bg-color">키워드</span>
@@ -32,8 +32,8 @@
                   <span class="" style="display: -webkit-box;
                   -webkit-box-orient: vertical;
                   -webkit-line-clamp: 1;
-                  overflow: hidden;">여성) ON AIR 수퍼웜 크루넥 긴팔티 (9부)_MSD4US2211</span>
-                  <span class="d-block fw-bold" style="letter-spacing: -0.5px;">19,900원</span>
+                  overflow: hidden;" th:text="${product.title}">제목</span>
+                  <span class="d-block fw-bold" style="letter-spacing: -0.5px;" th:text="|${product.price}원|">가격</span>
                 </div>
               </div>
             </a>

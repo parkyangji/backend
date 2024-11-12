@@ -54,8 +54,8 @@
   </select>
 
   <insert id="insertReview">
-      INSERT INTO product_review (product_id, customer_id, order_id, content, rating, created_date)
-      VALUES (#{product_id}, #{customer_id}, #{order_id}, #{content}, #{rating}, NOW())
+      INSERT INTO product_review (product_id, customer_id, order_id, content, rating)
+      VALUES (#{product_id}, #{customer_id}, #{order_id}, #{content}, #{rating})
   </insert>
 
   <update id="updateReview">
@@ -63,6 +63,7 @@
       <set>
           <if test="content != null">content = #{content},</if>
           <if test="rating != 0">rating = #{rating},</if>
+          created_date = NOW()
       </set>
       WHERE review_id = #{review_id}
   </update>
@@ -81,5 +82,9 @@
 
   <select id="selectUserFavoriteList"  resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
     select * from product_favorite where customer_id = #{customer_id}
+  </select>
+
+  <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
+    select * from product where category_id = #{category_id}
   </select>
 </mapper>

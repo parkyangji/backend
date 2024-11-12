@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
+import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
 import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
@@ -138,6 +139,10 @@ public class UserService {
 
   public ProductFavoriteDto findLike(ProductFavoriteDto productFavoriteDto){
     return userSqlMapper.selectLike(productFavoriteDto);
+  }
+
+  public List<ProductDto> getCategoryProductList(int category_id) {
+    return userSqlMapper.selectCategoryIdProducts(category_id);
   }
 
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
+import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
 import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
@@ -126,7 +127,10 @@ public class UserController {
     boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;
     model.addAttribute("isLoggedIn", isLoggedIn);
 
-    List<String> productList = Arrays.asList("ProductImage/Women/Top/Topten/3599319_16995905976345_big.webp", "ProductImage/Women/Top/Topten/3588843_16995835333549_big.webp", "ProductImage/Women/Top/Topten/3587760_16953655495488_big.webp", "ProductImage/Women/Top/Topten/3327837_16850679163243_big.webp");
+    //List<String> productList = Arrays.asList("ProductImage/Women/Top/Topten/3599319_16995905976345_big.webp", "ProductImage/Women/Top/Topten/3588843_16995835333549_big.webp", "ProductImage/Women/Top/Topten/3587760_16953655495488_big.webp", "ProductImage/Women/Top/Topten/3327837_16850679163243_big.webp");
+    
+    List<ProductDto> productList = userService.getCategoryProductList(category_id);
+    
     model.addAttribute("productList", productList);
 
     return "user/productList";

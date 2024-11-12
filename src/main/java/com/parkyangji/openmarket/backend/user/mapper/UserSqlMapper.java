@@ -44,4 +44,7 @@ public interface UserSqlMapper {
   public void deleteLike(ProductFavoriteDto productFavoriteDto);
 
   public List<ProductFavoriteDto> selectUserFavoriteList(int customer_id);
+
+  // 카테고리별 전체 상품
+  public List<ProductDto> selectCategoryIdProducts(int category_id);
 }

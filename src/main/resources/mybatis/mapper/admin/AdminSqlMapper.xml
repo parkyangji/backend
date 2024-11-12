@@ -3,4 +3,29 @@
 
 <mapper namespace="com.parkyangji.openmarket.backend.admin.mapper.AdminSqlMapper">
 
+  <select id="selectLoginCheck" resultType="com.parkyangji.openmarket.backend.dto.SellerDto">
+		select * from seller
+		where username = #{username} and password = SHA2(concat(#{password}, '!@www'), '256')
+  </select>
+
+  <insert id="insertProduct">
+    insert into product(category_id,seller_id,title,description, price ,main_page_url,total_quantity)
+    values(#{category_id}, #{seller_id}, #{title}, #{description}, #{price}, #{main_page_url}, #{total_quantity})
+  </insert>
+
+  <select id="selectSellerProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
+    select * from product where seller_id = #{seller_id}
+  </select>
+
+  <select id="selectOrderByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductOrderDto">
+    select * from product_order where product_id = #{product_id}
+  </select>
+
+  <select id="selectReviewByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
+    select * from product_review where product_id = #{product_id}
+  </select>
+
+  <insert id="inserReply">
+    Update product_review set seller_reply = #{seller_reply}, reply_date = NOW() where review_id = #{review_id}
+  </insert>
 </mapper>

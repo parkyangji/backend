@@ -17,7 +17,7 @@
 
       <!-- 컨텐츠 -->
       <div class="container-sm" style="padding-bottom: 68px;">
-        <img class="img-fluid" th:src="|/uploadFiles/ProductImage/Women/Top/Topten/${productInfo.main_page_url}|" alt="">
+        <img class="img-fluid" th:src="|/uploadFiles/${productInfo.main_page_url}|" alt="">
         <p th:text="${storeName}"></p>
         <p th:text="${productInfo.title}"></p>
         <p th:text="${productInfo.price}"></p>
