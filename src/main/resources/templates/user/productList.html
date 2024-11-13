@@ -13,7 +13,7 @@
     <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
       <!-- 네비/헤더 -->
       <!-- <div th:insert="~{fragments/header::header}" class="container-sm sticky-top main-bg-color main-text-ligth-color"></div> -->
-      <div th:insert="~{fragments/sideheader::sideheader('상의')}" class="px-0 container-sm fixed-top"></div>
+      <div th:insert="~{fragments/sideheader::sideheader(${category.category_name})}" class="px-0 container-sm fixed-top"></div>
 
       <!-- 컨텐츠 -->
       <div class="container-sm" style="padding-bottom: 48px;">
@@ -23,17 +23,21 @@
             <a th:href="@{/product(id=${product.product_id})}">
               <div class="d-flex flex-column" style="font-size: 14px;">
                 <div class="position-relative">
-                  <img class="img-fluid" th:src="|/uploadFiles/${product.main_page_url}|" alt="Slide Image" >
+                  <img class="img-fluid" th:src="|/uploadFiles/${product.main_page_url}|" th:alt="${product.title}" >
                   <!-- <span class="p-2 position-absolute z-2 bottom-0 end-0"><i style="color: #c70303;" class="bi bi-heart-fill"></i></span> -->
-                  <!-- <span th:if="${isLoggedIn}" data-product-id="1" onclick="" class="px-2 py-1 position-absolute z-2 bottom-0 end-0"><i style="color: white; text-shadow: #c7c7c7 0px 0 5px" class="fs-5 bi bi-heart"></i></span> -->
+                  <span th:if="${isLoggedIn}" data-product-id="1" onclick="" class="px-2 py-1 position-absolute z-2 bottom-0 end-0"><i style="color: white; text-shadow: #c7c7c7 0px 0 5px" class="fs-5 bi bi-heart"></i></span>
                   <span class="position-absolute z-1 bottom-0 start-0 badge rounded-0 main-bg-color">키워드</span>
                 </div>
                 <div class="px-3 py-2">
+                  <!-- <span th:text="${product.}"> </span> -->
                   <span class="" style="display: -webkit-box;
                   -webkit-box-orient: vertical;
                   -webkit-line-clamp: 1;
                   overflow: hidden;" th:text="${product.title}">제목</span>
                   <span class="d-block fw-bold" style="letter-spacing: -0.5px;" th:text="|${product.price}원|">가격</span>
+                  <div class="my-1" style="color: #c2c2c2; font-size: 12px; letter-spacing: -0.5px;">
+                    <span style="font-size: 0.8em;">★ </span><span>5.0 </span><span>(1)</span>
+                  </div>
                 </div>
               </div>
             </a>

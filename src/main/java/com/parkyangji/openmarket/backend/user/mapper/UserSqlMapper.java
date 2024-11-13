@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
+import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
 import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
@@ -23,6 +24,9 @@ public interface UserSqlMapper {
   // 상품 상세 페이지
   public String selectStoreName(int seller_id);
   public ProductDto selectProductDto(int product_id);
+  public Float selectAvgRating(int product_id);
+  public List<ProductReviewDto> selectReviews(int product_id);
+  public CustomerDto selectCustomer(int customer_id);
 
   // 주문 넣기
   public void insertOrder(ProductOrderDto productOrderDto);
@@ -47,4 +51,5 @@ public interface UserSqlMapper {
 
   // 카테고리별 전체 상품
   public List<ProductDto> selectCategoryIdProducts(int category_id);
+  public ProductCategoryDto selectCategory(int category_id);
 }

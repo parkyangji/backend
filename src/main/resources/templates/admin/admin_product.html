@@ -20,7 +20,7 @@
             <div class="d-flex flex-column" style=" height: 100vh;">
               <!-- 판매자 정보 -->
               <div class="d-flex flex-column justify-content-center">
-                <p class="p-2" th:text="${session.sellerInfo.store_name}">판매자</p>
+                <p class="p-2"><a th:href="@{/admin/dashboard}" th:text="${session.sellerInfo.store_name}">판매자</a></p>
                 <div class="p-2">
                   <a th:href="@{/admin/logout}">로그아웃</a>
                 </div>
@@ -44,6 +44,7 @@
                   <th scope="col"></th>
                   <th scope="col">수정</th>
                   <th scope="col">썸네일</th>
+                  <!-- <th scope="col">카테고리</th> -->
                   <th scope="col">상품명</th>
                   <th scope="col">재고수량</th>
                   <th scope="col">판매가</th>

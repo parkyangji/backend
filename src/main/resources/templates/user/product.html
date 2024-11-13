@@ -15,13 +15,90 @@
       <!-- <div th:insert="~{fragments/header::header}" class="container-sm fixed-top main-bg-color main-text-ligth-color"></div> -->
       <div th:insert="~{fragments/sideheader::sideheader('')}" class="px-0 container-sm fixed-top"></div>
 
-      <!-- 컨텐츠 -->
-      <div class="container-sm" style="padding-bottom: 68px;">
-        <img class="img-fluid" th:src="|/uploadFiles/${productInfo.main_page_url}|" alt="">
-        <p th:text="${storeName}"></p>
-        <p th:text="${productInfo.title}"></p>
-        <p th:text="${productInfo.price}"></p>
+      <!-- 컨텐츠 : 썸네일 -->
+      <div class="container-sm p-0" >
+        <img class="img-fluid" th:src="|/uploadFiles/${productInfo.main_page_url}|" th:alt="${productInfo.title}"
+          style="width: 100%; height: 450px; object-fit: cover;">
       </div>
+      <!-- 제품설명 -->
+      <div class="container-sm p-4">
+        <div class="d-flex align-items-center mb-2 pb-2 main-text-sub-color">
+          <span th:text="${storeName}"></span>
+          <!-- <i class="bi bi-chevron-right" style="font-size: 13px; margin-left: 3px;"></i> -->
+        </div>
+        <div>
+          <p class="fw-bold fs-1-5 mb-1" th:text="${productInfo.title}"></p>
+          <p class="m-0" th:if="${avgRating!=null}">
+            <span class="rating-color">★ </span><span class="me-1" th:text="${avgRating}" style="font-size: 14px;"></span>
+            <span th:if="${reviewData.size()!=0}" class="text-decoration-underline" style="font-size: 13px;" th:text="|리뷰 ${reviewData.size()}개|"></span>
+          </p>
+          <p class="mt-3">
+            <span class="fw-bold fs-5" th:text="|${productInfo.price}원|"></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- 본문 -->
+      <div class="container-sm" style="padding-bottom: 68px;">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#detail">정보</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" style="color: #505050;" href="#review">리뷰</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" style="color: #505050;" href="#info">문의</a>
+          </li>
+        </ul>
+        <!-- <ul class="d-flex">
+          <li>정보</li>
+          <li>리뷰</li>
+          <li>문의</li>
+        </ul> -->
+        <!-- 상품 상세 이미지 -->
+        <div id="detail" style="padding-top: 48px;">
+          <img class="img-fluid" th:src="|/uploadFiles/164ea2a0-933b-41e9-b3ce-20e9576679e4.jpg|" alt="">
+        </div>
+        <!-- 리뷰 리스트 -->
+        <div id="review" style="height: 100vh; padding-top: 48px;">
+          <div th:if="${reviewData.size()!=0}" th:each="data : ${reviewData}">
+            <div class="align-items-center d-flex gap-2">
+              <i class="bi bi-person-circle fs-1" style="color: #eaeaea;"></i>
+              <span class="fs-14" th:text="${data.reviewer.nickname}"></span>
+            </div>
+            <p class="mb-2">
+              <span class="rating-color">★ </span>
+              <span th:if="${data.review.rating!=null}" class="fs-13 fw-bold" th:text="${data.review.rating}"></span>
+              <span th:text="${#dates.format(data.review.created_date, 'YY.MM.dd')}" style="font-size: 12px; color: #c0c0c0;"></span>
+            </p>
+            <p class="mx-1 my-3" th:if="${data.review.content!=null}" th:text="${data.review.content}"></p>
+            <p th:if="${data.review.seller_reply==null}" class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;">판매자가 아직 답글을 달지 않았습니다</p>
+            <div class="position-relative">
+              <p th:if="${data.review.seller_reply!=null}" class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;" th:text="${data.review.seller_reply}"></p>
+              <span th:if="${data.review.reply_date!=null}" th:text="${#dates.format(data.review.created_date, 'YY.MM.dd')}" 
+                class="position-absolute bottom-0 end-0" style="font-size: 12px; color: #c0c0c0;"></span>
+            </div>
+          </div>
+        </div>
+        <!-- 문의 리스트 -->
+        <div id="info" style="height: 100vh; padding-top: 48px;">
+          <div>
+            <div class="d-flex align-items-center" style="color: #505050;">
+              <p class="m-0">비밀글입니다.</p>
+              <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="18" height="18" viewBox="0 0 24 24">
+              <path d="M 12 1 C 8.6761905 1 6 3.6761905 6 7 L 6 8 C 4.9 8 4 8.9 4 10 L 4 20 C 4 21.1 4.9 22 6 22 L 18 22 C 19.1 22 20 21.1 20 20 L 20 10 C 20 8.9 19.1 8 18 8 L 18 7 C 18 3.6761905 15.32381 1 12 1 z M 12 3 C 14.27619 3 16 4.7238095 16 7 L 16 8 L 8 8 L 8 7 C 8 4.7238095 9.7238095 3 12 3 z M 12 13 C 13.1 13 14 13.9 14 15 C 14 16.1 13.1 17 12 17 C 10.9 17 10 16.1 10 15 C 10 13.9 10.9 13 12 13 z"></path>
+              </svg>
+            </div>
+            <div class="d-flex gap-1 fs-14 text-secondary" >
+              <span>답변대기</span>
+              <span>d**</span>
+              <span>2024.11.11</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
 
       <!-- 하단 푸터 -->
       <div th:insert="~{fragments/buyfooter::buyfooter(productId=${productInfo.product_id})}" 

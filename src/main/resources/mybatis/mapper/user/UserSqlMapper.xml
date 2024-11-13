@@ -12,6 +12,7 @@
       INSERT INTO customer(username, password, nickname, gender, phone)
       VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{nickname}, #{gender}, #{phone})
   </insert>
+
   <insert id="insertAddress">
 		INSERT INTO address(customer_id, address)
 		VALUES(#{customer_id}, #{address})
@@ -27,8 +28,20 @@
     SELECT * FROM product WHERE product_id = #{product_id}
   </select>
 
+  <select id="selectAvgRating" resultType="Float">
+    SELECT AVG(rating) FROM product_review WHERE product_id = #{product_id};
+  </select>
+
   <select id="selectStoreName" resultType="String">
     SELECT store_name FROM seller WHERE seller_id = #{seller_id};
+  </select>
+  
+  <select id="selectReviews" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
+    SELECT * FROM product_review WHERE product_id = #{product_id} AND content IS NOT NULL;
+  </select>
+
+  <select id="selectCustomer" resultType="com.parkyangji.openmarket.backend.dto.CustomerDto">
+    SELECT * FROM customer WHERE customer_id = #{customer_id};
   </select>
   
   <insert id="insertOrder">
@@ -87,4 +100,9 @@
   <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
     select * from product where category_id = #{category_id}
   </select>
+
+  <select id="selectCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductCategoryDto">
+    select * from product_category where category_id = #{category_id}
+  </select>
+
 </mapper>

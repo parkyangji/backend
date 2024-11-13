@@ -16,8 +16,13 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
-      <div th:each="like : ${likeList}">
-        <a class="text-decoration-underline" th:href="@{/product(id=${like.ProductDto.product_id})}" th:text="${like.ProductDto.title}"></a>
+      <div class="row flex-wrap">
+        <div class="p-0 col-6 position-relative" th:each="like : ${likeList}">
+          <!-- <a class="text-decoration-underline" th:href="@{/product(id=${like.ProductDto.product_id})}" th:text="${like.ProductDto.title}"></a> -->
+          <a th:href="@{/product(id=${like.ProductDto.product_id})}" >
+            <img class="img-fluid" th:src="|/uploadFiles/${like.ProductDto.main_page_url}|" alt="">
+          </a>
+        </div>
       </div>
     </div>
 

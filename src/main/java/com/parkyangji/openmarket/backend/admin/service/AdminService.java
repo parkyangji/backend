@@ -85,4 +85,8 @@ public class AdminService {
     adminSqlMapper.inserReply(productReviewDto);
   }
 
+  public void sellerRegister(SellerDto sellerDto) {
+    adminSqlMapper.insertSeller(sellerDto);
+  }
+
 }

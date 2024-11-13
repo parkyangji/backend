@@ -20,7 +20,7 @@
             <div class="d-flex flex-column" style=" height: 100vh;">
               <!-- 판매자 정보 -->
               <div class="d-flex flex-column justify-content-center">
-                <p class="p-2" th:text="${session.sellerInfo.store_name}">판매자</p>
+                <p class="p-2"><a th:href="@{/admin/dashboard}" th:text="${session.sellerInfo.store_name}">판매자</a></p>
                 <div class="p-2">
                   <a th:href="@{/admin/logout}">로그아웃</a>
                 </div>
@@ -47,12 +47,12 @@
                 <select id="subCategory" name="category_id">
                     <option value="3">남자 아우터</option>
                     <option value="4">남자 상의</option>
-                    <option value="5">남자 바지</option>
+                    <option value="5">남자 하의</option>
                     <option value="6">남자 가방</option>
                     <option value="7">남자 패션소품</option>
                     <option value="8">여자 아우터</option>
                     <option value="9">여자 상의</option>
-                    <option value="10">여자 바지</option>
+                    <option value="10">여자 하의</option>
                     <option value="11">여자 원피스/스커트</option>
                     <option value="12">여자 가방</option>
                     <option value="13">여자 패션소품</option>

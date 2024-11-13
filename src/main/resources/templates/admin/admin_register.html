@@ -11,18 +11,22 @@
   <body>
     <div id="wrap">
       <div class="container-fluid" style="width: 1280px;">
-        <form action="registerProcess" method="post" id="loginform" class="form">
-          <div class="inputForm">
-            <input name="username" placeholder="아이디" class="input" type="text">
+        <div class="row justify-content-center align-items-center" style="width: 100%; height: 100vh;">
+          <div style="width: 30%;">
+            <form action="./registerProcess" method="POST" id="loginform">
+              <div class="inputForm">
+                <input name="username" placeholder="아이디" class="input" type="text">
+              </div>
+              <div class="inputForm mt-2">
+                <input name="password" placeholder="비밀번호" class="input" type="password">
+              </div>
+              <div class="inputForm mt-2">
+                <input name="store_name" placeholder="스토어 이름" class="input" type="text">
+              </div>
+              <button class="mt-3 button-submit fs-1-5 store-bg-color">가입하기</button>
+            </form>
           </div>
-          <div class="inputForm">
-            <input name="password" placeholder="비밀번호" class="input" type="password">
-          </div>
-          <div class="inputForm">
-            <input name="store_name" placeholder="닉네임" class="input" type="text">
-          </div>
-          <button class="mt-3 button-submit fs-1-5 main-bg-strong-color">가입하기</button>
-        </form>
+        </div>
       </div>
     </div>
 

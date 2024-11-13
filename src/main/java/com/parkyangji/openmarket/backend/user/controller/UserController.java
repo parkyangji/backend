@@ -121,24 +121,26 @@ public class UserController {
     @RequestParam("depth") int depth, 
     @RequestParam("menu_id") int category_id){
 
-    System.out.println("카테고리뎁스"+ depth);
-    System.out.println("카테고리넘버"+ category_id);
+    //System.out.println("카테고리뎁스"+ depth);
+    //System.out.println("카테고리넘버"+ category_id);
 
     boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;
     model.addAttribute("isLoggedIn", isLoggedIn);
 
-    //List<String> productList = Arrays.asList("ProductImage/Women/Top/Topten/3599319_16995905976345_big.webp", "ProductImage/Women/Top/Topten/3588843_16995835333549_big.webp", "ProductImage/Women/Top/Topten/3587760_16953655495488_big.webp", "ProductImage/Women/Top/Topten/3327837_16850679163243_big.webp");
-    
     List<ProductDto> productList = userService.getCategoryProductList(category_id);
     
     model.addAttribute("productList", productList);
+
+    ProductCategoryDto categoryInfo = userService.getCategoryInfo(category_id);
+
+    model.addAttribute("category", categoryInfo);
 
     return "user/productList";
   }
 
   @RequestMapping("product")
   public String productPage(HttpSession httpSession, Model model, @RequestParam("id") int product_id){
-    System.out.println("상품번호" + product_id);
+    //System.out.println("상품번호" + product_id);
 
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
     if (customerDto != null) {
@@ -153,8 +155,8 @@ public class UserController {
     Map<String, Object> productData = userService.getProductDate(product_id);
     model.addAllAttributes(productData);
 
-    System.out.println("상품 페이지");
-    System.out.println(productData);
+    // System.out.println("상품 페이지");
+    // System.out.println(productData);
     return "user/product";
   }
   
@@ -257,7 +259,7 @@ public class UserController {
     List<Map<String, Object>> orderList = userService.getOrderList(customerDto.getCustomer_id());
 
     model.addAttribute("orderList", orderList);
-    System.out.println(orderList);
+    //System.out.println(orderList);
 
     return "user/myReview";
   }

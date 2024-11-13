@@ -28,4 +28,13 @@
   <insert id="inserReply">
     Update product_review set seller_reply = #{seller_reply}, reply_date = NOW() where review_id = #{review_id}
   </insert>
+
+  <insert id="insertSeller">
+      <!-- MySQL의 경우 LAST_INSERT_ID() 등을 활용 -->
+      <selectKey keyProperty="seller_id" resultType="int" order="AFTER">
+          SELECT LAST_INSERT_ID()
+      </selectKey>
+      INSERT INTO seller(username, password, store_name)
+      VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{store_name})
+  </insert>
 </mapper>

@@ -20,7 +20,7 @@
             <div class="d-flex flex-column" style=" height: 100vh;">
               <!-- 판매자 정보 -->
               <div class="d-flex flex-column justify-content-center">
-                <p class="p-2" th:text="${session.sellerInfo.store_name}">판매자</p>
+                <p class="p-2" th:text="${session.sellerInfo.store_name}"><a th:href="/admin/dashboard">판매자</a></p>
                 <div class="p-2">
                   <a th:href="@{/admin/logout}">로그아웃</a>
                 </div>

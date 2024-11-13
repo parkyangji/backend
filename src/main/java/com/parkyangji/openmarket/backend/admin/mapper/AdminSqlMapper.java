@@ -25,4 +25,6 @@ public interface AdminSqlMapper {
 
   public void inserReply(ProductReviewDto productReviewDto);
 
+  public void insertSeller(SellerDto sellerDto);
+
 }

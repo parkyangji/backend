@@ -39,6 +39,16 @@ public class UserService {
     return userSqlMapper.selectLoginCheck(customerDto); // 없으면 null
   }
 
+
+  public List<ProductDto> getCategoryProductList(int category_id) {
+    return userSqlMapper.selectCategoryIdProducts(category_id);
+  }
+
+  public ProductCategoryDto getCategoryInfo(int category_id){
+    return userSqlMapper.selectCategory(category_id);
+  }
+
+
   public Map<String, Object> getProductDate(int product_id) {
     Map<String, Object> productData = new HashMap<>();
 
@@ -51,10 +61,23 @@ public class UserService {
     productData.put("storeName", storeName);
 
     // 평점 통계 => 상품 구매 구현시 가능
+    Float avgRating =  userSqlMapper.selectAvgRating(product_id);
+    productData.put("avgRating", avgRating);
 
     // 리뷰 => 상품 후기 등록 구현시 가능
+    List<Map<String,Object>> reviewData = new ArrayList<>();
+
+    List<ProductReviewDto> getReviews = userSqlMapper.selectReviews(product_id);
+    for (ProductReviewDto review : getReviews) {
+      Map<String, Object> data = new HashMap<>();
+      data.put("review", review);
+      data.put("reviewer", userSqlMapper.selectCustomer(review.getCustomer_id()));
+      reviewData.add(data);
+    }
+    productData.put("reviewData", reviewData);
 
     // 문의 => 나중에 업데이트시!!!!!!!
+
     return productData;
   }
 
@@ -139,10 +162,6 @@ public class UserService {
 
   public ProductFavoriteDto findLike(ProductFavoriteDto productFavoriteDto){
     return userSqlMapper.selectLike(productFavoriteDto);
-  }
-
-  public List<ProductDto> getCategoryProductList(int category_id) {
-    return userSqlMapper.selectCategoryIdProducts(category_id);
   }
 
 }

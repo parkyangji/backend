@@ -71,9 +71,15 @@ public class AdminController {
     return "redirect:/admin";
   }
 
-  @RequestMapping("registerProcess")
-  public String sellerRegisterProcess(){
+  @RequestMapping("register")
+  public String sellerRegisterPage(){
+    return "admin/admin_register";
+  }
 
+  @RequestMapping("registerProcess")
+  public String sellerRegisterProcess(SellerDto params){
+    System.out.println(params);
+    adminService.sellerRegister(params);
     return "redirect:/admin";
   }
 
