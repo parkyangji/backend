@@ -33,8 +33,119 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
-      <div class="row mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
-        <!-- <p th:text="${order.ProductOrderDto.order_date}"></p> -->
+      <!-- 리뷰 작성 -->
+      <div class="mb-4 pb-4 border-bottom">
+        <p class="fs-1-5 fw-semibold ">리뷰 작성</p>
+        <div th:if="${hasReviewsState}">
+          <div th:each="order : ${orderList}">
+            <div th:if="${order.ProductOrderDto.status == '배송완료' && order.ProductReview == null}">
+              <div class="d-flex fs-13 mb-2 back-bg" >
+                <img class="me-2" style="object-fit: cover; width: 18%;" th:src="|/uploadFiles/${order.ProductDto.main_page_url}|" th:alt="${order.ProductDto.title}"></img>
+                <ul class="flex-fill p-2">
+                  <li class="lh-sm my-1">
+                    <a th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}">상품명</a>
+                  </li>
+                  <li class="fs-14 text-secondary">100 / 2개</li>
+                </ul>
+              </div>
+              <!-- <div>
+                <p th:text="${order.ProductOrderDto.order_date}"></p>
+                <p th:text="${order.ProductOrderDto.status}"></p>
+                <p class="m-0" th:text="|구매일 : ${order.ProductOrderDto.order_date}|"></p>
+                <a class="my-2 text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}"
+                  th:text="${order.ProductDto.title}"></a>
+              </div> -->
+
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <form action="/ratingProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.rating == 0}">
+                    <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
+                    <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
+                    <button id="star1" name="rating" value="1"></button>
+                    <label for="star1" title="text">☆</label>
+                    <button id="star2" name="rating" value="2"></button>
+                    <label for="star2" title="text">☆</label>
+                    <button id="star3" name="rating" value="3"></button>
+                    <label for="star3" title="text">☆</label>
+                    <button id="star4" name="rating" value="4"></button>
+                    <label for="star4" title="text">☆</label>
+                    <button id="star5" name="rating" value="5"></button>
+                    <label for="star5" title="text">☆</label>
+                  </form>
+                  
+                  <div class="rating" th:if="${order.ProductReview != null && order.ProductReview.rating != 0}">
+                    <span th:each="i : ${#numbers.sequence(1, 5)}" 
+                          th:classappend="${i <= order.ProductReview.rating} ? 'rating-color' : ''">★</span>
+                  </div> 
+                </div>
+                <div >
+                  <form action="/reviewContentProcess" method="POST" class="d-flex gap-1" th:if="${order.ProductReview == null || order.ProductReview.content == null}">
+                    <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
+                    <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
+                    <input class="flex-fill" type="text" name="content" id="content">
+                    <button class="btn btn-primary main-bg-color border-0">등록</button>
+                  </form>
+                  
+                  <div class="d-flex" th:if="${order.ProductReview != null}">
+                    <span class="flex-fill" th:text="${order.ProductReview.content}"></span>
+                  </div>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+        <div th:if="${!hasReviewsState}" class="fs-14 text-secondary">
+          <p>리뷰를 작성할 상품이 없어요!</p>
+        </div>
+      </div>
+
+      <div class="mb-4 pb-4 border-bottom">
+        <p class="fs-1-5 fw-semibold ">작성한 리뷰</p>
+        <div th:each="order : ${orderList}">
+          <div th:if="${order.ProductOrderDto.status == '배송완료' && order.ProductReview != null && order.ProductReview.content != null}"   class="d-flex fs-13 mb-2 back-bg" >
+            <img class="me-2" style="object-fit: cover; width: 18%;" th:src="|/uploadFiles/${order.ProductDto.main_page_url}|" th:alt="${order.ProductDto.title}"></img>
+            <ul class="flex-fill p-2">
+              <li class="lh-sm my-1">
+                <a th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}">상품명</a>
+              </li>
+              <li class="fs-14 text-secondary">100 / 2개</li>
+            </ul>
+          </div>
+
+          <div th:if="${order.ProductOrderDto.status == '배송완료' && order.ProductReview != null}" >
+            <div class="align-items-center d-flex gap-2">
+              <i class="bi bi-person-circle fs-1" style="color: #eaeaea;"></i>
+              <span class="fs-14" th:text="${order.reviewer.nickname}"></span>
+            </div>
+            <p class="mb-2">
+              <span class="rating-color">★ </span>
+              <span th:if="${order.ProductReview.rating!=null}" class="fs-13 fw-bold" th:text="${order.ProductReview.rating}"></span>
+              <span th:text="${#dates.format(order.ProductReview.created_date, 'YY.MM.dd')}" style="font-size: 12px; color: #c0c0c0;"></span>
+            </p>
+            <p class="mx-1 my-3" th:if="${order.ProductReview.content!=null}" th:text="${order.ProductReview.content}"></p>
+            <!-- <p th:if="${order.ProductReview.seller_reply==null}" class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;">판매자가 아직 답글을 달지 않았습니다</p>
+            <div class="position-relative">
+              <p th:if="${order.ProductReview.seller_reply!=null}" class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;" th:text="${order.ProductReview.seller_reply}"></p>
+              <span th:if="${order.ProductReview.reply_date!=null}" th:text="${#dates.format(order.ProductReview.created_date, 'YY.MM.dd')}" 
+                class="position-absolute bottom-0 end-0" style="font-size: 12px; color: #c0c0c0;"></span>
+            </div> -->
+          </div>
+        </div>
+
+      </div>
+
+
+
+
+
+
+
+
+      <!-- <div class="row mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
+        <p th:text="${order.ProductOrderDto.order_date}"></p>
         <p th:text="${order.ProductOrderDto.status}"></p>
         <p class="m-0" th:text="|구매일 : ${order.ProductOrderDto.order_date}|"></p>
         <a class="my-2 text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}"
@@ -50,12 +161,10 @@
             <button class="btn btn-primary main-bg-color border-0">등록</button>
           </form>
           
-          <!-- 리뷰가 있을 때는 content를 <span> 태그로 출력 -->
           <div class="d-flex" th:if="${order.ProductReview != null}">
             <span class="flex-fill" th:text="${order.ProductReview.content}"></span>
           </div>
           
-          <!-- 평점 부분 -->
           <form action="/ratingProcess" method="POST" class="d-flex" th:if="${order.ProductReview == null || order.ProductReview.rating == 0}">
             <input type="hidden" name="product_id" th:value="${order.ProductDto.product_id}"> 
             <input type="hidden" name="order_id" th:value="${order.ProductOrderDto.order_id}"> 
@@ -77,26 +186,7 @@
           </div>  
         </div>
     
-        
-        <!-- <div class="rating-container">
-          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="1" xmlns="http://www.w3.org/2000/svg">
-              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
-          </svg>
-          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="2" xmlns="http://www.w3.org/2000/svg">
-              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
-          </svg>
-          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="3" xmlns="http://www.w3.org/2000/svg">
-              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
-          </svg>
-          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="4" xmlns="http://www.w3.org/2000/svg">
-              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
-          </svg>
-          <svg viewBox="0 0 576 512" height="2em" class="star" data-value="5" xmlns="http://www.w3.org/2000/svg">
-              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"></path>
-          </svg>
-        </div> -->
-        <!-- <p>현재 평점: <span class="ratingValue">0</span>/5</p> -->
-      </div>
+      </div> -->
     </div>
 
     <!-- 하단 푸터 -->

@@ -17,6 +17,23 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{
   -webkit-appearance: none;
 }
 
+input:focus-within {
+  border: 1.5px solid #09aa5c !important;
+}
+input:focus-visible {
+  border: 1.5px solid #09aa5c !important;
+  outline : 1.5px solid #09aa5c;
+  outline-style: auto;
+}
+textarea:focus-within {
+  border: 1.5px solid #09aa5c !important;
+}
+textarea:focus-visible {
+  border: 1.5px solid #09aa5c !important;
+  outline : 1.5px solid #09aa5c;
+  outline-style: auto;
+}
+
 .fs-1-5{
   font-size: 1.13rem !important;
 }
@@ -56,6 +73,18 @@ button {
   background: #09aa5c;
 }
 
+.button-style2 {
+  border: none;
+  color: #09aa5c;
+  font-weight: 500;
+  border-radius: 10px;
+  height: 48px;
+  width: 100%;
+  cursor: pointer;
+  /* background: #09aa5c; */
+  border: 1px solid #09aa5c;
+}
+
 .back-bg {
   background: #f4f6f8;
 }
@@ -79,6 +108,12 @@ button {
   color: #09aa5c !important;
   /* background: linear-gradient(to right,#04ce6d,#03cb87) */
 }
+
+.main-text-strong-color {
+  color: #09aa5c !important;
+  /* background: linear-gradient(to right,#04ce6d,#03cb87) */
+}
+
 
 .main-text-ligth-color {
   color: #c3f5d8 !important;
@@ -187,9 +222,7 @@ button {
   outline: none;
 }
 
-#loginform .inputForm:focus-within {
-  border: 1.5px solid #09aa5c;
-}
+
 
 #loginform .flex-row {
   display: flex;

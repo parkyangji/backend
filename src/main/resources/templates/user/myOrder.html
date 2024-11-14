@@ -16,10 +16,26 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
+      <!-- 주문내역 박스 -->
       <div class="mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
-        <p class="m-0" th:text="${order.ProductOrderDto.order_date}"></p>
-        <p th:text="${order.ProductOrderDto.status}"></p>
-        <a class="text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}"></a>
+        <p class="m-0 fs-14" th:text="${#dates.format(order.ProductOrderDto.order_date, 'yyyy.MM.dd')}"></p>
+        <p class="m-0 main-text-strong-color fw-semibold" th:text="${order.ProductOrderDto.status}"></p>
+        <!-- <a class="text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}"></a> -->
+        <div class="d-flex">
+          <img class="w-25 me-2" style="object-fit: contain;" th:src="|/uploadFiles/${order.ProductDto.main_page_url}|" th:alt="${order.ProductDto.title}"></img>
+          <ul class="flex-fill p-2">
+            <li class="fs-14" th:text="${order.store_name}">브랜드</li>
+            <li class="lh-sm my-1">
+              <a th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}">상품명</a>
+            </li>
+            <li class="fs-14 text-secondary">100 / 2개</li>
+            <li class="fw-semibold" th:text="|${order.ProductDto.price}원|">가격</li>
+          </ul>
+        </div>
+        <!-- 배송 완료시 리뷰 작성 활성화 -->
+        <div th:if="${order.ProductOrderDto.status == '배송완료'}">
+          <button class="d-block button-style2 mt-1 text-center" onclick="location.href='/mypage/review'" >리뷰 작성</button>
+        </div>
       </div>
     </div>
 

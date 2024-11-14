@@ -30,6 +30,7 @@ public interface UserSqlMapper {
 
   // 주문 넣기
   public void insertOrder(ProductOrderDto productOrderDto);
+  public void updateTotalQuantity(ProductOrderDto productOrderDto);
 
   // 배송지 가져오기
   public List<String> selectAddressList(int customer_id);

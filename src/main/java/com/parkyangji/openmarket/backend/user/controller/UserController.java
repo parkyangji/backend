@@ -127,13 +127,8 @@ public class UserController {
     boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;
     model.addAttribute("isLoggedIn", isLoggedIn);
 
-    List<ProductDto> productList = userService.getCategoryProductList(category_id);
-    
-    model.addAttribute("productList", productList);
-
-    ProductCategoryDto categoryInfo = userService.getCategoryInfo(category_id);
-
-    model.addAttribute("category", categoryInfo);
+    Map<String, Object> productListData = userService.getCategoryProductList(category_id);
+    model.addAllAttributes(productListData);
 
     return "user/productList";
   }
@@ -168,12 +163,24 @@ public class UserController {
     // 로그인 고객 정보
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
 
+    // 고객 배송지 목록
     List<String> address = userService.getAddressList(customerDto.getCustomer_id());
-    
+
+    // 전화번호, 주소, 기본 배송지
+
+    // 주문 상품, 주문 개수
+
+    // 할인 (쿠폰, 포인트 등)
+
+    // 결제 수단
+
+    // 결제 금액
+
     model.addAttribute("product_id", product_id);
     model.addAttribute("customer_id", customerDto.getCustomer_id());
+    model.addAllAttributes(userService.getProductDate(product_id));
     model.addAttribute("address", address);
-    //model.addAttribute("address", customerDto);
+    model.addAttribute("customerDto", customerDto);
     
     return "user/order";
   }
@@ -185,7 +192,11 @@ public class UserController {
     @RequestParam("quantity") int quantity,
     @RequestParam("delivery_address") String delivery_address
   ){
-    //System.out.println(product_id);
+    // 재고가 모자라 주문이 완료되지 않았습니다!!!!! 넣기
+    ProductDto productDto = (ProductDto) userService.getProductDate(product_id).get("productInfo");
+    if (productDto.getTotal_quantity() < quantity) {
+      return "redirect:/home"; // 재고 모자르면 주문 완료 x
+    }
 
     //제품 번호, 수량 정보 => 나중에 옵션 추가하면 변경, 배송지, 진행상태("결제완료") => 결제수단 따로 있으면 "결제대기"
     ProductOrderDto productOrderDto = new ProductOrderDto();
@@ -194,9 +205,8 @@ public class UserController {
     productOrderDto.setQuantity(quantity); 
     productOrderDto.setDelivery_address(delivery_address);
     productOrderDto.setStatus("결제완료");
-    // System.out.println(productOrderDto);
 
-    userService.createOrder(productOrderDto);
+    userService.createOrderAndUpdateCount(productOrderDto);
 
     return "redirect:/orderComplete";
   }
@@ -259,7 +269,9 @@ public class UserController {
     List<Map<String, Object>> orderList = userService.getOrderList(customerDto.getCustomer_id());
 
     model.addAttribute("orderList", orderList);
-    //System.out.println(orderList);
+    // System.out.println(orderList);
+
+    model.addAttribute("hasReviewsState", userService.hasReviewsState(customerDto.getCustomer_id()));
 
     return "user/myReview";
   }

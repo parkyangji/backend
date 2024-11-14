@@ -16,22 +16,22 @@
       <div class="container-fluid " style="width: 1280px;">
         <div class="row" style="width: 100%;">
           <!-- 왼쪽 메뉴 -->
-          <div class="col-2 p-2 store-bg-color">
-            <div class="d-flex flex-column" style=" height: 100vh;">
+          <div class="col-2 p-2 store-bg-color text-light">
+            <div class="d-flex flex-column" style="height: 100vh;">
               <!-- 판매자 정보 -->
-              <div class="d-flex flex-column justify-content-center">
-                <p class="p-2"><a th:href="@{/admin/dashboard}" th:text="${session.sellerInfo.store_name}">판매자</a></p>
-                <div class="p-2">
+              <div class="d-flex flex-column gap-3 justify-content-center p-5 text-center">
+                <p class="m-0"><a th:href="@{/admin/dashboard}" th:text="${session.sellerInfo.store_name}">판매자</a></p>
+                <div>
                   <a th:href="@{/admin/logout}">로그아웃</a>
                 </div>
               </div>
               <!-- 메뉴 -->
-              <ul class="d-flex flex-column justify-content-center">
-                <li class="p-2"><a th:href="@{/admin/productRegister}">상품 등록</a></li>
-                <li class="p-2"><a th:href="@{/admin/products}">상품 조회/수정</a></li>
-                <li class="p-2"><a th:href="@{/admin/order}">주문 조회</a></li>
-                <li class="p-2">배송현황 관리</li>
-                <li class="p-2"><a th:href="@{/admin/review}">리뷰 관리</a></li>
+              <ul class="d-flex flex-column justify-content-center gap-2">
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/products}">상품 조회/수정</a></li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/productRegister}">상품 등록</a></li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/order}">주문 조회</a></li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;">배송현황 관리</li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/review}">리뷰 관리</a></li>
               </ul>
             </div>
 

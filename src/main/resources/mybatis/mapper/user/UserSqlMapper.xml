@@ -53,6 +53,10 @@
       VALUES(#{customer_id}, #{product_id}, #{quantity}, #{delivery_address}, #{status})
   </insert>
 
+  <update id="updateTotalQuantity">
+    update product set total_quantity = total_quantity - #{quantity} where product_id = #{product_id}
+  </update>
+
   <select id="selectAddressList" resultType="String">
     SELECT address FROM address WHERE customer_id = #{customer_id};
   </select>
@@ -103,6 +107,36 @@
 
   <select id="selectCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductCategoryDto">
     select * from product_category where category_id = #{category_id}
+  </select>
+
+  <select id="사용자 구매내역 찜 리스트 카테고리 추천 5개 상품">
+    WITH MostOrderedCategories AS (
+        SELECT p.category_id, COUNT(*) AS order_count
+        FROM product_order o
+        JOIN product p ON o.product_id = p.product_id
+        WHERE o.customer_id = :customerId
+        GROUP BY p.category_id
+        ORDER BY order_count DESC
+        LIMIT 1
+    ),
+    MostLikedCategories AS (
+        SELECT p.category_id, COUNT(*) AS like_count
+        FROM product_favorite f
+        JOIN product p ON f.product_id = p.product_id
+        WHERE f.customer_id = :customerId
+        GROUP BY p.category_id
+        ORDER BY like_count DESC
+        LIMIT 1
+    ),
+    RecommendedCategories AS (
+        SELECT category_id FROM MostOrderedCategories
+        UNION
+        SELECT category_id FROM MostLikedCategories
+    )
+    SELECT *
+    FROM product
+    WHERE category_id IN (SELECT category_id FROM RecommendedCategories)
+    LIMIT 5;
   </select>
 
 </mapper>

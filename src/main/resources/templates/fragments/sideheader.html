@@ -9,7 +9,8 @@
   <!-- <div th:fragment="header" class="container-sm sticky-top main-bg-color main-text-ligth-color"> -->
     <div th:fragment="sideheader(titleText)" class="bg-white border-bottom border-light-subtle d-flex px-2 text-center align-items-center justify-content-between" style="min-height: 48px;">
       <div class="back-icon position-absolute" onclick="window.history.back()"><i class="fs-4 bi bi-arrow-left"></i></div>
-      <div class="flex-fill fs-1-5" th:text="${titleText}" style="font-weight: 600;">메뉴</div>
+      <div class="flex-fill fs-1-5 fw-semibold" th:text="${titleText}">메뉴</div>
+      <div th:if="${titleText != '로그인' && titleText != '회원가입'}" class="position-absolute end-0" style="padding-right: 18px;"><i class="fs-3 bi bi-cart"></i></div>
     </div>
   <!-- </div> -->
 <!-- </div> -->

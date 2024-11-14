@@ -15,32 +15,32 @@
     <div th:insert="~{fragments/sideheader::sideheader('마이페이지')}" class="px-0 container-sm fixed-top"></div>
 
     <!-- 컨텐츠 -->
-    <div class="container-sm mt-5 p-4">
+    <div class="container-sm mt-3 p-4">
       <div class="row mb-4">
         <div class="col">
           <span class="fs-3" th:text="${session.sessionInfo.nickname}"></span><span class="ms-1">님</span>
         </div>
       </div>
-      <div class="row gap-2 flex-column">
+      <div class="row gap-3 flex-column mt-4">
         <a th:href="@{/mypage/order}">
           <div class="d-flex gap-4 align-items-center">
-            <i class="fs-2 bi bi-truck"></i>
-            <span class="fs-5 flex-fill">주문·배송</span>
-            <i class="bi bi-chevron-right"></i>
+            <i class="fs-3 bi bi-truck"></i>
+            <span class="fs-1-5 fw-medium flex-fill">주문·배송</span>
+            <i class="bi bi-chevron-right main-text-sub-color"></i>
           </div>
         </a>
         <a th:href="@{/mypage/review}">
           <div class="d-flex gap-4 align-items-center" >
-            <i class="fs-2 bi bi-card-text" style="top: 1px; position: relative;"></i>
-            <span class="fs-5 flex-fill">리뷰</span>
-            <i class="bi bi-chevron-right"></i>
+            <i class="fs-3 bi bi-card-text" style="top: 1px; position: relative;"></i>
+            <span class="fs-1-5 fw-medium flex-fill">리뷰</span>
+            <i class="bi bi-chevron-right main-text-sub-color"></i>
           </div>
         </a>
         <a th:href="@{/mypage/like}">
           <div class="d-flex gap-4 align-items-center" >
-            <i class="fs-2 bi bi-bookmark" style="top: 2px; position: relative;"></i>
-            <span class="fs-5 flex-fill">찜 목록</span>
-            <i class="bi bi-chevron-right"></i>
+            <i class="fs-3 bi bi-bookmark" style="top: 2px; position: relative;"></i>
+            <span class="fs-1-5 fw-medium flex-fill">찜 목록</span>
+            <i class="bi bi-chevron-right main-text-sub-color"></i>
           </div>
         </a>
       </div>
