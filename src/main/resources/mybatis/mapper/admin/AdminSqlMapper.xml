@@ -8,16 +8,21 @@
 		where username = #{username} and password = SHA2(concat(#{password}, '!@www'), '256')
   </select>
 
-  <insert id="insertProduct">
+  <insert id="insertProductAndGetId" useGeneratedKeys="true" keyProperty="product_id">
+      INSERT INTO product (category_id, seller_id, title)
+      VALUES (#{category_id}, #{seller_id}, #{title});
+  </insert>
+
+  <!-- <insert id="insertProduct">
     insert into product(category_id,seller_id,title,description, price ,main_page_url,total_quantity)
     values(#{category_id}, #{seller_id}, #{title}, #{description}, #{price}, #{main_page_url}, #{total_quantity})
-  </insert>
+  </insert> -->
 
   <select id="selectSellerProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
     select * from product where seller_id = #{seller_id}
   </select>
 
-  <select id="selectOrderByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductOrderDto">
+  <select id="selectOrderByProductId" resultType="com.parkyangji.openmarket.backend.dto.OrderDto">
     select * from product_order where product_id = #{product_id}
   </select>
 
@@ -37,4 +42,59 @@
       INSERT INTO seller(username, password, store_name)
       VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{store_name})
   </insert>
+
+  <select id="selectGetImageTypeId" resultType="int">
+    select image_type_id from image_type where type_name = #{string}
+  </select>
+
+  <insert id="insertImage">
+    INSERT INTO product_image (product_id, image_type_id, image_url)
+    VALUES (#{product_id}, #{image_type_id}, #{image_url})
+  </insert>
+
+  <!-- 키워드 -->
+  <select id="selectKeywordGetId" resultType="int">
+    SELECT keyword_id FROM keyword WHERE keyword_name  = #{keyword_name}
+  </select>
+  <insert id="insertProductKeywordId">
+    insert into product_keyword_value(product_id, keyword_id) 
+    values(#{product_id}, #{keyword_id})
+  </insert>
+
+  <!-- 옵션 -->
+  <!-- useGeneratedKeys	(입력(insert, update)에만 적용) : 
+  데이터베이스에서 내부적으로 생성한 키 , JDBC 드라이버가 생성된 기본 키를 getGeneratedKeys() 메서드를 통해 반환.
+  (예를들어 MySQL또는 SQL Server와 같은 RDBMS의 자동 증가 필드)를 받는 JDBC getGeneratedKeys메소드를 사용하도록 설정하다. 디폴트는 false 이다. -->
+ 
+  <!-- keyProperty	(입력(insert, update)에만 적용) : 
+  getGeneratedKeys 메소드나 insert 구문의 selectKey 하위 엘리먼트에 의해 리턴된 키를 셋팅할 프로퍼티를 지정.
+  디폴트는 셋팅하지 않는 것이다. 여러개의 칼럼을 사용한다면 프로퍼티명에 콤마를 구분자로 나열할수 있다. -->
+
+  <!-- LAST_INSERT_ID()는 MySQL 세션 단위로 동작하므로, 동시성 문제가 발생할 수 있음. -->
+  <insert id="insertProductOption" useGeneratedKeys="true" keyProperty="option_id">
+      INSERT INTO product_option (product_id, optionvalue)
+      VALUES (#{product_id}, #{optionvalue})
+  </insert>
+
+
+  <insert id="insertProductOptionValue" >
+      INSERT INTO product_option_value (option_id, optionvalue)
+      VALUES (#{option_id}, #{optionvalue})
+  </insert>
+
+  <insert id="createProductOptionCombinationId" useGeneratedKeys="true" keyProperty="combination_id">
+      INSERT INTO product_option_combination (combination_id, product_id)
+      VALUES (#{combination_id}, #{product_id})
+  </insert>
+
+  <insert id="insertProductCombinationValue">
+    INSERT INTO product_combination_value (combination_id, option_value_id)
+    VALUES (#{combination_id}, #{option_value_id})
+  </insert>
+
+  <insert id="insertProductOptionInventory">
+      INSERT INTO product_option_inventory (combination_id, quantity, price)
+      VALUES (#{combination_id}, #{quantity}, #{price})
+  </insert>
+
 </mapper>

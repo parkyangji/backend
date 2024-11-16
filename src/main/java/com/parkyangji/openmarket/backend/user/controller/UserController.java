@@ -17,7 +17,7 @@ import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
-import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
+import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
@@ -95,6 +95,7 @@ public class UserController {
     @RequestParam("username") String username,
     @RequestParam("password") String password,
     @RequestParam("nickname") String nickname,
+    @RequestParam("name") String name,
     @RequestParam("gender") String gender,
     @RequestParam("phone") String phone,
     @RequestParam("address") String address){
@@ -103,6 +104,7 @@ public class UserController {
     customerDto.setUsername(username);
     customerDto.setPassword(password);
     customerDto.setNickname(nickname);
+    customerDto.setName(name);
     customerDto.setGender(gender);
     customerDto.setPhone(phone);
 
@@ -194,16 +196,16 @@ public class UserController {
   ){
     // 재고가 모자라 주문이 완료되지 않았습니다!!!!! 넣기
     ProductDto productDto = (ProductDto) userService.getProductDate(product_id).get("productInfo");
-    if (productDto.getTotal_quantity() < quantity) {
-      return "redirect:/home"; // 재고 모자르면 주문 완료 x
-    }
+    // if (productDto.getTotal_quantity() < quantity) {
+    //   return "redirect:/home"; // 재고 모자르면 주문 완료 x
+    // }
 
     //제품 번호, 수량 정보 => 나중에 옵션 추가하면 변경, 배송지, 진행상태("결제완료") => 결제수단 따로 있으면 "결제대기"
-    ProductOrderDto productOrderDto = new ProductOrderDto();
-    productOrderDto.setProduct_id(product_id);
+    OrderDto productOrderDto = new OrderDto();
+    //productOrderDto.setProduct_id(product_id);
     productOrderDto.setCustomer_id(customer_id);
-    productOrderDto.setQuantity(quantity); 
-    productOrderDto.setDelivery_address(delivery_address);
+    //productOrderDto.setQuantity(quantity); 
+    //productOrderDto.setDelivery_address(delivery_address);
     productOrderDto.setStatus("결제완료");
 
     userService.createOrderAndUpdateCount(productOrderDto);

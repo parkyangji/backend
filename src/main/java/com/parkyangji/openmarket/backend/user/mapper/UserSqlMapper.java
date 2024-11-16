@@ -9,7 +9,7 @@ import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
-import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
+import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 
 @Mapper
@@ -29,14 +29,14 @@ public interface UserSqlMapper {
   public CustomerDto selectCustomer(int customer_id);
 
   // 주문 넣기
-  public void insertOrder(ProductOrderDto productOrderDto);
-  public void updateTotalQuantity(ProductOrderDto productOrderDto);
+  public void insertOrder(OrderDto productOrderDto);
+  public void updateTotalQuantity(OrderDto productOrderDto);
 
   // 배송지 가져오기
   public List<String> selectAddressList(int customer_id);
 
   // 주문 내역 가져오기
-  public List<ProductOrderDto> selectOrderList(int customer_id);
+  public List<OrderDto> selectOrderList(int customer_id);
 
   // 리뷰
   public ProductReviewDto selectReviewByProductAndCustomer(ProductReviewDto productReviewDto);

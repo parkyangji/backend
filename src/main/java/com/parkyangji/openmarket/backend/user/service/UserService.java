@@ -13,7 +13,7 @@ import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
-import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
+import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.user.mapper.UserSqlMapper;
 
@@ -99,7 +99,7 @@ public class UserService {
     return userSqlMapper.selectAddressList(customer_id);    
   }
 
-  public void createOrderAndUpdateCount(ProductOrderDto productOrderDto){
+  public void createOrderAndUpdateCount(OrderDto productOrderDto){
     userSqlMapper.insertOrder(productOrderDto);
     userSqlMapper.updateTotalQuantity(productOrderDto);
   }
@@ -107,41 +107,41 @@ public class UserService {
   public List<Map<String, Object>> getOrderList(int customer_id) {
     List<Map<String, Object>> orderData = new ArrayList<>();
 
-    List<ProductOrderDto> orderList = userSqlMapper.selectOrderList(customer_id);
+    List<OrderDto> orderList = userSqlMapper.selectOrderList(customer_id);
     
-    for (ProductOrderDto order : orderList) {
-      Map<String, Object> product = new HashMap<>();
-      ProductDto productDto = userSqlMapper.selectProductDto(order.getProduct_id());
-      product.put("ProductDto", productDto);
+    // for (OrderDto order : orderList) {
+    //   Map<String, Object> product = new HashMap<>();
+    //   ProductDto productDto = userSqlMapper.selectProductDto(order.getProduct_id());
+    //   product.put("ProductDto", productDto);
 
-      ProductReviewDto productReviewDto = new ProductReviewDto();
-      productReviewDto.setProduct_id(order.getProduct_id());
-      productReviewDto.setCustomer_id(order.getCustomer_id());
-      productReviewDto.setOrder_id(order.getOrder_id());
-      // System.out.println(order.getOrder_id());
-      product.put("reviewer", userSqlMapper.selectCustomer(order.getCustomer_id()));
-      product.put("ProductReview", userSqlMapper.selectReviewByProductAndCustomer(productReviewDto));
-      product.put("ProductOrderDto", order);
-      product.put("store_name", userSqlMapper.selectStoreName(productDto.getSeller_id())); // 브랜드명 
+    //   ProductReviewDto productReviewDto = new ProductReviewDto();
+    //   productReviewDto.setProduct_id(order.getProduct_id());
+    //   productReviewDto.setCustomer_id(order.getCustomer_id());
+    //   productReviewDto.setOrder_id(order.getOrder_id());
+    //   // System.out.println(order.getOrder_id());
+    //   product.put("reviewer", userSqlMapper.selectCustomer(order.getCustomer_id()));
+    //   product.put("ProductReview", userSqlMapper.selectReviewByProductAndCustomer(productReviewDto));
+    //   product.put("ProductOrderDto", order);
+    //   product.put("store_name", userSqlMapper.selectStoreName(productDto.getSeller_id())); // 브랜드명 
 
-      orderData.add(product);
-    }
+    //   orderData.add(product);
+    // }
 
     return orderData;
   }
 
   public Boolean hasReviewsState(int customer_id) {
     // 주문 목록을 조회합니다.
-    List<ProductOrderDto> orderList = userSqlMapper.selectOrderList(customer_id);
+    List<OrderDto> orderList = userSqlMapper.selectOrderList(customer_id);
 
     // 배송완료 상태이며 리뷰가 없는 항목이 있는지 확인
     return orderList.stream()
         .anyMatch(order -> {
             // 해당 상품에 대한 리뷰 조회
             ProductReviewDto productReviewDto = new ProductReviewDto();
-            productReviewDto.setProduct_id(order.getProduct_id());
-            productReviewDto.setCustomer_id(order.getCustomer_id());
-            productReviewDto.setOrder_id(order.getOrder_id());
+            // productReviewDto.setProduct_id(order.getProduct_id());
+            // productReviewDto.setCustomer_id(order.getCustomer_id());
+            // productReviewDto.setOrder_id(order.getOrder_id());
 
             ProductReviewDto review = userSqlMapper.selectReviewByProductAndCustomer(productReviewDto);
 

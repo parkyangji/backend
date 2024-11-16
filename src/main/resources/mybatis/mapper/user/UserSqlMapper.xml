@@ -9,8 +9,8 @@
           SELECT LAST_INSERT_ID()
       </selectKey>
       
-      INSERT INTO customer(username, password, nickname, gender, phone)
-      VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{nickname}, #{gender}, #{phone})
+      INSERT INTO customer(username, password, nickname, name, gender, phone)
+      VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{nickname}, #{name}, #{gender}, #{phone})
   </insert>
 
   <insert id="insertAddress">
@@ -61,7 +61,7 @@
     SELECT address FROM address WHERE customer_id = #{customer_id};
   </select>
 
-  <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.ProductOrderDto">
+  <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderDto">
     SELECT * FROM product_order WHERE customer_id = #{customer_id} ORDER BY order_id DESC;
   </select>
 

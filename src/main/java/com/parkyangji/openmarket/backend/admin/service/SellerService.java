@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 
 import com.parkyangji.openmarket.backend.admin.mapper.AdminSqlMapper;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
-import com.parkyangji.openmarket.backend.dto.ProductOrderDto;
+import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 
 @Service
-public class AdminService {
+public class SellerService {
 
   @Autowired
   private AdminSqlMapper adminSqlMapper;
@@ -24,9 +24,9 @@ public class AdminService {
     return adminSqlMapper.selectLoginCheck(sellerDto);
   }
 
-  public void saveProduct(ProductDto productDto) {
-    adminSqlMapper.insertProduct(productDto);
-  }
+  // public void saveProduct(ProductDto productDto) {
+  //   adminSqlMapper.insertProduct(productDto);
+  // }
 
   public List<ProductDto> sellerProducts(int seller_id) {
     return adminSqlMapper.selectSellerProducts(seller_id);
@@ -40,10 +40,10 @@ public class AdminService {
 
       // 각 상품에 대해 주문 목록을 조회하고, 주문별로 Map에 추가
       for (ProductDto product : products) {
-          List<ProductOrderDto> orders = adminSqlMapper.selectOrderByProductId(product.getProduct_id());
+          List<OrderDto> orders = adminSqlMapper.selectOrderByProductId(product.getProduct_id());
 
           // 주문이 있는 경우에만 orderList에 개별 주문 항목 추가
-          for (ProductOrderDto order : orders) {
+          for (OrderDto order : orders) {
               Map<String, Object> orderData = new HashMap<>();
               orderData.put("product", product);    // 각 주문에 대한 상품 정보
               orderData.put("order", order);        // 개별 주문 정보
@@ -88,5 +88,17 @@ public class AdminService {
   public void sellerRegister(SellerDto sellerDto) {
     adminSqlMapper.insertSeller(sellerDto);
   }
+
+
+
+
+  /* dto 수정 하면서 추가!!! */
+  // public int getIdAndResigterProduct(ProductDto params) {
+  //   return adminSqlMapper.insertProductAndGetId(params);
+  // }
+
+  // public int getImageTypeId(String string) {
+  //   return adminSqlMapper.selectGetImageTypeId(string);
+  // }
 
 }

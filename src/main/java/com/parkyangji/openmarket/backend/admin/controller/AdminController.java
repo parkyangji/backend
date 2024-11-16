@@ -2,11 +2,15 @@ package com.parkyangji.openmarket.backend.admin.controller;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.checkerframework.checker.units.qual.s;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,19 +18,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.parkyangji.openmarket.backend.admin.service.AdminService;
+import com.parkyangji.openmarket.backend.admin.service.SellerService;
+import com.parkyangji.openmarket.backend.admin.service.ProductService;
+import com.parkyangji.openmarket.backend.config.ImageConfig;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
+import com.parkyangji.openmarket.backend.dto.ProductImageDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 
 import jakarta.servlet.http.HttpSession;
 
-
+// Controller: HTTP 요청/응답 처리 및 사용자와의 인터페이스를 담당.
 @Controller
 @RequestMapping("admin")
 public class AdminController {
 
   @Autowired
-  private AdminService adminService;
+  private ProductService ProductService; // 어드민 서비스
+
+  @Autowired
+  private SellerService sellerService;
+
 
   @RequestMapping("dashboard")
   public String dashboardPage(HttpSession httpSession, Model model){
@@ -40,9 +51,6 @@ public class AdminController {
   public String loginPage(HttpSession httpSession, Model model){
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
-    if (sellerDto!=null){
-      return "redirect:/admin/dashboard";
-    }
 
     model.addAttribute("sellerInfo", sellerDto);
     
@@ -52,11 +60,7 @@ public class AdminController {
   @RequestMapping("loginProcess")
   public String loginProcess(HttpSession httpSession, SellerDto params){
 
-    SellerDto sellerDto = adminService.loginCheck(params);
-    
-    if (sellerDto == null) {
-      return "redirect:/admin"; // 나중에 js 처리!!!!!!
-    }
+    SellerDto sellerDto = sellerService.loginCheck(params);
 
     httpSession.setAttribute("sellerInfo", sellerDto);
 
@@ -78,53 +82,84 @@ public class AdminController {
 
   @RequestMapping("registerProcess")
   public String sellerRegisterProcess(SellerDto params){
-    System.out.println(params);
-    adminService.sellerRegister(params);
+    // System.out.println(params);
+    sellerService.sellerRegister(params);
     return "redirect:/admin";
   }
 
   @RequestMapping("productRegisterProcess")
-  public String productRegisterProcess(ProductDto params ,@RequestParam("uploadFiles") MultipartFile uploadFile){
-    
-    // 폴더에 업로드!!!
-    String rootPath = "/Users/parkyangji/uploadFiles/";
+  public String productRegisterProcess(
+      @RequestParam("seller_id") int seller_id,
+      @RequestParam("sub_category") int sub_category, 
+      @RequestParam("title") String title,
+      @RequestParam("thumbnail") MultipartFile[] thumbnailImages,
+      @RequestParam("detail") MultipartFile[] detailImages,
+      @RequestParam(value = "keyword[]", required = false) List<String> keywords,
+      @RequestParam("option_name[]") List<String> option_name, // 옵션 부분 추후 js 처리!!!
+      @RequestParam("option_name_value1[]") List<String> option_value1, 
+      @RequestParam("option_name_value2[]") List<String> option_value2,
+      @RequestParam("quantity[]") List<Integer> quantity,
+      @RequestParam("price[]") List<Integer> price
+    ){
 
-    String folder = "ProductImage/" + params.getSeller_id() + "/" + params.getCategory_id() + "/";
+    if (sub_category == 0) return "redirect:/admin/admin_register";
 
-    File createFolder = new File(rootPath+folder);
+    // 1. 상품dto 
+    ProductDto params = new ProductDto();
+    params.setCategory_id(sub_category); // 부모 카테고리는 정해져 있음
+    params.setSeller_id(seller_id);
+    params.setTitle(title);
 
-    if (!createFolder.exists()) {
-      createFolder.mkdirs();
-    }
+    // 2. 이미지
+    Map<String, Object> imageList = new HashMap<>();
+    imageList.put("thumbnail", thumbnailImages);
+    imageList.put("detail", detailImages);
 
-    String originalFilename = uploadFile.getOriginalFilename();
+    // 3. 키워드
+    //System.out.println(keywords);
 
-    // 확장자명 추출
-    String ext = originalFilename.substring(originalFilename.lastIndexOf("."));
-    
-    String uuid = UUID.randomUUID().toString();
-    long currentTime = System.currentTimeMillis();
+    // 4. 옵션이름, 옵션값, 재고수량, 가격 
 
-    String filename = uuid + "_" + currentTime + ext;
+    // combinations: [["S", "빨강"], ["S", "파랑"], ["M", "빨강"], ["M", "파랑"]]
+    // quantity[]: [100, 50, 80, 60]
+    // price[]: [10000, 11000, 12000, 13000]
 
-    try {
-      uploadFile.transferTo(new File(rootPath+folder+filename));
-    } catch (Exception e) {
-      e.printStackTrace();
+    // HashMap 생성 => 나중에 js 동적 예정 !!!!!
+    /*
+    [
+      {이름 : 값[] },
+      {이름 : 값[] },
+      {이름 : 값[] }, ...
+    ]
+    */
+    // 임시 json처럼 생성
+    List<Map<String, Object>> option_combinations = new ArrayList<>();
+
+    for (String name : option_name) {
+      Map<String, Object> option = new HashMap<>();
+      if (name.equals("사이즈") ) {
+        option.put(name, option_value1);
+      }
+      if (name.equals("색상")) {
+        option.put(name, option_value2);
+      }
+      option_combinations.add(option);
     }
     //
+    //System.out.println(option_combinations);
 
-    String url = folder+filename;
+    int option_cases_count = 1;
+    for (Map<String, Object> map : option_combinations) {
+        for (Object values : map.values()) {
+          option_cases_count *= ((List<?>) values).size();
+        }
+    }
 
-    ProductDto productDto = new ProductDto();
-    productDto.setCategory_id(params.getCategory_id());
-    productDto.setSeller_id(params.getSeller_id());
-    productDto.setTitle(params.getTitle());
-    productDto.setPrice(params.getPrice());
-    productDto.setMain_page_url(url);
-    productDto.setTotal_quantity(params.getTotal_quantity());
-
-    adminService.saveProduct(productDto);
+    if (option_cases_count == quantity.size() &&  quantity.size() == price.size()) {
+      ProductService.registerProduct(params , imageList, keywords, option_combinations, quantity, price);
+    } else {
+      throw new IllegalArgumentException("option_combinations, quantity, and price lists must have the same size.");
+    }
 
     return "redirect:/admin/dashboard";
   }
@@ -141,7 +176,7 @@ public class AdminController {
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
 
-    List<ProductDto> productList = adminService.sellerProducts(sellerDto.getSeller_id());
+    List<ProductDto> productList = sellerService.sellerProducts(sellerDto.getSeller_id());
 
     model.addAttribute("productList", productList);
 
@@ -154,7 +189,7 @@ public class AdminController {
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
 
-    List<Map<String, Object>> orderList = adminService.getAllOrders(sellerDto.getSeller_id());
+    List<Map<String, Object>> orderList = sellerService.getAllOrders(sellerDto.getSeller_id());
     // System.out.println(orderList);
     
     model.addAttribute("orderList", orderList);
@@ -167,7 +202,7 @@ public class AdminController {
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
 
-    List<Map<String, Object>> reviewList = adminService.getAllReviews(sellerDto.getSeller_id());
+    List<Map<String, Object>> reviewList = sellerService.getAllReviews(sellerDto.getSeller_id());
     // System.out.println(reviewList);
     
     model.addAttribute("reviewList", reviewList);
@@ -180,7 +215,7 @@ public class AdminController {
     @RequestParam("review_id") int review_id,
     @RequestParam("seller_reply") String seller_reply
   ){
-    adminService.addReply(review_id, seller_reply);
+    sellerService.addReply(review_id, seller_reply);
     return "redirect:/admin/review";
   }
 }

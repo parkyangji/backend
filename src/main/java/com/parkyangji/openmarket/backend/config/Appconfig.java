@@ -20,12 +20,12 @@ public class Appconfig implements WebMvcConfigurer{
             .addResourceLocations("file:///Users/parkyangji/uploadFiles/"); // 이쪽에서 갖다써
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(sessionInterceptor)
-            .addPathPatterns("/admin/**", "/mypage/**")
-            .excludePathPatterns("/admin", "/admin/loginProcess", "/admin/registerProcess", "/admin/register");
-        // .addPathPatterns("/board/writeArticlePage")
-        // .addPathPatterns("/board/updateArticlePage");
-    }
+    // @Override
+    // public void addInterceptors(InterceptorRegistry registry) {
+    //     registry.addInterceptor(sessionInterceptor)
+    //         .addPathPatterns("/admin/**", "/mypage/**")
+    //         .excludePathPatterns("/admin", "/admin/loginProcess", "/admin/registerProcess", "/admin/register");
+    //     // .addPathPatterns("/board/writeArticlePage")
+    //     // .addPathPatterns("/board/updateArticlePage");
+    // }
 }
