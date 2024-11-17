@@ -16,6 +16,7 @@ import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.user.mapper.UserSqlMapper;
+import com.parkyangji.openmarket.backend.vo.ProductThumbnailVo;
 
 @Service
 public class UserService {
@@ -41,9 +42,37 @@ public class UserService {
 
 
 
-  public Map<String, Object> getCategoryProductList(int category_id){
+  public Map<String, Object> getCategoryProductList(int parent_category_id){
     Map<String, Object> productData = new HashMap<>();
 
+    // 상단 메뉴 이름
+    productData.put("category_name", userSqlMapper.selectCategoryName(parent_category_id));
+
+    // 하단 2뎁스 탭 메뉴
+    // category_id에서 parent_id가 같은걸 찾아 모두 출력해줘야함! (상품등록은 2뎁스 기준으로 되어있음)
+    List<Map<String, Object>> subCategoryIdAndName = userSqlMapper.selectSubCategorys(parent_category_id);
+    //System.out.println( userSqlMapper.selectSubCategorys(parent_category_id).toString());
+    
+    List<String> categoryNames = new ArrayList<>();
+    for (Map<String, Object> category : subCategoryIdAndName) {
+      categoryNames.add((String) category.get("category_name"));
+    }
+    productData.put("sub_categorys", categoryNames);
+    
+
+    // 1뎁스 기준 상품 출력
+    List<Integer> categoryId = new ArrayList<>();
+    for (Map<String, Object> category : subCategoryIdAndName) {
+      categoryId.add((Integer) category.get("category_id"));
+    }
+    System.out.println(categoryId);
+    // List<ProductDto> products = userSqlMapper.selectCategoryIdProducts(categoryId);
+
+    List<ProductThumbnailVo> categoryAllProductList = userSqlMapper.selectProductWithThumbnail(categoryId);
+
+    productData.put("productList", categoryAllProductList);
+    
+    /* 
     productData.put("category_name", userSqlMapper.selectCategory(category_id).getCategory_name());
 
     List<ProductDto> products = userSqlMapper.selectCategoryIdProducts(category_id);
@@ -58,7 +87,7 @@ public class UserService {
       new_productList.add(data);
     }
     productData.put("productList", new_productList);
-
+    */
     return productData;
   }
 

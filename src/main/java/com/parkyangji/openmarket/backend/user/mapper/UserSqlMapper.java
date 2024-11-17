@@ -1,6 +1,7 @@
 package com.parkyangji.openmarket.backend.user.mapper;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
@@ -11,6 +12,7 @@ import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
+import com.parkyangji.openmarket.backend.vo.ProductThumbnailVo;
 
 @Mapper
 public interface UserSqlMapper {
@@ -51,6 +53,9 @@ public interface UserSqlMapper {
   public List<ProductFavoriteDto> selectUserFavoriteList(int customer_id);
 
   // 카테고리별 전체 상품
-  public List<ProductDto> selectCategoryIdProducts(int category_id);
-  public ProductCategoryDto selectCategory(int category_id);
+  public String selectCategoryName(int category_id);
+  public List<Map<String, Object>> selectSubCategorys(int category_id);
+  //public List<ProductDto> selectCategoryIdProducts(int category_id);
+  public List<ProductDto> selectCategoryIdProducts(List<Integer> categoryIds);
+  public List<ProductThumbnailVo> selectProductWithThumbnail(List<Integer> categoryIds);
 }

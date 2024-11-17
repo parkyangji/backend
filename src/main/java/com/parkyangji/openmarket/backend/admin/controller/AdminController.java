@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.parkyangji.openmarket.backend.admin.service.SellerService;
 import com.parkyangji.openmarket.backend.admin.service.ProductService;
 import com.parkyangji.openmarket.backend.config.ImageConfig;
+import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductImageDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
@@ -33,10 +34,10 @@ import jakarta.servlet.http.HttpSession;
 public class AdminController {
 
   @Autowired
-  private ProductService ProductService; // 어드민 서비스
+  private ProductService productService; 
 
   @Autowired
-  private SellerService sellerService;
+  private SellerService sellerService; // 어드민 서비스
 
 
   @RequestMapping("dashboard")
@@ -87,13 +88,27 @@ public class AdminController {
     return "redirect:/admin";
   }
 
+  // 상품 등록 
+  @RequestMapping("productRegister")
+  public String productRegisterPage(Model model){
+
+    // 카테고리(사이트 관리자 지정) 모두 불러오기
+    model.addAttribute("categoryList", productService.getAllCategory());
+    
+    // 키워드(사이트 관리자 지정) 불러오기
+    model.addAttribute("keywords", productService.getAllKeyword());
+
+
+    return "admin/admin_productRegister";
+  }
+
   @RequestMapping("productRegisterProcess")
   public String productRegisterProcess(
       @RequestParam("seller_id") int seller_id,
       @RequestParam("sub_category") int sub_category, 
       @RequestParam("title") String title,
-      @RequestParam("thumbnail") MultipartFile[] thumbnailImages,
-      @RequestParam("detail") MultipartFile[] detailImages,
+      @RequestParam(value = "thumbnail", required = false) MultipartFile[] thumbnailImages,
+      @RequestParam(value = "detail", required = false) MultipartFile[] detailImages,
       @RequestParam(value = "keyword[]", required = false) List<String> keywords,
       @RequestParam("option_name[]") List<String> option_name, // 옵션 부분 추후 js 처리!!!
       @RequestParam("option_name_value1[]") List<String> option_value1, 
@@ -112,9 +127,12 @@ public class AdminController {
 
     // 2. 이미지
     Map<String, Object> imageList = new HashMap<>();
-    imageList.put("thumbnail", thumbnailImages);
-    imageList.put("detail", detailImages);
-
+    if (thumbnailImages[0].isEmpty() && detailImages[0].isEmpty()) {
+      imageList = null;
+    } else {
+      imageList.put("thumbnail", thumbnailImages); 
+      imageList.put("detail", detailImages);
+    }
     // 3. 키워드
     //System.out.println(keywords);
 
@@ -156,7 +174,7 @@ public class AdminController {
     }
 
     if (option_cases_count == quantity.size() &&  quantity.size() == price.size()) {
-      ProductService.registerProduct(params , imageList, keywords, option_combinations, quantity, price);
+      productService.registerProduct(params , imageList, keywords, option_combinations, quantity, price);
     } else {
       throw new IllegalArgumentException("option_combinations, quantity, and price lists must have the same size.");
     }
@@ -164,21 +182,17 @@ public class AdminController {
     return "redirect:/admin/dashboard";
   }
 
-  // 상품 등록 
-  @RequestMapping("productRegister")
-  public String productRegisterPage(){
 
-    return "admin/admin_productRegister";
-  }
+  
   // 상품 조회
   @RequestMapping("products")
   public String products(HttpSession httpSession, Model model){
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
 
-    List<ProductDto> productList = sellerService.sellerProducts(sellerDto.getSeller_id());
+    //List<ProductDto> productList = sellerService.sellerProducts(sellerDto.getSeller_id());
 
-    model.addAttribute("productList", productList);
+    //model.addAttribute("productList", productList);
 
     return "admin/admin_product";
   }

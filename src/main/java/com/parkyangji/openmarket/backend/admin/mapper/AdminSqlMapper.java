@@ -13,6 +13,7 @@ import com.parkyangji.openmarket.backend.dto.ProductOptionDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionInventoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionValueDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
+import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductCombinationValueDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
@@ -20,7 +21,7 @@ import com.parkyangji.openmarket.backend.dto.SellerDto;
 @Mapper
 public interface AdminSqlMapper {
 
-    // 로그인 고객 찾기
+  // 로그인 고객 찾기
   public SellerDto selectLoginCheck(SellerDto sellerDto);
 
   public void insertProduct(ProductDto productDto);
@@ -41,7 +42,11 @@ public interface AdminSqlMapper {
 
   public void insertImage(ProductImageDto productImageDto);
 
+  // 카테고리
+  public List<ProductCategoryDto> selectAllCategory();
+
   // 키워드
+  public List<String> selectAllKeyword();
   public int selectKeywordGetId(String keyword_name);
   public void insertProductKeywordId(ProductKeywordValueDto productKeywordValueDto);
 

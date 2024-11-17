@@ -52,7 +52,15 @@
     VALUES (#{product_id}, #{image_type_id}, #{image_url})
   </insert>
 
+  <!-- 카테고리 -->
+  <select id="selectAllCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductCategoryDto"> 
+    SELECT * FROM product_category;
+  </select>
+
   <!-- 키워드 -->
+  <select id="selectAllKeyword" resultType="String"> 
+    SELECT keyword_name FROM keyword;
+  </select>
   <select id="selectKeywordGetId" resultType="int">
     SELECT keyword_id FROM keyword WHERE keyword_name  = #{keyword_name}
   </select>
@@ -77,8 +85,8 @@
   </insert>
 
 
-  <insert id="insertProductOptionValue" >
-      INSERT INTO product_option_value (option_id, optionvalue)
+  <insert id="insertProductOptionValue" useGeneratedKeys="true" keyProperty="option_value_id" >
+      INSERT INTO product_option_value(option_id, optionvalue)
       VALUES (#{option_id}, #{optionvalue})
   </insert>
 
@@ -87,7 +95,7 @@
       VALUES (#{combination_id}, #{product_id})
   </insert>
 
-  <insert id="insertProductCombinationValue">
+  <insert id="insertProductCombinationValue" >
     INSERT INTO product_combination_value (combination_id, option_value_id)
     VALUES (#{combination_id}, #{option_value_id})
   </insert>

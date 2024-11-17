@@ -117,13 +117,8 @@ public class UserController {
   }
 
   @RequestMapping("category")
-  public String productListPage(
-    Model model,
-    HttpSession httpSession,
-    @RequestParam("depth") int depth, 
-    @RequestParam("menu_id") int category_id){
+  public String productListPage(Model model, HttpSession httpSession, @RequestParam("menu_id") int category_id){
 
-    //System.out.println("카테고리뎁스"+ depth);
     //System.out.println("카테고리넘버"+ category_id);
 
     boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;

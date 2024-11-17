@@ -24,13 +24,10 @@ public class SellerService {
     return adminSqlMapper.selectLoginCheck(sellerDto);
   }
 
-  // public void saveProduct(ProductDto productDto) {
-  //   adminSqlMapper.insertProduct(productDto);
-  // }
 
-  public List<ProductDto> sellerProducts(int seller_id) {
-    return adminSqlMapper.selectSellerProducts(seller_id);
-  }
+  // public List<ProductDto> sellerProducts(int seller_id) {
+  //   return adminSqlMapper.selectSellerProducts(seller_id);
+  // }
 
   public List<Map<String, Object>> getAllOrders(int seller_id) {
       List<Map<String, Object>> orderList = new ArrayList<>();

@@ -101,12 +101,46 @@
     select * from product_favorite where customer_id = #{customer_id}
   </select>
 
-  <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
+  <!-- <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
     select * from product where category_id = #{category_id}
+  </select> -->
+
+  <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto" parameterType="list">
+      SELECT * FROM product
+      WHERE category_id IN
+      <foreach item="categoryId" collection="list" open="(" separator="," close=")">
+          #{categoryId}
+      </foreach>
   </select>
 
-  <select id="selectCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductCategoryDto">
-    select * from product_category where category_id = #{category_id}
+  <select id="selectProductWithThumbnail" parameterType="list" resultType="com.parkyangji.openmarket.backend.vo.ProductThumbnailVo">
+    SELECT p.product_id, s.store_name,
+          p.category_id, p.title, pi.image_url,
+          poi.price as origin_price, 
+          IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+          IF(ssi.discount_rate IS NOT NULL, MIN(poi.price) * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    FROM seller s
+    JOIN product p ON p.seller_id = s.seller_id
+    JOIN product_image pi ON p.product_id = pi.product_id
+    JOIN image_type it ON pi.image_type_id = it.image_type_id AND it.type_name = 'thumbnail'
+    JOIN product_option_combination poc ON p.product_id = poc.product_id
+    JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
+    LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
+    WHERE p.category_id IN 
+    <foreach item="categoryId" collection="list" open="(" separator="," close=")">
+      #{categoryId}
+    </foreach>
+    GROUP BY p.product_id 
+    ORDER BY p.created_date DESC
+    ;
+  </select>
+
+  <select id="selectCategoryName" resultType="String">
+    select category_name from product_category where category_id = #{category_id};
+  </select>
+
+  <select id="selectSubCategorys" resultType="map">
+    SELECT category_name, category_id FROM product_category pc WHERE pc.parent_id = #{parent_id};
   </select>
 
   <select id="사용자 구매내역 찜 리스트 카테고리 추천 5개 상품">

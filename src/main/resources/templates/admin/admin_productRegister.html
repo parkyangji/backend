@@ -77,13 +77,7 @@
                 <div class="d-flex flex-column bg-white p-3 mb-3">
                     <label for="parent_category">1뎁스 카테고리</label>
                     <select id="parent_category" name="parent_category">
-                        <option value="1">아우터</option>
-                        <option value="2">상의</option>
-                        <option value="3">하의</option>
-                        <option value="4">원피스</option>
-                        <option value="5">스커트</option>
-                        <option value="6">가방</option>
-                        <option value="7">패션소품</option>
+                        <option th:each="category : ${categoryList}" th:if="${category.parent_id == 0}" th:value="${category.category_id}" th:text="${category.category_name}"></option>
                     </select>
 
                     <label for="parent_category" style="margin-top: 10px;">2뎁스 카테고리</label>
@@ -151,45 +145,90 @@
                 <div id="option_container" class="option-container"><div id="option_0" class="option-group">
                   <h4>사이즈 </h4>
                   <ul id="option_value_list_0">
-                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="800">
-                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="810">
-                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="820">
-                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="830">
-                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="840">
+                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="S(085)">
+                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="M(090)">
+                    <input type="text" name="option_name_value1[]" id="option_value_input_0" value="L(095)">
                   </ul>
                 </div><div id="option_1" class="option-group">
                     <h4>색상 </h4>
                     <ul id="option_value_list_1">
-                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="MGR">
-                      <!-- <input type="text" id="option_value_input_0" name="option_name_value2[]" value="흰색"> -->
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(19)BLACK">
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(35)BEIGE">
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(39)IVORY">
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(59)NAVY">
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(64)CREAM">
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(AC)MELANGE GRAY">
+                      <input type="text" id="option_value_input_0" name="option_name_value2[]" value="(20)RED">
                     </ul>
                 </div></div>
 
                 <div class="mt-3">
-                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="800, MGR">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(19)BLACK">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  M x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="810, MGR">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(35)BEIGE">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  L x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="820, MGR">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(39)IVORY">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  L x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="830, MGR">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(59)NAVY">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  L x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="840, MGR">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(64)CREAM">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  <!-- S x 흰색 <input type="text" id="option_value_input_0" name="combination[]" value="S, 흰색">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(AC)MELANGE GRAY">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  M x 흰색 <input type="text" id="option_value_input_0" name="combination[]" value="M, 흰색">
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="S(085),(20)RED">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
                   <label>가격: <input type="number" name="price[]" value="0"></label><br>
-                  L x 흰색 <input type="text" id="option_value_input_0" name="combination[]" value="L, 흰색">
+
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(19)BLACK">
                   <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
-                  <label>가격: <input type="number" name="price[]" value="0"></label><br> -->
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(35)BEIGE">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(39)IVORY">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(59)NAVY">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(64)CREAM">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(AC)MELANGE GRAY">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="M(090),(20)RED">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(19)BLACK">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(35)BEIGE">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(39)IVORY">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(59)NAVY">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(64)CREAM">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(AC)MELANGE GRAY">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+                  S x 검정 <input type="text" id="option_value_input_0" name="combination[]" value="L(095),(20)RED">
+                  <label>재고 수량: <input type="number" name="quantity[]" value="0"></label>
+                  <label>가격: <input type="number" name="price[]" value="0"></label><br>
+
                 </div>
 
 
@@ -216,11 +255,9 @@
 
                 <div class="d-flex flex-column bg-white p-3 mb-3">
                   <label for="keyword">추가 키워드</label>
-                  <input type="checkbox" name="keyword[]" id="keyword" value="자체제작">자체제작
-                  <input type="checkbox" name="keyword[]" id="keyword" value="1+1">1+1
-                  <input type="checkbox" name="keyword[]" id="keyword" value="무료배송">무료배송
-                  <input type="checkbox" name="keyword[]" id="keyword" value="베스트">베스트
-                  <input type="checkbox" name="keyword[]" id="keyword" value="셀러추천">셀러추천
+                  <th:block th:each="keyword : ${keywords}">
+                    <input type="checkbox" name="keyword[]" id="keyword" th:value="${keyword}" th:text="${keyword}">
+                  </th:block>
                 </div>
         
                 <button type="submit">제품 등록</button>

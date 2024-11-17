@@ -21,11 +21,12 @@ public class Appconfig implements WebMvcConfigurer{
     }
 
     // @Override
-    // public void addInterceptors(InterceptorRegistry registry) {
-    //     registry.addInterceptor(sessionInterceptor)
-    //         .addPathPatterns("/admin/**", "/mypage/**")
-    //         .excludePathPatterns("/admin", "/admin/loginProcess", "/admin/registerProcess", "/admin/register");
-    //     // .addPathPatterns("/board/writeArticlePage")
-    //     // .addPathPatterns("/board/updateArticlePage");
-    // }
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(sessionInterceptor)
+            .addPathPatterns("/mypage/**");
+            // .addPathPatterns("/admin/**")
+            // .excludePathPatterns("/admin", "/admin/loginProcess", "/admin/registerProcess", "/admin/register");
+        // .addPathPatterns("/board/writeArticlePage")
+        // .addPathPatterns("/board/updateArticlePage");
+    }
 }

@@ -3,9 +3,11 @@ package com.parkyangji.openmarket.backend.admin.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.parkyangji.openmarket.backend.admin.mapper.AdminSqlMapper;
 import com.parkyangji.openmarket.backend.config.ImageConfig;
+import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductCombinationValueDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductImageDto;
@@ -28,6 +31,7 @@ public class ProductService {
 
   @Autowired
   private AdminSqlMapper adminSqlMapper;
+
   @Autowired
   private ImageConfig imageConfig;
 
@@ -38,8 +42,11 @@ public class ProductService {
     // 1. 상품 기본 정보 저장 (카테고리, 상품명 등)
     getIdAndResigterProduct(productDto);
     System.out.println(productDto.getProduct_id());
+
     // 2. 이미지 업로드
-    saveProductImages(productDto, uploadimageList);
+    if (uploadimageList!=null) {
+      saveProductImages(productDto, uploadimageList);
+    }
 
     // 3. 키워드 등록
     if (keywords!=null) {
@@ -70,8 +77,8 @@ public class ProductService {
     
     /*
     [
-      {사이즈 : [S,M,L] },
-      {색상 : [검정, 흰색] },
+      {사이즈 : [800,810,820,830,840] },
+      {색상 : [MGR] },
     ]
     */
     
@@ -90,7 +97,7 @@ public class ProductService {
         adminSqlMapper.insertProductOption(dto);
         options.add(dto);
     }
-
+    //System.out.println(options.toString());
     //adminSqlMapper.insertProductOptionsReturnId(options); // MyBatis는 생성된 기본 키를 options 리스트의 각 객체에 자동으로 채웁니다.
     
     // 옵션 이름에 옵션 값들 넣기 => product_option_value
@@ -112,7 +119,8 @@ public class ProductService {
             }
         }
     }
-      
+    System.out.println(optionValuesList.toString());
+
     // 조합 번호 생성 (경우의 수) => product_option_combination
     int option_cases_count = 1;
     for (Map<String, Object> map : option_combinations) {
@@ -130,16 +138,29 @@ public class ProductService {
     }
 
 
-    // 옵션 조합에 옵션 값들 추가 => product_combination_value
-    for (ProductOptionCombinationDto combination : combinations) {
-      int combination_id = combination.getCombination_id();
-      for (ProductOptionValueDto valueDto : optionValuesList) {
-          ProductCombinationValueDto combinationValueDto = new ProductCombinationValueDto();
-          combinationValueDto.setCombination_id(combination_id);
-          combinationValueDto.setOption_value_id(valueDto.getOption_id());
-          adminSqlMapper.insertProductCombinationValue(combinationValueDto);
-      }
+    // 오십 조합에 오십 값들 추가 => product_combination_value
+    List<ProductCombinationValueDto> combinationOptions = new ArrayList<>();
+    for (int i = 0; i < combinations.size(); i++) {
+        ProductOptionCombinationDto combination = combinations.get(i);
+        int combination_id = combination.getCombination_id();
+
+        // 모든 옵션 조합의 경우의 수 생성
+        int index = i;
+        for (ProductOptionDto option : options) {
+            List<ProductOptionValueDto> values = optionValuesList.stream()
+                    .filter(value -> value.getOption_id() == option.getOption_id())
+                    .collect(Collectors.toList());
+            int valueIndex = index % values.size();
+            index /= values.size();
+
+            ProductCombinationValueDto combinationOption = new ProductCombinationValueDto();
+            combinationOption.setCombination_id(combination_id);
+            combinationOption.setOption_value_id(values.get(valueIndex).getOption_value_id());
+            adminSqlMapper.insertProductCombinationValue(combinationOption);
+            combinationOptions.add(combinationOption);
+        }
     }
+    //System.out.println(combinationOptions.toString()); 
 
     
     // 조합에 재고 수량과 가격 추가 => product_option_inventory
@@ -235,5 +256,17 @@ public class ProductService {
         image.transferTo(destination);
 
         return filename;
+    }
+
+    public List<ProductDto> sellerProducts(int seller_id) {
+      return adminSqlMapper.selectSellerProducts(seller_id);
+    }
+
+    public List<String> getAllKeyword(){
+      return adminSqlMapper.selectAllKeyword();
+    }
+
+    public List<ProductCategoryDto> getAllCategory(){
+      return adminSqlMapper.selectAllCategory();
     }
 }
