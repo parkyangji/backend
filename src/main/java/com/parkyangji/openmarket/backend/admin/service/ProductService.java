@@ -24,6 +24,7 @@ import com.parkyangji.openmarket.backend.dto.ProductOptionCombinationDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionInventoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionValueDto;
+import com.parkyangji.openmarket.backend.vo.ProductOptionInventoryVo;
 
 // Service: 비즈니스 로직을 처리.
 @Service
@@ -65,10 +66,20 @@ public class ProductService {
     for (String keyword : keywords) {
       ProductKeywordValueDto productKeywordValueDto = new ProductKeywordValueDto();
       productKeywordValueDto.setProduct_id(product_id);
-      productKeywordValueDto.setKeyword_id(adminSqlMapper.selectKeywordGetId(keyword));
+      productKeywordValueDto.setKeyword_id(getKeywordGetId(keyword));
 
       adminSqlMapper.insertProductKeywordId(productKeywordValueDto);
     }
+  }
+
+  public void deleteProductKeyword(int product_id, List<String> keywords) {
+    for (String keyword : keywords) {
+      adminSqlMapper.deleteKeyword(getKeywordGetId(keyword));
+    }
+  }
+
+  public int getKeywordGetId(String keyword){
+    return adminSqlMapper.selectKeywordGetId(keyword);
   }
 
   public void saveProductOptionsAndInventory(int product_id, 
@@ -175,9 +186,6 @@ public class ProductService {
   }
 
 
-  public int getImageTypeId(String string) {
-    return adminSqlMapper.selectGetImageTypeId(string);
-  }
 
   public void saveProductImages(ProductDto productDto, Map<String, Object> uploadimageList) {
 
@@ -258,15 +266,101 @@ public class ProductService {
         return filename;
     }
 
-    public List<ProductDto> sellerProducts(int seller_id) {
-      return adminSqlMapper.selectSellerProducts(seller_id);
-    }
 
-    public List<String> getAllKeyword(){
-      return adminSqlMapper.selectAllKeyword();
-    }
 
-    public List<ProductCategoryDto> getAllCategory(){
-      return adminSqlMapper.selectAllCategory();
-    }
+  public Map<String, Object> getProductDetail(int product_id) {
+    Map<String, Object> detailEdit = new HashMap<>();
+
+    // 정보
+    ProductDto productDto = adminSqlMapper.selectProductDto(product_id);
+    detailEdit.put("product", productDto);
+
+    //
+    Map<String, Object> resultMap = new HashMap<>();
+    List<Map<String,Object>> categorys = adminSqlMapper.selectCategory(productDto.getCategory_id());
+    
+    Map<String, Object> parentCategory = categorys.stream()
+    .filter(category -> category.get("parent_id") == null)
+    .findFirst()
+    .orElse(null);
+
+    Map<String, Object> subCategory = categorys.stream()
+    .filter(category -> category.get("parent_id") != null)
+    .findFirst()
+    .orElse(null);
+
+    resultMap.put("parent_category", parentCategory);
+    resultMap.put("sub_category", subCategory);
+
+    detailEdit.put("category", resultMap);
+
+    // 이미지
+    Map<String, List<String>> imageMap = adminSqlMapper.selectProductAllImages(product_id).stream()
+    .collect(Collectors.groupingBy(
+            image -> (String) image.get("type_name"),
+            Collectors.mapping(image -> (String) image.get("image_url"), Collectors.toList())
+    ));
+    detailEdit.put("imageMap", imageMap);
+
+    // 재고/가격 관리, 할인
+    Map<Integer, List<ProductOptionInventoryVo>> groupByCombinationId 
+      = adminSqlMapper.selectProductOptionAndInventory(product_id)
+      .stream().collect(Collectors.groupingBy(ProductOptionInventoryVo::getCombination_id));
+    // System.out.println(groupByCombinationId);
+
+    detailEdit.put("inventory", groupByCombinationId);
+
+    // 키워드
+    List<String> checkKeywords = adminSqlMapper.selectProductKeywords(product_id);
+    System.out.println(checkKeywords.size());
+    detailEdit.put("checkKeywords", checkKeywords);
+
+    return detailEdit;
+  }
+
+
+  public int getImageTypeId(String string) {
+    return adminSqlMapper.selectGetImageTypeId(string);
+  }
+
+  public List<ProductDto> sellerProducts(int seller_id) {
+    return adminSqlMapper.selectSellerProducts(seller_id);
+  }
+
+  public List<String> getAllKeyword(){
+    return adminSqlMapper.selectAllKeyword();
+  }
+
+  public List<ProductCategoryDto> getAllCategory(){
+    return adminSqlMapper.selectAllCategory();
+  }
+
+  public void replaceProductCategoryId(int product_id, int sub_category) {
+    adminSqlMapper.updateCategory(product_id, sub_category);
+  }
+
+  public void replaceTitle(int product_id, String title) {
+    adminSqlMapper.updateTitle(product_id, title);
+  }
+
+  public void registerDiscountRate(int product_id, int discount_rate) {
+    adminSqlMapper.insertDiscountRate(product_id, discount_rate);
+  }
+
+  public void replaceChangeDiscountRate(int product_id, int change_discount_rate) {
+    adminSqlMapper.updateDiscountRate(product_id, change_discount_rate);
+  }
+
+  public void deleteDiscountRate(int product_id) {
+    adminSqlMapper.deleteDiscountRate(product_id);
+  }
+
+  public void replaceOptionQuantity(int combination_id, int quantity) {
+    adminSqlMapper.updateQuantity(combination_id, quantity);
+  }
+
+  public void replaceOptionPrice(int combination_id, int price) {
+    adminSqlMapper.updatePrice(combination_id, price);
+  }
+
 }

@@ -24,9 +24,9 @@
 		where c.username = #{username} and c.password = SHA2(concat(#{password}, '!@www'), '256')
 	</select>
 
-  <select id="selectProductDto" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
+  <!-- <select id="selectProductDto" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
     SELECT * FROM product WHERE product_id = #{product_id}
-  </select>
+  </select> -->
 
   <select id="selectAvgRating" resultType="Float">
     SELECT AVG(rating) FROM product_review WHERE product_id = #{product_id};
@@ -135,13 +135,16 @@
     ;
   </select>
 
-  <select id="selectCategoryName" resultType="String">
+  <!-- <select id="selectCategoryName" resultType="String">
     select category_name from product_category where category_id = #{category_id};
-  </select>
+  </select> -->
 
   <select id="selectSubCategorys" resultType="map">
     SELECT category_name, category_id FROM product_category pc WHERE pc.parent_id = #{parent_id};
   </select>
+    <!-- <select id="selectSubCategorys" resultType="map">
+        <include refid="com.parkyangji.openmarket.backend.common.CommonSqlMapper.selectSubCategorysSql"/>
+    </select> -->
 
   <select id="사용자 구매내역 찜 리스트 카테고리 추천 5개 상품">
     WITH MostOrderedCategories AS (

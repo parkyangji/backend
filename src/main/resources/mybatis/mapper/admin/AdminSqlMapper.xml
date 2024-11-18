@@ -19,7 +19,7 @@
   </insert> -->
 
   <select id="selectSellerProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
-    select * from product where seller_id = #{seller_id}
+    select * from product where seller_id = #{seller_id} order by created_date desc
   </select>
 
   <select id="selectOrderByProductId" resultType="com.parkyangji.openmarket.backend.dto.OrderDto">
@@ -57,6 +57,7 @@
     SELECT * FROM product_category;
   </select>
 
+
   <!-- 키워드 -->
   <select id="selectAllKeyword" resultType="String"> 
     SELECT keyword_name FROM keyword;
@@ -68,6 +69,16 @@
     insert into product_keyword_value(product_id, keyword_id) 
     values(#{product_id}, #{keyword_id})
   </insert>
+  <select id="selectProductKeywords" resultType="String">
+    SELECT k.keyword_name 
+    FROM product_keyword_value pkv 
+    join keyword k 
+    on pkv.keyword_id = k.keyword_id 
+    WHERE pkv.product_id = #{product_id};
+  </select>
+  <delete id="deleteKeyword">
+    delete from product_keyword_value where keyword_id = #{keyword_id}
+  </delete>
 
   <!-- 옵션 -->
   <!-- useGeneratedKeys	(입력(insert, update)에만 적용) : 
@@ -101,8 +112,51 @@
   </insert>
 
   <insert id="insertProductOptionInventory">
-      INSERT INTO product_option_inventory (combination_id, quantity, price)
-      VALUES (#{combination_id}, #{quantity}, #{price})
+    INSERT INTO product_option_inventory (combination_id, quantity, price)
+    VALUES (#{combination_id}, #{quantity}, #{price})
   </insert>
+
+  <select id="selectProductOptionAndInventory" resultType="com.parkyangji.openmarket.backend.vo.ProductOptionInventoryVo">
+    SELECT po.product_id , cv.combination_id, cv.combination_value_id 
+    ,ov.optionvalue , po.optionvalue as optionname , poi.quantity 
+    , poi.price as origin_price,
+    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    FROM product_combination_value cv
+    join product_option_value ov
+    on cv.option_value_id = ov.option_value_id
+    join product_option_inventory poi
+    on cv.combination_id = poi.combination_id 
+    join product_option po 
+    on po.option_id = ov.option_id 
+    LEFT JOIN seller_sale_item ssi 
+    ON po.product_id = ssi.product_id
+    where po.product_id = #{product_id}
+    order by cv.combination_id, po.optionvalue 
+    ;
+  </select>
+
+  <!-- 상품 정보 수정 -->
+  <update id="updateCategory" parameterType="map">
+    update product set category_id = #{category_id} where product_id = #{product_id}
+  </update>
+  <update id="updateTitle" parameterType="map">
+    update product set title = #{title} where product_id = #{product_id}
+  </update>
+  <insert id="insertDiscountRate" parameterType="map">
+    insert into seller_sale_item(product_id, discount_rate) values(#{product_id}, #{discount_rate})
+  </insert>
+  <update id="updateDiscountRate" parameterType="map">
+    update seller_sale_item set discount_rate = #{discount_rate} where product_id = #{product_id}
+  </update>
+  <delete id="deleteDiscountRate" >
+    delete from seller_sale_item where product_id = #{product_id}
+  </delete>
+  <update id="updatePrice">
+    UPDATE product_option_inventory set price = #{price} WHERE combination_id = #{combination_id}
+  </update>
+  <update id="updateQuantity">
+    UPDATE product_option_inventory set quantity = #{quantity} WHERE combination_id = #{combination_id}
+  </update>
 
 </mapper>

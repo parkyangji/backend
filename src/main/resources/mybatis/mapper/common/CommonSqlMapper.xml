@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.parkyangji.openmarket.backend.common.CommonSqlMapper">
+  <select id="selectCategoryName" resultType="String">
+    select category_name from product_category where category_id = #{category_id};
+  </select>
+  <select id="selectCategory" resultType="map">
+    SELECT 
+        child.category_id AS category_id, 
+        child.parent_id as parent_id,
+        child.category_name AS category_name
+    FROM 
+        product_category child
+    WHERE 
+        child.category_id = #{category_id}
+    UNION ALL
+    SELECT 
+        parent.category_id AS category_id, 
+        parent.parent_id as parent_id,
+        parent.category_name AS category_name
+    FROM 
+        product_category child
+    LEFT JOIN 
+        product_category parent
+    ON 
+        child.parent_id = parent.category_id
+    WHERE 
+        child.category_id = #{category_id};
+  </select>
+  <select id="selectProductDto" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
+    SELECT * FROM product WHERE product_id = #{product_id}
+  </select>
+  <select id="selectProductAllImages" resultType="map">
+    SELECT it.type_name , pi2.image_url 
+    FROM product_image pi2
+    LEFT JOIN image_type it 
+    ON it.image_type_id = pi2.image_type_id 
+    LEFT JOIN product p
+    ON pi2.product_id = p.product_id
+    WHERE p.product_id = #{product_id}
+    ;
+  </select>
+</mapper>

@@ -10,20 +10,21 @@
     <link rel="stylesheet" th:href="@{/style.css}">
   </head>
   <body>
-    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
+    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: calc(48px + 44px);">
       <!-- 네비/헤더 -->
       <!-- <div th:insert="~{fragments/header::header}" class="container-sm sticky-top main-bg-color main-text-ligth-color"></div> -->
       <div th:insert="~{fragments/sideheader::sideheader(${category_name})}" class="px-0 container-sm fixed-top"></div>
 
-      <!-- 컨텐츠 -->
-      <div class="container-sm" style="padding-bottom: 48px;">
-        <div class="scrollNone">
-          <div class="d-inline-flex gap-4 text-nowrap">
-            <div>전체</div>
-            <div th:each="sub_category : ${sub_categorys}" th:text="${sub_category}">하위</div>
-          </div>
+      <!-- 서브네비 -->
+      <div class="container-sm scrollNone" style="width: 100%; position: fixed; top: 48px; z-index: 1; background: white;">
+        <div class="d-inline-flex gap-4 text-nowrap align-items-center fw-semibold main-text-sub-color" style="height: 44px;">
+          <div class="px-1 text-black">전체</div>
+          <div class="px-1" th:each="sub_category : ${sub_categorys}" th:text="${sub_category}">하위</div>
         </div>
-
+      </div>
+      <!-- 컨텐츠 -->
+      <!-- <div class="container-sm" style="padding-bottom: 48px; padding-top: 44px;"> -->
+      <div class="container-sm" >
         <div class="row flex-wrap">
           <div class="p-0 col-6 position-relative" th:each="data : ${productList}">
             <a th:href="@{/product(id=${data.product_id})}">

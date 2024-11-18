@@ -311,4 +311,8 @@ public class UserController {
     return "redirect:/mypage/review";
   }
 
+  @RequestMapping("cart")
+  public String cart(){
+    return "user/cart";
+  }
 }

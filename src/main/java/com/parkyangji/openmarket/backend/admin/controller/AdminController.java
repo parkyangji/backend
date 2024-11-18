@@ -98,7 +98,6 @@ public class AdminController {
     // 키워드(사이트 관리자 지정) 불러오기
     model.addAttribute("keywords", productService.getAllKeyword());
 
-
     return "admin/admin_productRegister";
   }
 
@@ -183,18 +182,81 @@ public class AdminController {
   }
 
 
-  
   // 상품 조회
   @RequestMapping("products")
   public String products(HttpSession httpSession, Model model){
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
 
-    //List<ProductDto> productList = sellerService.sellerProducts(sellerDto.getSeller_id());
+    List<ProductDto> productList = productService.sellerProducts(sellerDto.getSeller_id());
 
-    //model.addAttribute("productList", productList);
+    model.addAttribute("productList", productList);
 
     return "admin/admin_product";
+  }
+
+  // 상품 정보 변경 - 페이지
+  @RequestMapping("edit")
+  public String edit(
+    @RequestParam("product_id") int product_id,
+    @RequestParam(value = "sub_category", required = false) Integer sub_category,
+    @RequestParam(value = "title", required = false) String title,
+    @RequestParam(value = "discount_rate", required = false) Integer discount_rate,
+    @RequestParam(value = "change_discount_rate", required = false) Integer change_discount_rate,
+    @RequestParam(value = "is_discount", required = false) String is_discount,
+    @RequestParam(value = "quantity", required = false) Integer quantity,
+    @RequestParam(value = "price", required = false) Integer price,
+    @RequestParam(value = "combination_id", required = false) Integer combination_id,
+    @RequestParam(value = "combination_value_id", required = false) Integer combination_value_id,
+    @RequestParam(value = "keyword[]", required = false) List<String> keywords,
+    @RequestParam(value = "deleteKeyword[]", required = false) List<String> deleteKeyword,
+    Model model){
+
+    //if (sub_category == 0) return "redirect:/admin/admin_register";
+
+    /* 나중에는 js rest로 처리할 것!! */
+    if (sub_category != null) { // 카테고리 변경
+      productService.replaceProductCategoryId(product_id, sub_category);
+    }
+    if (title != null) { // 상품명 변경
+      productService.replaceTitle(product_id, title);
+    }
+    if (discount_rate != null) { // 할인율 적용
+      productService.registerDiscountRate(product_id, discount_rate);
+    }
+    if (change_discount_rate != null) { // 할인율 변경
+      productService.replaceChangeDiscountRate(product_id, change_discount_rate);
+    }
+    if (is_discount != null) { // 할인율 종료
+      productService.deleteDiscountRate(product_id);
+    }
+    if (quantity != null) {
+      productService.replaceOptionQuantity(combination_id, quantity);
+    }
+    if (price != null) {
+      productService.replaceOptionPrice(combination_id, price);
+    }
+    if (keywords != null) {
+      // 키워드 인서트 안된건 해주고
+      productService.saveProductKeywords(product_id, keywords);
+    }
+    if (deleteKeyword != null) {
+      productService.deleteProductKeyword(product_id, deleteKeyword);
+    }
+
+    // 카테고리(사이트 관리자 지정) 모두 불러오기
+    model.addAttribute("categoryList", productService.getAllCategory());
+
+    // 키워드(사이트 관리자 지정) 불러오기
+    model.addAttribute("keywords", productService.getAllKeyword());
+
+    Map<String, Object> productEdit = productService.getProductDetail(product_id);
+
+    model.addAllAttributes(productEdit);
+
+    model.addAttribute("product_id", product_id);
+
+    return "admin/admin_edit";
   }
 
   //주문 조회

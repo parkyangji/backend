@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.parkyangji.openmarket.backend.common.CommonSqlMapper;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
@@ -15,7 +16,7 @@ import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.vo.ProductThumbnailVo;
 
 @Mapper
-public interface UserSqlMapper {
+public interface UserSqlMapper extends CommonSqlMapper{
   // 회원가입
   public void insertCustomer(CustomerDto customerDto);
   public void insertAddress(AddressDto addressDto);
@@ -25,7 +26,7 @@ public interface UserSqlMapper {
 
   // 상품 상세 페이지
   public String selectStoreName(int seller_id);
-  public ProductDto selectProductDto(int product_id);
+  // public ProductDto selectProductDto(int product_id);
   public Float selectAvgRating(int product_id);
   public List<ProductReviewDto> selectReviews(int product_id);
   public CustomerDto selectCustomer(int customer_id);
@@ -53,8 +54,9 @@ public interface UserSqlMapper {
   public List<ProductFavoriteDto> selectUserFavoriteList(int customer_id);
 
   // 카테고리별 전체 상품
-  public String selectCategoryName(int category_id);
+  // public String selectCategoryName(int category_id);
   public List<Map<String, Object>> selectSubCategorys(int category_id);
+
   //public List<ProductDto> selectCategoryIdProducts(int category_id);
   public List<ProductDto> selectCategoryIdProducts(List<Integer> categoryIds);
   public List<ProductThumbnailVo> selectProductWithThumbnail(List<Integer> categoryIds);

@@ -37,30 +37,39 @@
 
           </div>
           <!-- 본문 -->
-          <div class="col p-2">
-            <table class="table text-center">
-              <thead>
-                <tr>
-                  <th scope="col"></th>
-                  <th scope="col">수정</th>
-                  <th scope="col">썸네일</th>
-                  <!-- <th scope="col">카테고리</th> -->
-                  <th scope="col">상품명</th>
-                  <th scope="col">재고수량</th>
-                  <th scope="col">판매가</th>
-                </tr>
-              </thead>
-              <tbody class="table-group-divider">
-                <tr th:each="product, status : ${productList}">
-                  <th scope="row" th:text="${status.index + 1}">1</th>
-                  <td><button type="button" class="btn main-bg-color">수정</button></td>
-                  <td style="width: 10%;"><img class="img-fluid" th:src="|/uploadFiles/${product.main_page_url}|" alt="" ></td>
-                  <td th:text="${product.title}"></td>
-                  <td th:text="${product.total_quantity}">@mdo</td>
-                  <td th:text="${product.price}"></td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="col p-4 back-bg">
+            <div style="width: 100%; height: 100%;">
+              <table class="table text-center">
+                <thead>
+                  <tr>
+                    <th scope="col"></th>
+                    <th scope="col">상품명</th>
+                    <!-- <th scope="col">썸네일</th> -->
+                    <th scope="col"></th>
+                    <!-- <th scope="col">카테고리</th> -->
+                    <!-- <th scope="col"></th> -->
+                    <!-- <th scope="col">재고수량</th> -->
+                    <!-- <th scope="col">판매가</th> -->
+                  </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                  <tr th:each="product, status : ${productList}">
+                    <th scope="row" th:text="${status.index + 1}">1</th>
+                    <td th:text="${product.title}"></td>
+                    <td>
+                      <form action="./edit" method="post">
+                        <input type="hidden" name="product_id" th:value="${product.product_id}">
+                        <button class="btn main-bg-color">수정</button>
+                      </form>
+                      <!-- <button type="button" class="btn main-bg-color">재고/가격/할인관리</button> -->
+                    </td>
+                    <!-- <td style="width: 10%;"><img class="img-fluid" th:src="|/uploadFiles/${product.main_page_url}|" alt="" ></td> -->
+                    <!-- <td th:text="${product.total_quantity}">@mdo</td> -->
+                    <!-- <td th:text="${product.price}"></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
         </div>

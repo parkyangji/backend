@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
+import com.parkyangji.openmarket.backend.vo.ProductOptionInventoryVo;
 
 @Service
 public class SellerService {
@@ -23,11 +25,6 @@ public class SellerService {
   public SellerDto loginCheck(SellerDto sellerDto) {
     return adminSqlMapper.selectLoginCheck(sellerDto);
   }
-
-
-  // public List<ProductDto> sellerProducts(int seller_id) {
-  //   return adminSqlMapper.selectSellerProducts(seller_id);
-  // }
 
   public List<Map<String, Object>> getAllOrders(int seller_id) {
       List<Map<String, Object>> orderList = new ArrayList<>();
@@ -86,16 +83,5 @@ public class SellerService {
     adminSqlMapper.insertSeller(sellerDto);
   }
 
-
-
-
-  /* dto 수정 하면서 추가!!! */
-  // public int getIdAndResigterProduct(ProductDto params) {
-  //   return adminSqlMapper.insertProductAndGetId(params);
-  // }
-
-  // public int getImageTypeId(String string) {
-  //   return adminSqlMapper.selectGetImageTypeId(string);
-  // }
 
 }

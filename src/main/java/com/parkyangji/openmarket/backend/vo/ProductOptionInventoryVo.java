@@ -5,13 +5,14 @@ import java.util.Locale;
 
 import lombok.Value;
 
-@Value // getter만 있음 불볍객체로 만듬 
-public class ProductThumbnailVo {
+@Value
+public class ProductOptionInventoryVo {
   private int product_id;
-  private String store_name;
-  private int category_id;
-  private String title;
-  private String image_url;
+  private int combination_id;
+  private int combination_value_id;
+  private String optionvalue;
+  private String optionname;
+  private Integer quantity;
   private Integer origin_price;
   private Integer discount_rate;
   private Integer sale_price;

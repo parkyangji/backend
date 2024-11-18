@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://kit.fontawesome.com/b0822c7a94.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" th:href="@{/admin_style.css}">
+    <style>
+
+
+      #thumbnailPreview, #thumbnailPreview2 {
+          margin-top: 10px;
+          width: 200px;
+          height: auto;
+          display: none;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+      }
+
+      label {
+        font-size: 0.81rem;
+        color: #505050;
+        margin-bottom: 1rem;
+      }
+
+      input {
+        border: none;
+        border-bottom: 1px solid #6c757d;
+      }
+
+      select {
+        outline: none;
+        border: none;
+      }
+
+      input:focus-visible {
+        outline-offset: 0px;
+        outline: none;
+      }
+
+  </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <div class="container-fluid " style="width: 1280px;">
+        <div class="row" style="width: 100%;">
+          <!-- 왼쪽 메뉴 -->
+          <div class="col-2 p-2 store-bg-color text-light">
+            <div class="d-flex flex-column" style="height: 100vh;">
+              <!-- 판매자 정보 -->
+              <div class="d-flex flex-column gap-3 justify-content-center p-5 text-center">
+                <p class="m-0"><a th:href="@{/admin/dashboard}" th:text="${session.sellerInfo.store_name}">판매자</a></p>
+                <div>
+                  <a th:href="@{/admin/logout}">로그아웃</a>
+                </div>
+              </div>
+              <!-- 메뉴 -->
+              <ul class="d-flex flex-column justify-content-center gap-2">
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/products}">상품 조회/수정</a></li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/productRegister}">상품 등록</a></li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/order}">주문 조회</a></li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;">배송현황 관리</li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/review}">리뷰 관리</a></li>
+              </ul>
+            </div>
+
+          </div>
+          <!-- 본문 -->
+          <!-- <div th:insert="~{fragments/admin_productRegister::productRegister}"  class="col p-2"></div> -->
+          <div class="col p-4 back-bg">
+            <div style="width: 100%; height: 100%;">
+              <form action="./edit" method="post">
+                <input type="hidden" name="product_id" th:value="${product_id}">
+                <p>
+                  <span th:text="${category.parent_category.category_name}"></span> > <span th:text="${category.sub_category.category_name}"></span>
+                </p>
+                <label for="parent_category">1뎁스 카테고리</label>
+                <select id="parent_category" name="parent_category">
+                    <option th:each="category : ${categoryList}" th:if="${category.parent_id == null}" th:value="${category.category_id}" th:text="${category.category_name}"></option>
+                </select>
+
+                <label for="parent_category" style="margin-top: 10px;">2뎁스 카테고리</label>
+                <select class="sub_category" name="sub_category">
+                  <option value="">--- 아우터</option>
+                  <option value="8">카디건</option>
+                  <option value="9">코트</option>
+                  <option value="10">패딩</option>
+                  <option value="11">기타 아우터</option>
+                  <option value="">--- 상의</option>
+                  <option value="12">티셔츠</option>
+                  <option value="13">맨투맨</option>
+                  <option value="14">니트</option>
+                  <option value="15">기타 상의</option>
+                  <option value="">--- 하의</option>
+                  <option value="16">데님 팬츠</option>
+                  <option value="17">슬랙스</option>
+                  <option value="18">와이드팬츠</option>
+                  <option value="19">기타 바지</option>
+                  <option value="">--- 원피스</option>
+                  <option value="20">미니원피스</option>
+                  <option value="21">미디원피스</option>
+                  <option value="22">롱원피스</option>
+                  <option value="">--- 스커트</option>
+                  <option value="19">미니스커트</option>
+                  <option value="20">미디스커트</option>
+                  <option value="21">롱스커트</option>
+                  <option value="">--- 가방</option>
+                  <option value="22">백팩</option>
+                  <option value="23">크로스백</option>
+                  <option value="24">숄더/토트백</option>
+                  <option value="25">기타 가방</option>
+                  <option value="">--- 패션소품</option>
+                  <option value="26">모자</option>
+                  <option value="27">선글라스/안경테</option>
+                  <option value="28">액세서리</option>
+                  <option value="29">시계</option>
+                </select>
+                <button class="btn btn-primary">카테고리 변경</button>
+              </form>
+
+              <form action="./edit" method="post">
+                <input type="hidden" name="product_id" th:value="${product_id}">
+                <p th:text="${product.title}"></p>
+                <label for="title">상품명</label>
+                <input id="title" type="text" name="title" >
+                <button class="btn btn-primary">상품명 변경</button>
+              </form>
+
+              <div class="mt-5">
+                <form action="./edit" method="post">
+                  <input type="hidden" name="product_id" th:value="${product_id}">
+                  <div th:if="${inventory.values().iterator().next()[0].discount_rate != null}">
+                    <p>현재 할인율 : <span th:text="${inventory.values().iterator().next()[0].discount_rate}"></span></p>
+                    <input type="number" name="change_discount_rate" id="" value="">
+                    <button class="btn btn-primary">할인율 변경</button>
+                  </div>
+                  <div th:if="${inventory.values().iterator().next()[0].discount_rate == null}">
+                    <p>할인을 적용하시겠습니까?</p>
+                    할인 적용 : <input type="number" name="discount_rate" id="">
+                    <button class="btn btn-primary">할인 적용</button>
+                  </div>
+                </form>
+                <form action="./edit" method="post" th:if="${inventory.values().iterator().next()[0].discount_rate != null}">
+                  <input type="hidden" name="product_id" th:value="${product_id}">
+                  <input type="submit" name="is_discount" value="할인 종료로 변경"></input>
+                </form>
+
+                <div th:each="entry, state : ${inventory}" >
+                  <div class="mt-5">
+                    <span th:text="'재고 정보 (조합 ID: ' + ${entry.key} + ')'"></span>
+                    <th:block th:each="option : ${entry.value}">
+                      <span th:text="${option.optionname} + ': ' + ${option.optionvalue}"></span>
+                    </th:block>
+                  </div>
+                  <div th:each="option, optionStat : ${entry.value}">
+                      <span th:if="${optionStat.last}" th:text="'재고: ' + ${option.quantity} + ' 가격: ' + ${option.formattedOriginPrice}"></span>
+                      <div>
+                        <form class="d-inline" th:if="${optionStat.last}" action="./edit" method="post">
+                          <input type="hidden" name="product_id" th:value="${product_id}">
+                          <input type="hidden" name="combination_id" th:value="${option.combination_id}">
+                          <input type="hidden" name="combination_value_id" th:value="${option.combination_value_id}">
+                          <label>재고 수량: <input type="number" name="quantity" value=""></label>
+                          <button class="btn btn-primary">수정</button>
+                        </form>
+                        <form class="d-inline" th:if="${optionStat.last}" action="./edit" method="post">
+                          <input type="hidden" name="product_id" th:value="${product_id}">
+                          <input type="hidden" name="combination_id" th:value="${option.combination_id}">
+                          <input type="hidden" name="combination_value_id" th:value="${option.combination_value_id}">
+                          <label> 가격: <input type="number" name="price" value=""></label>
+                          <button class="btn btn-primary">수정</button>
+                        </form>
+                      </div>
+                      <div>
+                        <span th:if="${option.discount_rate != null && optionStat.last}" th:text="'할인률 ' + ${option.discount_rate}"></span>
+                        <span th:if="${option.discount_rate != null && optionStat.last}" th:text="'할인가 ' + ${option.formattedSalePrice}"></span>
+                      </div>
+                  </div>
+                </div>
+              </div>
+
+              <form action="./edit" method="post" class="mt-3">
+                <input type="hidden" name="product_id" th:value="${product_id}">
+                <label for="keyword">추가 키워드</label>
+                <th:block th:each="keyword : ${keywords}">
+                  <th:block th:if="${!#lists.contains(checkKeywords, keyword)}">
+                    <input type="checkbox" name="keyword[]" id="keyword" th:value="${keyword}" th:text="${keyword}">
+                  </th:block>
+                </th:block>
+                <button class="btn btn-primary">추가</button>
+              </form>
+              <form action="./edit" method="post" class="mt-3" th:if="${checkKeywords.size()!=0}">
+                <input type="hidden" name="product_id" th:value="${product_id}">
+                <th:block th:each="checkKeyword : ${checkKeywords}">
+                  <input type="checkbox" name="deleteKeyword[]" id="checkKeyword" th:value="${checkKeyword}" th:text="${checkKeyword}" checked>
+                </th:block>
+                <button class="btn btn-primary">삭제</button>
+              </form>
+
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>
