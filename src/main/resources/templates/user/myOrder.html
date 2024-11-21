@@ -16,11 +16,66 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
+      <th:block th:if="${orderItems != null}" th:each="productEntry : ${orderItems}">
+        <!-- product_id에 해당하는 그룹 -->
+        <div class="card mb-4 border">
+          <div class="card-header bg-primary text-white">
+            <!-- <h4 class="mb-0">주문번호 ID: <span th:text="${productEntry.key}"></span></h4> -->
+            <!-- 최상위 반복문만을 사용하여 직접 접근 -->          
+          </div>
+          <div class="card-body">
+            <!-- 각 product_id 그룹 안에서 combination_id로 그룹핑된 데이터 반복 -->
+            <th:block th:each="orderNumber : ${productEntry.value}">
+              <div class="mb-3">
+
+                <th:block th:each="combinationEntry : ${orderNumber.value}">
+                    <p th:if="${combinationEntryStat.first}" th:text="${combinationEntry.value[0].formattedOrderDate}"></p>
+                </th:block>
+
+                <!-- 브랜드명 표시 -->
+                <div th:each="brand : ${orderNumber.key}">
+                  <p class="fw-bold text-secondary" th:text="${brand}"></p>
+                </div>
+                
+                
+                <!-- 상품 정보 반복 -->
+                <th:block th:each="product : ${orderNumber.value}">
+                  <th:block th:each="combination : ${product.value}">
+                      <div th:if="${combinationStat.last}" class="col-md-3">
+                        <p class="badge bg-info text-dark" th:text="${combination.status}"></p>
+                        <img class="img-fluid rounded" th:src="${combination.image_url}" alt="">
+                        <div th:if="${combination.status == '배송완료'}">
+                          <button class="d-block button-style2 mt-1 text-center" onclick="location.href='/mypage/review'" >리뷰 작성</button>
+                        </div>
+                      </div>
+                    </th:block>
+                    <th:block th:each="combination : ${product.value}">
+                    
+                    <!-- <div class="row mb-2 align-items-center"> -->
+                      <!-- 이미지 및 정보 -->
+                      <!-- <div class="col-md-3">
+                        <img th:if="${combinationStat.last}" class="img-fluid rounded" th:src="${combination.image_url}" alt="">
+                      </div> -->
+                      <!-- <div class="col-md-9"> -->
+                        <!-- <div th:if="${combinationStat.last}" class="mb-2">
+                          <p class="badge bg-info text-dark" th:text="${combination.status}"></p>
+                        </div> -->
+                        <p class="m-0" th:text="${combination.optionname} + ': ' + ${combination.optionvalue}"></p>
+                        <p class="m-0" th:if="${combinationStat.last}" th:text="|수량 : ${combination.quantity}|"></p>
+                      <!-- </div> -->
+                    <!-- </div> -->
+                  </th:block>
+                </th:block>
+              </div>
+            </th:block>
+          </div>
+        </div>
+      </th:block>
       <!-- 주문내역 박스 -->
-      <div class="mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
+      <!-- <div class="mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
         <p class="m-0 fs-14" th:text="${#dates.format(order.ProductOrderDto.order_date, 'yyyy.MM.dd')}"></p>
         <p class="m-0 main-text-strong-color fw-semibold" th:text="${order.ProductOrderDto.status}"></p>
-        <!-- <a class="text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}"></a> -->
+         <a class="text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}"></a>
         <div class="d-flex">
           <img class="w-25 me-2" style="object-fit: contain;" th:src="|/uploadFiles/${order.ProductDto.main_page_url}|" th:alt="${order.ProductDto.title}"></img>
           <ul class="flex-fill p-2">
@@ -32,11 +87,11 @@
             <li class="fw-semibold" th:text="|${order.ProductDto.price}원|">가격</li>
           </ul>
         </div>
-        <!-- 배송 완료시 리뷰 작성 활성화 -->
+        배송 완료시 리뷰 작성 활성화
         <div th:if="${order.ProductOrderDto.status == '배송완료'}">
           <button class="d-block button-style2 mt-1 text-center" onclick="location.href='/mypage/review'" >리뷰 작성</button>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- 하단 푸터 -->

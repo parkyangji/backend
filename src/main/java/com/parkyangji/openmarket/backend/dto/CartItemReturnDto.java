@@ -1,18 +1,22 @@
-package com.parkyangji.openmarket.backend.vo;
+package com.parkyangji.openmarket.backend.dto;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
-import lombok.Value;
+import lombok.Data;
 
-@Value // getter만 있음 불볍객체로 만듬 
-public class ProductThumbnailVo {
+@Data
+public class CartItemReturnDto {
+  private int cart_id;
   private int product_id;
   private String store_name;
-  private int category_id;
   private String title;
   private String image_url;
-  private Integer origin_price;
+  private int combination_id;
+  private String optionname;
+  private String optionvalue;
+  private int quantity;
+  private int origin_price;
   private Integer discount_rate;
   private Integer sale_price;
 

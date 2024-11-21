@@ -9,14 +9,22 @@
           SELECT LAST_INSERT_ID()
       </selectKey>
       
-      INSERT INTO customer(username, password, nickname, name, gender, phone)
-      VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{nickname}, #{name}, #{gender}, #{phone})
+      INSERT INTO customer(username, password, nickname)
+      VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{nickname})
   </insert>
 
+  <select id="getAddressCountByCustomerId" resultType="int">
+      SELECT COUNT(*)
+      FROM address
+      WHERE customer_id = #{customerId}
+  </select>
   <insert id="insertAddress">
-		INSERT INTO address(customer_id, address)
-		VALUES(#{customer_id}, #{address})
+		INSERT INTO address(customer_id, address, is_default, name, phone)
+		VALUES(#{customer_id}, #{address}, ${is_default} , #{name}, #{phone})
   </insert>
+  <select id="selectDefalutAddress" resultType="com.parkyangji.openmarket.backend.dto.AddressDto">
+    select * from address where is_default = true and customer_id = #{customerId}
+  </select>
   
   <!-- 아이디 비번 -->
 	<select id="selectLoginCheck" resultType="com.parkyangji.openmarket.backend.dto.CustomerDto">
@@ -49,21 +57,22 @@
       <selectKey keyProperty="order_id" resultType="int" order="AFTER">
           SELECT LAST_INSERT_ID()
       </selectKey>
-      INSERT INTO product_order(customer_id, product_id, quantity, delivery_address, status)
-      VALUES(#{customer_id}, #{product_id}, #{quantity}, #{delivery_address}, #{status})
+      INSERT INTO `order` (customer_id) 
+      VALUES (#{customer_id})
   </insert>
 
-  <update id="updateTotalQuantity">
-    update product set total_quantity = total_quantity - #{quantity} where product_id = #{product_id}
-  </update>
+  <insert id="insertDeliveryInfo">
+    INSERT INTO delivery_info(order_id, address_id, delivery_message)
+    VALUES (#{order_id}, #{address_id}, #{delivery_message})
+  </insert>
 
   <select id="selectAddressList" resultType="String">
     SELECT address FROM address WHERE customer_id = #{customer_id};
   </select>
 
-  <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderDto">
+  <!-- <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderDto">
     SELECT * FROM product_order WHERE customer_id = #{customer_id} ORDER BY order_id DESC;
-  </select>
+  </select> -->
 
   <select id="selectReviewByProductAndCustomer" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
       SELECT * FROM product_review
@@ -101,9 +110,6 @@
     select * from product_favorite where customer_id = #{customer_id}
   </select>
 
-  <!-- <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
-    select * from product where category_id = #{category_id}
-  </select> -->
 
   <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto" parameterType="list">
       SELECT * FROM product
@@ -113,16 +119,15 @@
       </foreach>
   </select>
 
-  <select id="selectProductWithThumbnail" parameterType="list" resultType="com.parkyangji.openmarket.backend.vo.ProductThumbnailVo">
-    SELECT p.product_id, s.store_name,
-          p.category_id, p.title, pi.image_url,
+  <select id="selectProductListByCategoryId" parameterType="list" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
+    SELECT p.product_id, s.store_name, s.store_eng_name,
+          p.category_id, p.title,
           poi.price as origin_price, 
           IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-          IF(ssi.discount_rate IS NOT NULL, MIN(poi.price) * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as sale_price
     FROM seller s
     JOIN product p ON p.seller_id = s.seller_id
     JOIN product_image pi ON p.product_id = pi.product_id
-    JOIN image_type it ON pi.image_type_id = it.image_type_id AND it.type_name = 'thumbnail'
     JOIN product_option_combination poc ON p.product_id = poc.product_id
     JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
     LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
@@ -135,16 +140,166 @@
     ;
   </select>
 
-  <!-- <select id="selectCategoryName" resultType="String">
-    select category_name from product_category where category_id = #{category_id};
-  </select> -->
+
 
   <select id="selectSubCategorys" resultType="map">
     SELECT category_name, category_id FROM product_category pc WHERE pc.parent_id = #{parent_id};
   </select>
-    <!-- <select id="selectSubCategorys" resultType="map">
-        <include refid="com.parkyangji.openmarket.backend.common.CommonSqlMapper.selectSubCategorysSql"/>
-    </select> -->
+
+  <!-- 장바구니 -->
+  <select id="selectCustomerCart" resultType="com.parkyangji.openmarket.backend.dto.CustomerCartDto">
+    SELECT * FROM customer_cart WHERE customer_id = #{customer_id}
+  </select>
+  <insert id="insertCustomerCart" useGeneratedKeys="true" keyProperty="cart_id" parameterType="com.parkyangji.openmarket.backend.dto.CustomerCartDto">
+    insert into customer_cart(customer_id) 
+    values(#{customer_id})
+  </insert>
+
+  <!-- 기존 cart_item에 동일한 cart_id와 combination_id가 있는지 확인 -->
+  <select id="checkExistingCartItem" resultType="java.lang.Integer">
+      SELECT quantity FROM cart_item
+      WHERE cart_id = #{cart_id} AND combination_id = #{combination_id}
+  </select>
+
+  <!-- cart_item을 업데이트 -->
+  <update id="updateCartItemQuantity">
+      UPDATE cart_item
+      SET quantity = quantity + #{quantity}
+      WHERE cart_id = #{cart_id} AND combination_id = #{combination_id}
+  </update>
+  <update id="updateCartItemExQuantity">
+      UPDATE cart_item
+      SET quantity = #{quantity}
+      WHERE cart_id = #{cart_id} AND combination_id = #{combination_id}
+  </update>
+  <insert id="insertCartItem">
+      INSERT INTO cart_item (cart_id, quantity, combination_id)
+      VALUES (#{cart_id}, #{quantity}, #{combination_id})
+  </insert>
+  <delete id="deleteCart">
+    delete from customer_cart where cart_id = #{cart_id}
+  </delete>
+  <delete id="deleteCartItem">
+    delete from cart_item where cart_id = #{cart_id} and combination_id = #{combination_id}
+  </delete>
+
+  <select id="selectExQuantityByOrderId" resultType="com.parkyangji.openmarket.backend.dto.CartItemDto">
+    SELECT ci.cart_id ,ci.combination_id , (od.quantity - ci.quantity) as quantity
+    FROM order_detail od
+    JOIN cart_item ci 
+    ON od.combination_id = ci.combination_id
+    WHERE od.order_id = #{order_id}
+    ;
+  </select>
+  
+  <select id="selectCustomerCartItems" resultType="com.parkyangji.openmarket.backend.dto.CartItemReturnDto">
+    SELECT ci.cart_id, s.store_name, p.product_id , p.title , pcv.combination_id ,
+    ov.optionvalue as optionvalue, po.optionvalue as optionname,
+    ci.quantity , poi.price as origin_price,
+    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    FROM product_option_combination poc
+    join product_combination_value pcv
+    on poc.combination_id = pcv.combination_id 
+    LEFT JOIN cart_item ci
+    ON ci.combination_id = pcv.combination_id 
+    LEFT JOIN customer_cart cc 
+    ON ci.cart_id = cc.cart_id 
+    join product_option_value ov
+    on ov.option_value_id = pcv.option_value_id 
+    join product_option po 
+    on ov.option_id = po.option_id 
+    JOIN product_option_inventory poi 
+    on poi.combination_id = pcv.combination_id 
+    LEFT JOIN seller_sale_item ssi 
+    on ssi.product_id = poc.product_id 
+    join product p 
+    on poc.product_id = p.product_id 
+    JOIN seller s
+    on p.seller_id = s.seller_id 
+    WHERE cc.customer_id = #{customer_id}
+    ;
+  </select>
+  <select id="selectTempCartItems" parameterType="map" resultType="com.parkyangji.openmarket.backend.dto.CartItemReturnDto">
+    SELECT po.product_id , s.store_name, p.title, cv.combination_id
+    ,ov.optionvalue , po.optionvalue as optionname , 
+    poi.price as origin_price,
+    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    FROM product_option_combination poc
+    join product_combination_value cv -- 여기가 최종
+    on poc.combination_id = cv.combination_id 
+    join product_option_value ov
+    on cv.option_value_id = ov.option_value_id
+    join product_option_inventory poi
+    on cv.combination_id = poi.combination_id 
+    join product_option po 
+    on po.option_id = ov.option_id 
+    LEFT JOIN seller_sale_item ssi 
+    ON po.product_id = ssi.product_id
+    join product p 
+    on poc.product_id = p.product_id 
+    JOIN seller s
+    on p.seller_id = s.seller_id 
+    where cv.combination_id IN 
+      <foreach item="id" collection="combination_id" open="(" separator="," close=")">
+          #{id}
+      </foreach>
+    and po.product_id = #{product_id};
+  </select>
+  <select id="selectCustomerOrderDetails" parameterType="com.parkyangji.openmarket.backend.dto.CartItemReturnDto">
+    SELECT ci.combination_id , ci.quantity, poi.price as origin_price,
+    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    FROM customer_cart cc 
+    JOIN cart_item ci 
+    ON cc.cart_id = ci.cart_id
+    JOIN product_option_inventory poi 
+    ON ci.combination_id = poi.combination_id
+    JOIN product_option_combination poc 
+    ON poi.combination_id = poc.combination_id
+    LEFT JOIN seller_sale_item ssi 
+    ON ssi.product_id = poc.product_id 
+    where cc.customer_id = #{customer_id}
+    ;
+  </select>
+  <insert id="insertOrderDetails" parameterType="list">
+    INSERT INTO order_detail(order_id, combination_id, quantity, price)
+    VALUES
+    <foreach item="OrderDetailDto" collection="list" separator=",">
+        (#{OrderDetailDto.order_id}, #{OrderDetailDto.combination_id}, #{OrderDetailDto.quantity}, #{OrderDetailDto.price})
+    </foreach>
+  </insert>
+  <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderItemReturnDto">
+    SELECT cc.order_date, ci.order_detail_id, cc.order_id , ci.status, p.product_id ,s.store_name, p.title , pcv.combination_id ,
+    ov.optionvalue as optionvalue, po.optionvalue as optionname,
+    ci.quantity, poi.price as origin_price,
+    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    FROM product_option_combination poc
+    join product_combination_value pcv
+    on poc.combination_id = pcv.combination_id 
+    JOIN order_detail ci
+    ON ci.combination_id = pcv.combination_id 
+    LEFT JOIN `order` cc 
+    ON ci.order_id = cc.order_id 
+    join product_option_value ov
+    on ov.option_value_id = pcv.option_value_id 
+    join product_option po 
+    on ov.option_id = po.option_id 
+    JOIN product_option_inventory poi 
+    on poi.combination_id = pcv.combination_id 
+    LEFT JOIN seller_sale_item ssi 
+    on ssi.product_id = poc.product_id 
+    join product p 
+    on poc.product_id = p.product_id 
+    JOIN seller s
+    on p.seller_id = s.seller_id 
+    WHERE cc.customer_id = #{customer_id}
+    ORDER BY order_id desc, order_detail_id desc, optionname
+    ;
+  </select>
+
 
   <select id="사용자 구매내역 찜 리스트 카테고리 추천 5개 상품">
     WITH MostOrderedCategories AS (

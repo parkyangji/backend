@@ -1,16 +1,10 @@
 package com.parkyangji.openmarket.backend.admin.controller;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import org.checkerframework.checker.units.qual.s;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,11 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.parkyangji.openmarket.backend.admin.service.SellerService;
+import com.parkyangji.openmarket.backend.admin.service.OrderService;
 import com.parkyangji.openmarket.backend.admin.service.ProductService;
-import com.parkyangji.openmarket.backend.config.ImageConfig;
-import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
-import com.parkyangji.openmarket.backend.dto.ProductImageDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 
 import jakarta.servlet.http.HttpSession;
@@ -35,7 +27,8 @@ public class AdminController {
 
   @Autowired
   private ProductService productService; 
-
+  @Autowired
+  private OrderService orderService;
   @Autowired
   private SellerService sellerService; // 어드민 서비스
 
@@ -264,13 +257,23 @@ public class AdminController {
   public String orders(HttpSession httpSession, Model model){
 
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
-
-    List<Map<String, Object>> orderList = sellerService.getAllOrders(sellerDto.getSeller_id());
-    // System.out.println(orderList);
     
-    model.addAttribute("orderList", orderList);
-
+    model.addAttribute("orderList", orderService.getAllOrders(sellerDto.getSeller_id()));
+    System.out.println(orderService.getAllOrders(sellerDto.getSeller_id()));
     return "admin/admin_order";
+  }
+
+  @RequestMapping("updateStatus")
+  public String updateStatus(
+    @RequestParam("order_detail_id") int order_detail_id, 
+    @RequestParam("status") String status
+    ){
+    System.out.println(order_detail_id);
+    System.out.println(status);
+
+    orderService.updateOrderStatus(order_detail_id, status);
+    
+    return "redirect:./order";
   }
 
   @RequestMapping("review")

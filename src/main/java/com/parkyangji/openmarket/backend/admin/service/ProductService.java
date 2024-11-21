@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -305,14 +306,14 @@ public class ProductService {
     // 재고/가격 관리, 할인
     Map<Integer, List<ProductOptionInventoryVo>> groupByCombinationId 
       = adminSqlMapper.selectProductOptionAndInventory(product_id)
-      .stream().collect(Collectors.groupingBy(ProductOptionInventoryVo::getCombination_id));
+      .stream().collect(Collectors.groupingBy(ProductOptionInventoryVo::getCombination_id, 
+      LinkedHashMap::new, Collectors.toList()));
     // System.out.println(groupByCombinationId);
 
     detailEdit.put("inventory", groupByCombinationId);
 
     // 키워드
     List<String> checkKeywords = adminSqlMapper.selectProductKeywords(product_id);
-    System.out.println(checkKeywords.size());
     detailEdit.put("checkKeywords", checkKeywords);
 
     return detailEdit;

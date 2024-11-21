@@ -12,7 +12,8 @@
         <i th:if="${likeData!=null}" class="flex-fill fs-5 bi bi-heart-fill"></i>
       </button>
     </form>
-    <form id="orderForm" action="/order" method="POST" class="col-10">
+    <!-- <form id="orderForm" action="/order" method="POST" class="col-10"> -->
+    <form id="orderForm" action="/temp_option" method="POST" class="col-10">
       <input type="hidden" name="productId" th:value="${productId}">
       <input class="button-style m-0 fs-1-5" type="submit" value="구매하기">
     </form>

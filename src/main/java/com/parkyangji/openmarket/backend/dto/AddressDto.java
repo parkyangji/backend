@@ -7,5 +7,7 @@ public class AddressDto {
   private int address_id;
   private int customer_id;
   private String address;
+  private String name;
+  private String phone;
   private boolean is_default; //
 }

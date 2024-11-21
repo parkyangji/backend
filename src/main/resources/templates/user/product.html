@@ -17,23 +17,40 @@
 
       <!-- 컨텐츠 : 썸네일 -->
       <div class="container-sm p-0" >
-        <img class="img-fluid" th:src="|/uploadFiles/${productInfo.main_page_url}|" th:alt="${productInfo.title}"
-          style="width: 100%; height: 450px; object-fit: cover;">
+        <img class="img-fluid" th:src="${product.images.thumbnail[0]}" style="width: 100%; height: 450px; object-position: top; object-fit: cover;">
       </div>
+
       <!-- 제품설명 -->
       <div class="container-sm p-4">
-        <div class="d-flex align-items-center mb-2 pb-2 main-text-sub-color">
-          <span th:text="${storeName}"></span>
-          <!-- <i class="bi bi-chevron-right" style="font-size: 13px; margin-left: 3px;"></i> -->
-        </div>
+        <!-- 브랜드명 -->
         <div>
-          <p class="fw-bold fs-1-5 mb-1" th:text="${productInfo.title}"></p>
+          <a th:href="@{/brand(name=${product.store_eng_name})}" class="d-flex align-items-center mb-2 pb-2 main-text-sub-color">
+            <span th:text="${product.store_name}"></span>
+            <i class="bi bi-chevron-right" style="font-size: 13px; margin-left: 3px;"></i>
+          </a>
+        </div>
+        <!-- 상품명 -->
+        <div>
+          <p class="fw-semibold fs-1-5 mb-1" th:text="${product.title}"></p>
+        </div>
+        <!-- 평점/리뷰 -->
+        <!-- <div>
           <p class="m-0" th:if="${avgRating!=null}">
             <span class="rating-color">★ </span><span class="me-1" th:text="${avgRating}" style="font-size: 14px;"></span>
             <span th:if="${reviewData.size()!=0}" class="text-decoration-underline" style="font-size: 13px;" th:text="|리뷰 ${reviewData.size()}개|"></span>
           </p>
-          <p class="mt-3">
-            <span class="fw-bold fs-5" th:text="|${productInfo.price}원|"></span>
+        </div> -->
+        <!-- 가격 -->
+        <div>
+          <div class="mt-3 d-flex flex-column" th:if="${product.discount_rate != null}">
+            <span class="text-decoration-line-through text-secondary" th:text="|${product.formattedOriginPrice}원|"></span>
+            <p class="d-flex gap-2 m-0">
+              <span class="fw-bold fs-5 main-text-strong-color" th:text="|${product.discount_rate}%|"></span>
+              <span class="fw-bold fs-5 letter-spacing-05" th:text="|${product.formattedSalePrice}원|"></span>
+            </p>
+          </div>
+          <p class="mt-3" th:unless="${product.discount_rate != null}">
+            <span class="fw-bold fs-5" th:text="|${product.formattedOriginPrice}원|"></span>
           </p>
         </div>
       </div>
@@ -51,17 +68,18 @@
             <a class="nav-link main-text-sub-color " href="#info">문의</a>
           </li>
         </ul>
-        <!-- <ul class="d-flex">
-          <li>정보</li>
-          <li>리뷰</li>
-          <li>문의</li>
-        </ul> -->
         <!-- 상품 상세 이미지 -->
         <div id="detail" style="padding-top: 48px;">
-          <img class="img-fluid" th:src="|/uploadFiles/164ea2a0-933b-41e9-b3ce-20e9576679e4.jpg|" alt="">
+          <th:block th:each="entry : ${product.images}">
+            <th:block th:if="${entry.key == 'detail'}">
+                <th:block th:each="image, imageStat : ${entry.value}">
+                    <img class="img-fluid" th:src="${image}" alt="상세 이미지">
+                </th:block>
+            </th:block>
+        </th:block>
         </div>
         <!-- 리뷰 리스트 -->
-        <div id="review" style="height: 100vh; padding-top: 48px;">
+        <!-- <div id="review" style="height: 100vh; padding-top: 48px;">
           <div th:if="${reviewData.size()!=0}" th:each="data : ${reviewData}">
             <div class="align-items-center d-flex gap-2">
               <i class="bi bi-person-circle fs-1" style="color: #eaeaea;"></i>
@@ -80,9 +98,9 @@
                 class="position-absolute bottom-0 end-0" style="font-size: 12px; color: #c0c0c0;"></span>
             </div>
           </div>
-        </div>
+        </div> -->
         <!-- 문의 리스트 -->
-        <div id="info" style="height: 100vh; padding-top: 48px;">
+        <!-- <div id="info" style="height: 100vh; padding-top: 48px;">
           <div>
             <div class="d-flex align-items-center main-text-sub-color">
               <p class="m-0">비밀글입니다.</p>
@@ -96,13 +114,15 @@
               <span>2024.11.11</span>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
       
 
       <!-- 하단 푸터 -->
-      <div th:insert="~{fragments/buyfooter::buyfooter(productId=${productInfo.product_id})}" 
+      <div th:insert="~{fragments/buyfooter::buyfooter(productId=${product.product_id})}" 
         th:with="likeData=${likeData}" class="container-sm fixed-bottom"></div>
+
+        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

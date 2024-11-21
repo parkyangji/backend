@@ -155,6 +155,10 @@ button {
   background: white;
 }
 
+.letter-spacing-05 {
+  letter-spacing: -0.5px;
+}
+
 
 /*=============================================*/
 

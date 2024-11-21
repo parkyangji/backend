@@ -42,19 +42,15 @@
               <table class="table text-center">
                 <thead>
                   <tr>
-                    <th scope="col"></th>
-                    <th scope="col">상품명</th>
-                    <!-- <th scope="col">썸네일</th> -->
-                    <th scope="col"></th>
-                    <!-- <th scope="col">카테고리</th> -->
-                    <!-- <th scope="col"></th> -->
-                    <!-- <th scope="col">재고수량</th> -->
-                    <!-- <th scope="col">판매가</th> -->
+                    <th></th>
+                    <th>상품명</th>
+                    <!-- <th>썸네일</th> -->
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody class="table-group-divider">
                   <tr th:each="product, status : ${productList}">
-                    <th scope="row" th:text="${status.index + 1}">1</th>
+                    <th th:text="${status.index + 1}">1</th>
                     <td th:text="${product.title}"></td>
                     <td>
                       <form action="./edit" method="post">

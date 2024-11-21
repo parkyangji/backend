@@ -17,19 +17,40 @@
     <!-- 컨텐츠 -->
     <div class="container-sm p-4">
       <div class="row flex-wrap">
-        <div class="p-0 col-6 position-relative" th:each="like : ${likeList}">
-          <a th:href="@{/product(id=${like.ProductDto.product_id})}">
+        <div class="p-0 col-6 position-relative" th:each="likeItem : ${likeList}">
+          <a th:href="@{/product(id=${likeItem['like'].product_id})}">
             <div class="d-flex flex-column fs-14" >
-              <div class="position-relative overflow-hidden">
-                <img style="width: 100%; height: 230px; object-fit: cover; object-position: top;"  th:src="|/uploadFiles/${like.ProductDto.main_page_url}|" th:alt="${like.ProductDto.title}" >
+              <div  class="position-relative overflow-hidden">
+                <img style="width: 100%; height: 230px; object-fit: cover; object-position: top;"  
+                th:src="${likeItem['image']}" alt="" >
+                <span th:data-product-id="${likeItem['like'].product_id}" onclick="" class="px-2 py-1 position-absolute z-2 bottom-0 end-0"><i style="color: #f31110;" class="bi bi-heart-fill"></i></span>
                 <!-- <span class="p-2 position-absolute z-2 bottom-0 end-0"><i style="color: #c70303;" class="bi bi-heart-fill"></i></span> -->
               </div>
             </div>
           </a>
+          <!-- <div th:if="${likeItem.containsKey('like')}">
+              <span th:text="${likeItem['like'].favorite_id}">Favorite ID</span>
+              <span th:text="${likeItem['like'].customer_id}">Customer ID</span>
+              <span th:text="${likeItem['like'].product_id}">Product ID</span>
+          </div>
+          <div th:if="${likeItem.containsKey('type_name')}">
+              <span th:text="${likeItem['type_name']}">Type Name</span>
+              <img th:src="${likeItem['image_url']}" alt="Product Image"/>
+          </div> -->
         </div>
       </div>
     </div>
-
+      
+        <!-- <div class="p-0 col-6 position-relative" th:each="like : ${likeList}">
+          <a th:href="@{/product(id=${like.ProductDto.product_id})}">
+            <div class="d-flex flex-column fs-14" >
+              <div class="position-relative overflow-hidden">
+                <img style="width: 100%; height: 230px; object-fit: cover; object-position: top;"  th:src="|/uploadFiles/${like.ProductDto.main_page_url}|" th:alt="${like.ProductDto.title}" >
+                <span class="p-2 position-absolute z-2 bottom-0 end-0"><i style="color: #c70303;" class="bi bi-heart-fill"></i></span>
+              </div>
+            </div>
+          </a>
+        </div> -->
     <!-- 하단 푸터 -->
     <div th:insert="~{fragments/footer::footer}" class="container-sm fixed-bottom"></div>
   </div>

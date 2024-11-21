@@ -13,11 +13,6 @@
       VALUES (#{category_id}, #{seller_id}, #{title});
   </insert>
 
-  <!-- <insert id="insertProduct">
-    insert into product(category_id,seller_id,title,description, price ,main_page_url,total_quantity)
-    values(#{category_id}, #{seller_id}, #{title}, #{description}, #{price}, #{main_page_url}, #{total_quantity})
-  </insert> -->
-
   <select id="selectSellerProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto">
     select * from product where seller_id = #{seller_id} order by created_date desc
   </select>
@@ -69,13 +64,7 @@
     insert into product_keyword_value(product_id, keyword_id) 
     values(#{product_id}, #{keyword_id})
   </insert>
-  <select id="selectProductKeywords" resultType="String">
-    SELECT k.keyword_name 
-    FROM product_keyword_value pkv 
-    join keyword k 
-    on pkv.keyword_id = k.keyword_id 
-    WHERE pkv.product_id = #{product_id};
-  </select>
+
   <delete id="deleteKeyword">
     delete from product_keyword_value where keyword_id = #{keyword_id}
   </delete>
@@ -116,25 +105,37 @@
     VALUES (#{combination_id}, #{quantity}, #{price})
   </insert>
 
-  <select id="selectProductOptionAndInventory" resultType="com.parkyangji.openmarket.backend.vo.ProductOptionInventoryVo">
-    SELECT po.product_id , cv.combination_id, cv.combination_value_id 
-    ,ov.optionvalue , po.optionvalue as optionname , poi.quantity 
-    , poi.price as origin_price,
-    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
-    FROM product_combination_value cv
+  <select id="selectSellerOrder" resultType="com.parkyangji.openmarket.backend.dto.OrderItemReturnDto">
+    SELECT s.seller_id , o.order_date ,od.order_detail_id ,od.order_id , od.status,
+    c.customer_id ,c.nickname ,
+    p.product_id, p.title , od.combination_id, 
+    ov.optionvalue as optionvalue, po.optionvalue as optionname,
+    od.quantity, od.price 
+    FROM order_detail od 
+    LEFT JOIN `order` o
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    on poc.combination_id = od.combination_id 
+    JOIN product_combination_value pcv 
+    on poc.combination_id = pcv.combination_id
     join product_option_value ov
-    on cv.option_value_id = ov.option_value_id
-    join product_option_inventory poi
-    on cv.combination_id = poi.combination_id 
+    on pcv.option_value_id = ov.option_value_id
     join product_option po 
-    on po.option_id = ov.option_id 
-    LEFT JOIN seller_sale_item ssi 
-    ON po.product_id = ssi.product_id
-    where po.product_id = #{product_id}
-    order by cv.combination_id, po.optionvalue 
+    on po.option_id = ov.option_id
+    JOIN product p 
+    on p.product_id = poc.product_id 
+    JOIN seller s 
+    on p.seller_id = s.seller_id 
+    JOIN customer c 
+    on o.customer_id = c.customer_id 
+    WHERE s.seller_id = #{seller_id}
+    ORDER BY order_id desc, order_detail_id desc, optionname
     ;
   </select>
+
+  <update id="updateOrderStatus" parameterType="map">
+    UPDATE order_detail SET status = #{status} where order_detail_id = ${order_detail_id} 
+  </update>
 
   <!-- 상품 정보 수정 -->
   <update id="updateCategory" parameterType="map">

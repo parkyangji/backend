@@ -11,8 +11,5 @@ public class CustomerDto {
   private String username;
   private String password;
   private String nickname;
-  private String name;
-  private String phone;
-  private String gender;
   private Date signup_date;
 }
