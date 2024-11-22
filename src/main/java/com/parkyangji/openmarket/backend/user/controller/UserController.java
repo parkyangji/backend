@@ -22,10 +22,13 @@ import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
+import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
+import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.OrderItemReturnDto;
+import com.parkyangji.openmarket.backend.dto.OrderSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
@@ -87,7 +90,6 @@ public class UserController {
 
     httpSession.setAttribute("sessionInfo", customerDto);
 
-
     return "redirect:/home";
   }
 
@@ -113,9 +115,6 @@ public class UserController {
     customerDto.setUsername(username);
     customerDto.setPassword(password);
     customerDto.setNickname(nickname);
-    // customerDto.setName(name);
-    // customerDto.setGender(gender);
-    // customerDto.setPhone(phone);
 
     AddressDto addressDto = new AddressDto();
     addressDto.setName(name);
@@ -128,15 +127,27 @@ public class UserController {
   }
 
   @RequestMapping("category")
-  public String productListPage(Model model, HttpSession httpSession, @RequestParam("menu_id") int category_id){
+  public String productListPage(Model model, HttpSession httpSession, @RequestParam("menu_id") Integer parent_category_id){
 
     //System.out.println("카테고리넘버"+ category_id);
 
     boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;
     model.addAttribute("isLoggedIn", isLoggedIn);
 
-    Map<String, Object> productListData = userService.getCategoryProductList(category_id);
-    model.addAllAttributes(productListData);
+    // 상단이름
+    String category_name = userService.getCategoryName(parent_category_id);
+    model.addAttribute("category_name", category_name);
+
+    List<Map<String, Object>> subCategoryIdAndName = userService.getSubTabCategorys(parent_category_id);
+    List<String> categoryNames = new ArrayList<>();
+    for (Map<String, Object> category : subCategoryIdAndName) {
+      categoryNames.add((String) category.get("category_name"));
+    }
+    model.addAttribute("sub_categorys", categoryNames);
+
+    // 상품 리스트
+    List<ProductDetailReturnDto> productList = userService.getCategoryProductList(subCategoryIdAndName);
+    model.addAttribute("productList", productList);
 
     return "user/productList";
   }
@@ -159,7 +170,7 @@ public class UserController {
     model.addAllAttributes(productData);
 
     // System.out.println("상품 페이지");
-    // System.out.println(productData);
+    System.out.println(productData);
     return "user/product";
   }
   
@@ -200,7 +211,7 @@ public class UserController {
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
     
     // 주문 정보 + 상품 정보
-    Map<Integer, Map<String, Map<Integer, List<OrderItemReturnDto>>>> orderItems = userService.getOrderList(customerDto.getCustomer_id());
+    List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
     model.addAttribute("orderItems", orderItems);
     System.out.println(orderItems);
@@ -214,10 +225,10 @@ public class UserController {
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
 
     // 주문 정보 + 상품 정보
-    Map<Integer, Map<String, Map<Integer, List<OrderItemReturnDto>>>> orderItems = userService.getOrderList(customerDto.getCustomer_id());
+    List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
     model.addAttribute("orderItems", orderItems);
-    // System.out.println(orderItems);
+    System.out.println(orderItems);
 
     //model.addAttribute("hasReviewsState", userService.hasReviewsState(orderItems));
 
@@ -227,45 +238,41 @@ public class UserController {
   @RequestMapping("/ratingProcess")
   public String ratingProcess(HttpSession httpSession, 
     @RequestParam("rating") int rating, 
-    @RequestParam("order_id") int order_id,
-    @RequestParam("product_id") int product_id) {
+    @RequestParam("order_detail_id") int order_detail_id) {
+    System.out.println(rating);
+    System.out.println(order_detail_id);
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
-
-    ProductReviewDto productReviewDto = new ProductReviewDto();
-    productReviewDto.setProduct_id(product_id);
-    productReviewDto.setCustomer_id(customerDto.getCustomer_id());
-    productReviewDto.setOrder_id(order_id);
-    productReviewDto.setRating(rating);
-
-    userService.saveOrUpdateReview(productReviewDto);
+    userService.saveRating(order_detail_id, rating);
     
     return "redirect:/mypage/review";
   }
 
   @RequestMapping("/reviewContentProcess")
   public String reviewContentProcess(HttpSession httpSession, 
-    @RequestParam("content") String content, 
-    @RequestParam("order_id") int order_id,
-    @RequestParam("product_id") int product_id) {
+    @RequestParam("review_content") String review_content, 
+    @RequestParam("order_detail_id") int order_detail_id) {
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
-
-    ProductReviewDto productReviewDto = new ProductReviewDto();
-    productReviewDto.setProduct_id(product_id);
-    productReviewDto.setCustomer_id(customerDto.getCustomer_id());
-    productReviewDto.setOrder_id(order_id);
-    productReviewDto.setContent(content);
-
-    userService.saveOrUpdateReview(productReviewDto);
+    userService.saveReviwContent(order_detail_id, review_content);
     
     return "redirect:/mypage/review";
   }
 
 
   @RequestMapping("brand")
-  public String brandPage(@RequestParam("name") String store_eng_name){
-    // System.out.println(store_eng_name);
+  public String brandPage(@RequestParam("name") String name, Model model){
+    System.out.println(name);
+
+    model.addAttribute("storename", name);
+
+    List<Map<String, Object>> subCategoryIdAndName = userService.getSubTabCategorys(null);
+    List<String> categoryNames = new ArrayList<>();
+    for (Map<String, Object> category : subCategoryIdAndName) {
+      categoryNames.add((String) category.get("category_name"));
+    }
+    model.addAttribute("sub_categorys", categoryNames);
+
+    List<ProductDetailReturnDto> brandList = userService.getBrandProducts(name);
+    model.addAttribute("brandList", brandList);
 
     return "user/brand";
   }
@@ -274,7 +281,10 @@ public class UserController {
   public String tempOptionChoice(@RequestParam("productId") int productId, Model model){
     // System.out.println(productId);
     model.addAttribute("productId", productId);
-    model.addAllAttributes(userService.tempoptionChoice(productId));
+
+    List<ProductOptionSummaryDto> options = userService.tempoptionChoice(productId);
+    model.addAttribute("options", options);
+    
     return "user/temp_option";
   }
 

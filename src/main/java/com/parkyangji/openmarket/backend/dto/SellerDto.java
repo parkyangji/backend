@@ -8,5 +8,4 @@ public class SellerDto {
   private String username;
   private String password;
   private String store_name;
-  private String store_eng_name;
 }

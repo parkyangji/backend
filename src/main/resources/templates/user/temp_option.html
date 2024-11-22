@@ -16,14 +16,15 @@
       <div class="container-sm p-0" >
         <form action="/temp_cart" method="post">
           <input type="hidden" name="productId" th:value="${productId}">
-          <div th:each="entry, state : ${inventory}" class="mb-3">
-            <div>
+          <div th:text="${options}"></div>
+          <!-- <div th:each="entry, state : ${inventory}" class="mb-3">
+            <div> -->
               <!-- <input type="checkbox" name="combination_id[]" 
                 th:value="${entry.key}" 
                 th:if="${entry.value[entry.value.size() - 1].quantity != 0}" ></input> -->
-              <input type="checkbox" th:if="${entry.value[entry.value.size() - 1].quantity != 0}"></input>
+              <!-- <input type="checkbox" th:if="${entry.value[entry.value.size() - 1].quantity != 0}"></input> -->
               <!-- 옵션끼리 조합 -->
-              <th:block th:each="option : ${entry.value}">
+              <!-- <th:block th:each="option : ${entry.value}">
                 <span th:text="${option.optionname} + ': ' + ${option.optionvalue}"></span>
                 <div>
                   <span th:if="${optionStat.last && option.discount_rate != null}" th:text="|가격 : ${option.formattedSalePrice}|"></span>
@@ -39,7 +40,7 @@
               <input type="hidden" name="combination_id[]" th:value="${entry.key}">
               <input type="number" name="quantity[]" id="quantity" value="0" class="w-25">
             </th:block>
-          </div>
+          </div> -->
   
           <!-- <span class="mt-3 btn btn-secondary">바로구매</span> -->
           <button class="mt-3 btn btn-primary">장바구니 추가</button>

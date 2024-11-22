@@ -2,6 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.parkyangji.openmarket.backend.common.CommonSqlMapper">
+  <!-- 카테고리 -->
+  <select id="selectAllCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductCategoryDto"> 
+    SELECT * FROM product_category;
+  </select>
   <select id="selectCategoryName" resultType="String">
     select category_name from product_category where category_id = #{category_id};
   </select>
@@ -27,6 +31,18 @@
         child.parent_id = parent.category_id
     WHERE 
         child.category_id = #{category_id};
+  </select>
+
+  <select id="selectSubCategorys" parameterType="integer" resultType="map">
+      SELECT category_name, category_id 
+      FROM product_category pc 
+      WHERE 
+      <if test="parent_id != null">
+          pc.parent_id = #{parent_id}
+      </if>
+      <if test="parent_id == null">
+          pc.parent_id IS NULL
+      </if>
   </select>
 
   <!-- product_id -->
@@ -61,8 +77,8 @@
     on pkv.keyword_id = k.keyword_id 
     WHERE pkv.product_id = #{product_id};
   </select>
-    <select id="selectProductOptionAndInventory" resultType="com.parkyangji.openmarket.backend.vo.ProductOptionInventoryVo">
-    SELECT po.product_id , cv.combination_id, cv.combination_value_id 
+    <select id="selectProductOptionAndInventory" resultType="com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto">
+    SELECT cv.combination_id, cv.combination_value_id 
     ,ov.optionvalue , po.optionvalue as optionname , poi.quantity 
     , poi.price as origin_price,
     IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
@@ -81,7 +97,7 @@
     ;
   </select>
   <select id="selectProductById" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
-    SELECT p.product_id, s.store_name, s.store_eng_name, p.category_id, p.title,
+    SELECT p.product_id, s.store_name, p.category_id, p.title,
     poi.price as origin_price,
           IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
           IF(ssi.discount_rate IS NOT NULL, FLOOR(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as sale_price

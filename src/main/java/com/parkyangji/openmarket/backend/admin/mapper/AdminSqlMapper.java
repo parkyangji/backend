@@ -44,9 +44,6 @@ public interface AdminSqlMapper extends CommonSqlMapper{
 
   public void insertImage(ProductImageDto productImageDto);
 
-  // 카테고리
-  public List<ProductCategoryDto> selectAllCategory();
-
   // 키워드
   public List<String> selectAllKeyword();
   public int selectKeywordGetId(String keyword_name);

@@ -47,12 +47,6 @@
     VALUES (#{product_id}, #{image_type_id}, #{image_url})
   </insert>
 
-  <!-- 카테고리 -->
-  <select id="selectAllCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductCategoryDto"> 
-    SELECT * FROM product_category;
-  </select>
-
-
   <!-- 키워드 -->
   <select id="selectAllKeyword" resultType="String"> 
     SELECT keyword_name FROM keyword;

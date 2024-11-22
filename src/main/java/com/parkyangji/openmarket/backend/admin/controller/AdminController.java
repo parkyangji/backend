@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.parkyangji.openmarket.backend.admin.service.SellerService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parkyangji.openmarket.backend.admin.service.OrderService;
 import com.parkyangji.openmarket.backend.admin.service.ProductService;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
@@ -102,9 +106,7 @@ public class AdminController {
       @RequestParam(value = "thumbnail", required = false) MultipartFile[] thumbnailImages,
       @RequestParam(value = "detail", required = false) MultipartFile[] detailImages,
       @RequestParam(value = "keyword[]", required = false) List<String> keywords,
-      @RequestParam("option_name[]") List<String> option_name, // 옵션 부분 추후 js 처리!!!
-      @RequestParam("option_name_value1[]") List<String> option_value1, 
-      @RequestParam("option_name_value2[]") List<String> option_value2,
+      @RequestParam("combinations") String combinationsJson, // 옵션 부분 추후 js 처리!!!
       @RequestParam("quantity[]") List<Integer> quantity,
       @RequestParam("price[]") List<Integer> price
     ){
@@ -129,34 +131,14 @@ public class AdminController {
     //System.out.println(keywords);
 
     // 4. 옵션이름, 옵션값, 재고수량, 가격 
-
-    // combinations: [["S", "빨강"], ["S", "파랑"], ["M", "빨강"], ["M", "파랑"]]
-    // quantity[]: [100, 50, 80, 60]
-    // price[]: [10000, 11000, 12000, 13000]
-
-    // HashMap 생성 => 나중에 js 동적 예정 !!!!!
-    /*
-    [
-      {이름 : 값[] },
-      {이름 : 값[] },
-      {이름 : 값[] }, ...
-    ]
-    */
-    // 임시 json처럼 생성
-    List<Map<String, Object>> option_combinations = new ArrayList<>();
-
-    for (String name : option_name) {
-      Map<String, Object> option = new HashMap<>();
-      if (name.equals("사이즈") ) {
-        option.put(name, option_value1);
-      }
-      if (name.equals("색상")) {
-        option.put(name, option_value2);
-      }
-      option_combinations.add(option);
+    List<Map<String, Object>> option_combinations;
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+        option_combinations = objectMapper.readValue(combinationsJson, new TypeReference<List<Map<String, Object>>>() {});
+        System.out.println("Parsed option combinations: " + option_combinations);
+    } catch (JsonProcessingException e) {
+        throw new RuntimeException("Failed to parse combinations JSON", e);
     }
-    //
-    //System.out.println(option_combinations);
 
     int option_cases_count = 1;
     for (Map<String, Object> map : option_combinations) {
@@ -164,7 +146,7 @@ public class AdminController {
           option_cases_count *= ((List<?>) values).size();
         }
     }
-
+    
     if (option_cases_count == quantity.size() &&  quantity.size() == price.size()) {
       productService.registerProduct(params , imageList, keywords, option_combinations, quantity, price);
     } else {

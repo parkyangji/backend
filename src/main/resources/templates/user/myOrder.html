@@ -15,83 +15,46 @@
     <div th:insert="~{fragments/sideheader::sideheader('주문·배송')}" class="px-0 container-sm fixed-top"></div>
 
     <!-- 컨텐츠 -->
-    <div class="container-sm p-4">
-      <th:block th:if="${orderItems != null}" th:each="productEntry : ${orderItems}">
-        <!-- product_id에 해당하는 그룹 -->
+    <div class="container-sm px-4" style="padding-bottom: 48px;">
+      <!-- orderItems 반복: 각 주문을 순회 -->
+      <th:block th:if="${orderItems != null}" th:each="order : ${orderItems}">
         <div class="card mb-4 border">
+          <!-- 주문 정보 표시 -->
           <div class="card-header bg-primary text-white">
-            <!-- <h4 class="mb-0">주문번호 ID: <span th:text="${productEntry.key}"></span></h4> -->
-            <!-- 최상위 반복문만을 사용하여 직접 접근 -->          
+            <!-- <h5 class="mb-0">주문 번호: <span th:text="${order.orderId}"></span></h5> -->
+            <p class="mb-0">주문 날짜: <span th:text="${order.formattedOrderDate}"></span></p>
           </div>
           <div class="card-body">
-            <!-- 각 product_id 그룹 안에서 combination_id로 그룹핑된 데이터 반복 -->
-            <th:block th:each="orderNumber : ${productEntry.value}">
+            <!-- 주문에 포함된 제품들 반복 -->
+            <th:block th:each="product : ${order.products}">
               <div class="mb-3">
-
-                <th:block th:each="combinationEntry : ${orderNumber.value}">
-                    <p th:if="${combinationEntryStat.first}" th:text="${combinationEntry.value[0].formattedOrderDate}"></p>
-                </th:block>
-
-                <!-- 브랜드명 표시 -->
-                <div th:each="brand : ${orderNumber.key}">
-                  <p class="fw-bold text-secondary" th:text="${brand}"></p>
-                </div>
-                
-                
-                <!-- 상품 정보 반복 -->
-                <th:block th:each="product : ${orderNumber.value}">
-                  <th:block th:each="combination : ${product.value}">
-                      <div th:if="${combinationStat.last}" class="col-md-3">
-                        <p class="badge bg-info text-dark" th:text="${combination.status}"></p>
-                        <img class="img-fluid rounded" th:src="${combination.image_url}" alt="">
-                        <div th:if="${combination.status == '배송완료'}">
-                          <button class="d-block button-style2 mt-1 text-center" onclick="location.href='/mypage/review'" >리뷰 작성</button>
-                        </div>
-                      </div>
-                    </th:block>
-                    <th:block th:each="combination : ${product.value}">
-                    
-                    <!-- <div class="row mb-2 align-items-center"> -->
-                      <!-- 이미지 및 정보 -->
-                      <!-- <div class="col-md-3">
-                        <img th:if="${combinationStat.last}" class="img-fluid rounded" th:src="${combination.image_url}" alt="">
-                      </div> -->
-                      <!-- <div class="col-md-9"> -->
-                        <!-- <div th:if="${combinationStat.last}" class="mb-2">
-                          <p class="badge bg-info text-dark" th:text="${combination.status}"></p>
-                        </div> -->
-                        <p class="m-0" th:text="${combination.optionname} + ': ' + ${combination.optionvalue}"></p>
-                        <p class="m-0" th:if="${combinationStat.last}" th:text="|수량 : ${combination.quantity}|"></p>
-                      <!-- </div> -->
-                    <!-- </div> -->
+                <h6 class="fw-bold text-secondary" th:text="${product.store_name}"></h6>
+                <!-- 제품에 포함된 옵션들 반복 -->
+                <div th:each="option : ${product.options}">
+                  <div class="d-flex align-items-start">
+                    <img class="img-fluid rounded me-3" th:src="${product.image_url}" alt="상품 이미지" style="width: 120px;">
+                    <div>
+                      <p class="mb-1 fw-bold" th:text="${product.title}"></p>
+                      <p class="mb-1" th:text="'가격: ' + ${product.formattedOriginPrice} + '원'"></p>
+                      <p class="mb-1" th:if="${product.discount_rate != null}" th:text="'할인가: ' + ${product.formattedSalePrice} + '원 (' + ${product.discount_rate} + '% 할인)'"></p>
+                    </div>
+                  </div>
+                  <th:block th:each="optionDetail, stat : ${option.optionDetails}">
+                    <span class="m-0" th:each="value :${optionDetail.values()}" th:text="${value}"></span>
+                    <span th:if="${!stat.last}"> x </span>
                   </th:block>
-                </th:block>
+                  <span class="m-0" th:text="'/ ' + ${option.quantity}"></span>
+                  <!-- 리뷰 작성 버튼: 배송 완료된 경우에만 표시 -->
+                  <div class="mb-2">
+                    <span class="d-block btn btn-danger" th:text="${option.status}" ></span>
+                    <button th:if="${option.status == '배송완료'}" class="d-block w-100 btn btn-primary" onclick="location.href='/mypage/review'">리뷰 작성</button>
+                  </div>
+                </div>
               </div>
             </th:block>
           </div>
         </div>
       </th:block>
-      <!-- 주문내역 박스 -->
-      <!-- <div class="mb-4 pb-4 border-bottom" th:each="order : ${orderList}">
-        <p class="m-0 fs-14" th:text="${#dates.format(order.ProductOrderDto.order_date, 'yyyy.MM.dd')}"></p>
-        <p class="m-0 main-text-strong-color fw-semibold" th:text="${order.ProductOrderDto.status}"></p>
-         <a class="text-decoration-underline" th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}"></a>
-        <div class="d-flex">
-          <img class="w-25 me-2" style="object-fit: contain;" th:src="|/uploadFiles/${order.ProductDto.main_page_url}|" th:alt="${order.ProductDto.title}"></img>
-          <ul class="flex-fill p-2">
-            <li class="fs-14" th:text="${order.store_name}">브랜드</li>
-            <li class="lh-sm my-1">
-              <a th:href="@{/product(id=${order.ProductDto.product_id})}" th:text="${order.ProductDto.title}">상품명</a>
-            </li>
-            <li class="fs-14 text-secondary">100 / 2개</li>
-            <li class="fw-semibold" th:text="|${order.ProductDto.price}원|">가격</li>
-          </ul>
-        </div>
-        배송 완료시 리뷰 작성 활성화
-        <div th:if="${order.ProductOrderDto.status == '배송완료'}">
-          <button class="d-block button-style2 mt-1 text-center" onclick="location.href='/mypage/review'" >리뷰 작성</button>
-        </div>
-      </div> -->
     </div>
 
     <!-- 하단 푸터 -->

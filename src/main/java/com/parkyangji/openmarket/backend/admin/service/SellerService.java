@@ -25,7 +25,10 @@ public class SellerService {
   public SellerDto loginCheck(SellerDto sellerDto) {
     return adminSqlMapper.selectLoginCheck(sellerDto);
   }
-  
+
+  public void sellerRegister(SellerDto sellerDto) {
+    adminSqlMapper.insertSeller(sellerDto);
+  }
 
   public List<Map<String, Object>> getAllReviews(int seller_id) {
     List<Map<String, Object>> reviewList = new ArrayList<>();
@@ -52,15 +55,9 @@ public class SellerService {
   public void addReply(int review_id, String seller_reply) {
 
     ProductReviewDto productReviewDto = new ProductReviewDto();
-    productReviewDto.setReview_id(review_id);
-    productReviewDto.setSeller_reply(seller_reply);
+    // productReviewDto.setReview_id(review_id);
+    // productReviewDto.setSeller_reply(seller_reply);
 
     adminSqlMapper.inserReply(productReviewDto);
   }
-
-  public void sellerRegister(SellerDto sellerDto) {
-    adminSqlMapper.insertSeller(sellerDto);
-  }
-
-
 }

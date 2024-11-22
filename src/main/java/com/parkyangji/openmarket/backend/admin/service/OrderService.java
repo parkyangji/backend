@@ -23,13 +23,13 @@ public class OrderService {
     List<OrderItemReturnDto> orders = adminSqlMapper.selectSellerOrder(seller_id);
     // System.out.println(orders);
 
-    for (OrderItemReturnDto item : orders) {
-      item.setImage_url(adminSqlMapper.selectThumbnailImage(item.getProduct_id()));
-    }
+    // for (OrderItemReturnVo item : orders) {
+    //   item.setImage_url(adminSqlMapper.selectThumbnailImage(item.getProduct_id()));
+    // }
 
     // 1단계: 주문별 그룹핑
-    //orders.stream().collect(Collectors.groupingBy((OrderItemReturnDto order) -> order.getCombination_id()));
-    // orders.stream().collect(Collectors.groupingBy(OrderItemReturnDto::getOrder_id));
+    //orders.stream().collect(Collectors.groupingBy((OrderItemReturnVo order) -> order.getCombination_id()));
+    // orders.stream().collect(Collectors.groupingBy(OrderItemReturnVo::getOrder_id));
 
     // 2단계: 옵션별 그루핑
     Map<Integer, Map<Integer, List<OrderItemReturnDto>>> orderList = 

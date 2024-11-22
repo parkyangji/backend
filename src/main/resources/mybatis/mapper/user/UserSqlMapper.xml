@@ -37,7 +37,16 @@
   </select> -->
 
   <select id="selectAvgRating" resultType="Float">
-    SELECT AVG(rating) FROM product_review WHERE product_id = #{product_id};
+    SELECT AVG(pr.rating)
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    LEFT JOIN product_rating pr 
+    ON pr.order_detail_id = od.order_detail_id 
+    WHERE poc.product_id = #{product_id}
+    ;
   </select>
 
   <select id="selectStoreName" resultType="String">
@@ -45,7 +54,16 @@
   </select>
   
   <select id="selectReviews" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
-    SELECT * FROM product_review WHERE product_id = #{product_id} AND content IS NOT NULL;
+    SELECT pr2.order_detail_id ,pr2.review_content , pr2.created_date 
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    LEFT JOIN product_review pr2 
+    ON pr2.order_detail_id  = od.order_detail_id
+    WHERE poc.product_id = #{product_id} and pr2.review_content IS NOT NULL
+    ;
   </select>
 
   <select id="selectCustomer" resultType="com.parkyangji.openmarket.backend.dto.CustomerDto">
@@ -74,12 +92,21 @@
     SELECT * FROM product_order WHERE customer_id = #{customer_id} ORDER BY order_id DESC;
   </select> -->
 
-  <select id="selectReviewByProductAndCustomer" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
-      SELECT * FROM product_review
-      WHERE product_id = #{product_id} AND customer_id = #{customer_id} AND order_id = #{order_id}
+  <select id="selectRatingCheck" resultType="com.parkyangji.openmarket.backend.dto.ProductRatingDto">
+    SELECT * FROM product_rating WHERE order_detail_id = #{order_detail_id}
   </select>
 
-  <insert id="insertReview">
+  <insert id="insertRating" parameterType="map">
+    INSERT INTO product_rating(order_detail_id, rating) 
+    VALUES(#{order_detail_id}, #{rating})
+  </insert>
+
+  <insert id="insertReviwContent" parameterType="map">
+    INSERT INTO product_review(order_detail_id, review_content) 
+    VALUES(#{order_detail_id}, #{review_content})
+  </insert>
+
+  <!-- <insert id="insertReview">
       INSERT INTO product_review (product_id, customer_id, order_id, content, rating)
       VALUES (#{product_id}, #{customer_id}, #{order_id}, #{content}, #{rating})
   </insert>
@@ -92,7 +119,7 @@
           created_date = NOW()
       </set>
       WHERE review_id = #{review_id}
-  </update>
+  </update> -->
 
   <select id="selectLike" resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
     select * from product_favorite where customer_id = #{customer_id} and product_id = #{product_id}
@@ -120,7 +147,7 @@
   </select>
 
   <select id="selectProductListByCategoryId" parameterType="list" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
-    SELECT p.product_id, s.store_name, s.store_eng_name,
+    SELECT p.product_id, s.store_name,
           p.category_id, p.title,
           poi.price as origin_price, 
           IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
@@ -140,10 +167,22 @@
     ;
   </select>
 
-
-
-  <select id="selectSubCategorys" resultType="map">
-    SELECT category_name, category_id FROM product_category pc WHERE pc.parent_id = #{parent_id};
+  <select id="selectBrandProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
+    SELECT p.product_id, s.store_name,
+          p.category_id, p.title,
+          poi.price as origin_price, 
+          IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as sale_price
+    FROM seller s
+    JOIN product p ON p.seller_id = s.seller_id
+    JOIN product_image pi ON p.product_id = pi.product_id
+    JOIN product_option_combination poc ON p.product_id = poc.product_id
+    JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
+    LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
+    WHERE s.store_name = #{store_name}
+    GROUP BY p.product_id 
+    ORDER BY p.created_date DESC
+    ;
   </select>
 
   <!-- 장바구니 -->
@@ -271,11 +310,13 @@
     </foreach>
   </insert>
   <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderItemReturnDto">
-    SELECT cc.order_date, ci.order_detail_id, cc.order_id , ci.status, p.product_id ,s.store_name, p.title , pcv.combination_id ,
+    SELECT cc.order_date , cc.order_id , ci.order_detail_id , ci.status, 
+    p.product_id ,s.store_name, p.title , pcv.combination_id ,
     ov.optionvalue as optionvalue, po.optionvalue as optionname,
     ci.quantity, poi.price as origin_price,
     IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price
+    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price,
+    pr.rating , pr2.review_content 
     FROM product_option_combination poc
     join product_combination_value pcv
     on poc.combination_id = pcv.combination_id 
@@ -283,6 +324,10 @@
     ON ci.combination_id = pcv.combination_id 
     LEFT JOIN `order` cc 
     ON ci.order_id = cc.order_id 
+    LEFT JOIN product_rating pr 
+    ON pr.order_detail_id = ci.order_detail_id 
+    LEFT JOIN product_review pr2 
+    ON pr2.order_detail_id = ci.order_detail_id 
     join product_option_value ov
     on ov.option_value_id = pcv.option_value_id 
     join product_option po 

@@ -24,8 +24,8 @@ import com.parkyangji.openmarket.backend.dto.ProductKeywordValueDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionCombinationDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionInventoryDto;
+import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionValueDto;
-import com.parkyangji.openmarket.backend.vo.ProductOptionInventoryVo;
 
 // Service: 비즈니스 로직을 처리.
 @Service
@@ -87,14 +87,6 @@ public class ProductService {
   List<Map<String, Object>> option_combinations, List<Integer> quantity, List<Integer> price){
     // 동시성 문제 체크할것
     
-    /*
-    [
-      {사이즈 : [800,810,820,830,840] },
-      {색상 : [MGR] },
-    ]
-    */
-    
-
     List<String> option_name = new ArrayList<>(); // [사이즈, 색상]
     for (Map<String, Object> map : option_combinations) {
         option_name.addAll(map.keySet());
@@ -304,9 +296,9 @@ public class ProductService {
     detailEdit.put("imageMap", imageMap);
 
     // 재고/가격 관리, 할인
-    Map<Integer, List<ProductOptionInventoryVo>> groupByCombinationId 
+    Map<Integer, List<ProductOptionSummaryDto>> groupByCombinationId 
       = adminSqlMapper.selectProductOptionAndInventory(product_id)
-      .stream().collect(Collectors.groupingBy(ProductOptionInventoryVo::getCombination_id, 
+      .stream().collect(Collectors.groupingBy(ProductOptionSummaryDto::getCombination_id, 
       LinkedHashMap::new, Collectors.toList()));
     // System.out.println(groupByCombinationId);
 

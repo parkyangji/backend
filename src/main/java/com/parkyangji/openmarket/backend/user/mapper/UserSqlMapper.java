@@ -16,6 +16,7 @@ import com.parkyangji.openmarket.backend.dto.OrderDetailDto;
 import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
+import com.parkyangji.openmarket.backend.dto.ProductRatingDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.OrderItemReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
@@ -49,9 +50,11 @@ public interface UserSqlMapper extends CommonSqlMapper{
   //public List<OrderDto> selectOrderList(int customer_id);
 
   // 리뷰
-  public ProductReviewDto selectReviewByProductAndCustomer(ProductReviewDto productReviewDto);
-  public void insertReview(ProductReviewDto productReviewDto);
-  public void updateReview(ProductReviewDto productReviewDto);
+  public ProductRatingDto selectRatingCheck(int order_detail_id);
+  public void insertRating(@Param("order_detail_id") int order_detail_id, @Param("rating") int rating);
+  public void insertReviwContent(@Param("order_detail_id") int order_detail_id, @Param("review_content") String review_content);
+  // public void insertReview(ProductReviewDto productReviewDto);
+  // public void updateReview(ProductReviewDto productReviewDto);selectProductOptionAndInventory
 
   // 좋아요
   public ProductFavoriteDto selectLike(ProductFavoriteDto productFavoriteDto);
@@ -60,11 +63,10 @@ public interface UserSqlMapper extends CommonSqlMapper{
 
   public List<ProductFavoriteDto> selectUserFavoriteList(int customer_id);
 
-  // 카테고리별 전체 상품
-  public List<Map<String, Object>> selectSubCategorys(int category_id);
-
   public List<ProductDto> selectCategoryIdProducts(List<Integer> categoryIds);
   public List<ProductDetailReturnDto> selectProductListByCategoryId(List<Integer> categoryIds);
+
+  public List<ProductDetailReturnDto> selectBrandProducts(String store_name);
 
   // 상품 상세 페이지
  // public ProductDetailReturnDto selectProductDetail(int product_id);
@@ -86,4 +88,5 @@ public interface UserSqlMapper extends CommonSqlMapper{
 
   // 마이페이지
   public List<OrderItemReturnDto> selectOrderList(int customer_id);
+
 }

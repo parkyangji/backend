@@ -32,32 +32,53 @@
     <div th:insert="~{fragments/sideheader::sideheader('리뷰')}" class="px-0 container-sm fixed-top"></div>
 
     <!-- 컨텐츠 -->
-      <div class="container-sm p-4">
-        <th:block th:if="${orderItems != null}" th:each="productEntry : ${orderItems}">
-            <th:block th:each="orderNumber : ${productEntry.value}">
-              <th:block th:each="product : ${orderNumber.value}">
-                <th:block th:if="${combination.status == '배송완료'}" th:each="combination : ${product.value}">
-                    <div th:if="${combinationStat.last}" class="col-md-3">
-                      <th:block th:each="combinationEntry : ${orderNumber.value}">
-                        <p th:if="${combinationEntryStat.first}" th:text="${combinationEntry.value[0].formattedOrderDate}"></p>
-                      </th:block>
-                      <div th:each="brand : ${orderNumber.key}">
-                        <p class="fw-bold text-secondary" th:text="${brand}"></p>
-                      </div>
-                      <p class="badge bg-info text-dark" th:text="${combination.status}"></p>
-                      <img class="w-25 rounded" th:src="${combination.image_url}" alt="">
-                      <p th:text="${combination.title}"></p>
-                      <th:block th:each="combination : ${product.value}">
-                        <p class="m-0" th:text="${combination.optionname} + ': ' + ${combination.optionvalue}"></p>
-                        <p class="m-0" th:if="${combinationStat.last}" th:text="|수량 : ${combination.quantity}|"></p>
-                      </th:block>
-                    </div>
-                  </th:block>
-                </th:block>
+      <div class="container-sm px-4" style="padding-bottom: 48px;">
+        <th:block th:if="${orderItems != null}" th:each="order : ${orderItems}">
+          <p th:text="${order.formattedOrderDate}"></p>
+          <div class="col-md-3" th:each="product : ${order.products}">
+            <p class="fw-bold text-secondary" th:text="${product.store_name}"></p>
+            <th:block th:each="option : ${product.options}">
+              <img class="w-25 rounded" th:src="${product.image_url}" alt="">
+              <p th:text="${product.title}"></p>
+              <th:block th:each="optionDetail, stat : ${option.optionDetails}">
+                <span class="m-0" th:each="value :${optionDetail.values()}" th:text="${value}"></span>
+                <span th:if="${!stat.last}"> x </span>
+              </th:block>
+              <span class="m-0" th:text="'/ ' + ${option.quantity}"></span>
+
+              <div class="d-flex align-items-center justify-content-between mt-1">
+                <form action="/ratingProcess" method="POST" class="d-flex" th:if="${option.rating == null}">
+                  <input type="hidden" name="order_detail_id" th:value="${option.order_detail_id}"> 
+                  <button id="star1" name="rating" value="1"></button>
+                  <label for="star1" title="text">☆</label>
+                  <button id="star2" name="rating" value="2"></button>
+                  <label for="star2" title="text">☆</label>
+                  <button id="star3" name="rating" value="3"></button>
+                  <label for="star3" title="text">☆</label>
+                  <button id="star4" name="rating" value="4"></button>
+                  <label for="star4" title="text">☆</label>
+                  <button id="star5" name="rating" value="5"></button>
+                  <label for="star5" title="text">☆</label>
+                </form>
+
+                <div class="rating" th:if="${option.rating != null}">
+                  <span th:each="i : ${#numbers.sequence(1, 5)}" 
+                        th:classappend="${i <= option.rating} ? 'rating-color' : ''">★</span>
+                </div> 
+
+                <form action="/reviewContentProcess" method="POST" class="d-flex gap-1" th:if="${option.review_content == null}">
+                  <input type="hidden" name="order_detail_id" th:value="${option.order_detail_id}"> 
+                  <input class="flex-fill" type="text" name="review_content" id="review_content">
+                  <button class="btn btn-primary main-bg-color border-0">등록</button>
+                </form>
+                
+                <div th:if="${option.review_content != null}" th:text="${option.review_content}"></div>
+              </div>
             </th:block>
-          </th:block>
+          </div>
+        </th:block>
         </div>
-    </div>
+      </div>
 
     <!-- 하단 푸터 -->
     <div th:insert="~{fragments/footer::footer}" class="container-sm fixed-bottom"></div>
