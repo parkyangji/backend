@@ -8,28 +8,16 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class ProductDetailReturnDto {
+public class ProductDetailReturnDto {  // 상품 리스트, 브랜드 , 상세 상품 페이지!!
   private int product_id;
   private String store_name;
   private int category_id;
   private String title;
-  private Map<String, ?> images;
-  private Integer origin_price;
+  private Map<String, ?> images; // 상세 상품 페이지만 !!
+  private Integer rep_price; // 대표가격
   private Integer discount_rate;
-  private Integer sale_price;
+  private Integer rep_sale_price; // 대표 세일가
   private Float avgRating;
   private Integer reviewCount;
   private List<String> keywords;
-
-  private String formatPrice(Integer price) {
-    return NumberFormat.getNumberInstance(Locale.KOREA).format(price);
-  }
-
-  public String getFormattedOriginPrice() {
-    return formatPrice(origin_price);
-  }
-
-  public String getFormattedSalePrice() {
-    return formatPrice(sale_price);
-  }
 }

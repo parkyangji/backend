@@ -296,13 +296,13 @@ public class ProductService {
     detailEdit.put("imageMap", imageMap);
 
     // 재고/가격 관리, 할인
-    Map<Integer, List<ProductOptionSummaryDto>> groupByCombinationId 
-      = adminSqlMapper.selectProductOptionAndInventory(product_id)
-      .stream().collect(Collectors.groupingBy(ProductOptionSummaryDto::getCombination_id, 
-      LinkedHashMap::new, Collectors.toList()));
-    // System.out.println(groupByCombinationId);
+    // Map<Integer, List<ProductOptionSummaryDto>> groupByCombinationId 
+    //   = adminSqlMapper.selectProductOptionAndInventory(product_id)
+    //   .stream().collect(Collectors.groupingBy(ProductOptionSummaryDto::getCombination_id, 
+    //   LinkedHashMap::new, Collectors.toList()));
+    // // System.out.println(groupByCombinationId);
 
-    detailEdit.put("inventory", groupByCombinationId);
+    // detailEdit.put("inventory", groupByCombinationId);
 
     // 키워드
     List<String> checkKeywords = adminSqlMapper.selectProductKeywords(product_id);

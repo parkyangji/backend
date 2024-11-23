@@ -18,18 +18,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.parkyangji.openmarket.backend.common.DebugUtil;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
+import com.parkyangji.openmarket.backend.dto.BrandSummaryDto;
 import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
+import com.parkyangji.openmarket.backend.dto.ProductOptionReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.OrderItemReturnDto;
 import com.parkyangji.openmarket.backend.dto.OrderSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
+import com.parkyangji.openmarket.backend.dto.ProductSummaryDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
 import com.parkyangji.openmarket.backend.dto.CartItemReturnDto;
@@ -146,8 +151,11 @@ public class UserController {
     model.addAttribute("sub_categorys", categoryNames);
 
     // 상품 리스트
-    List<ProductDetailReturnDto> productList = userService.getCategoryProductList(subCategoryIdAndName);
+    List<ProductSummaryDto> productList = userService.getCategoryProductList(subCategoryIdAndName);
     model.addAttribute("productList", productList);
+
+    // 디버깅용
+    model.addAttribute("productListJson", DebugUtil.toJsonString(productList));
 
     return "user/productList";
   }
@@ -166,11 +174,12 @@ public class UserController {
       model.addAttribute("likeData", likeData);
     }
 
-    Map<String, Object> productData = userService.getProductDate(product_id);
-    model.addAllAttributes(productData);
+    ProductSummaryDto productData = userService.getProductDate(product_id);
+    model.addAttribute("product", productData);
 
+    // 디버깅
+    model.addAttribute("productDataJson", DebugUtil.toJsonString(productData));
     // System.out.println("상품 페이지");
-    System.out.println(productData);
     return "user/product";
   }
   
@@ -213,7 +222,7 @@ public class UserController {
     // 주문 정보 + 상품 정보
     List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
-    model.addAttribute("orderItems", orderItems);
+   model.addAttribute("orderItems", orderItems);
     System.out.println(orderItems);
 
     return "user/myOrder";
@@ -227,7 +236,7 @@ public class UserController {
     // 주문 정보 + 상품 정보
     List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
-    model.addAttribute("orderItems", orderItems);
+    //model.addAttribute("orderItems", orderItems);
     System.out.println(orderItems);
 
     //model.addAttribute("hasReviewsState", userService.hasReviewsState(orderItems));
@@ -271,8 +280,11 @@ public class UserController {
     }
     model.addAttribute("sub_categorys", categoryNames);
 
-    List<ProductDetailReturnDto> brandList = userService.getBrandProducts(name);
+    List<ProductSummaryDto> brandList = userService.getBrandProducts(name);
     model.addAttribute("brandList", brandList);
+
+    // 디버깅용
+    model.addAttribute("brandListJson", DebugUtil.toJsonString(brandList));
 
     return "user/brand";
   }
@@ -284,7 +296,7 @@ public class UserController {
 
     List<ProductOptionSummaryDto> options = userService.tempoptionChoice(productId);
     model.addAttribute("options", options);
-    
+
     return "user/temp_option";
   }
 
@@ -346,15 +358,16 @@ public class UserController {
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
 
     if (customerDto != null) {
-      Map<Integer, Map<Integer, List<CartItemReturnDto>>> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
+      List<BrandSummaryDto> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
       model.addAttribute("cartItems", cartItems);
-      model.addAttribute("totalPrice", userService.totalOrderItemsPrice(cartItems));
+      // 디버깅용
+      model.addAttribute("cartItemsJson", DebugUtil.toJsonString(cartItems));
     } else {
-      Map<Integer, Map<Integer, List<CartItemReturnDto>>> cartItems = (Map<Integer, Map<Integer, List<CartItemReturnDto>>>) httpSession.getAttribute("tempCart");
-      model.addAttribute("cartItems", cartItems);
-      if (cartItems != null) {
-        model.addAttribute("totalPrice", userService.totalOrderItemsPrice(cartItems));
-      }
+      //Map<Integer, Map<Integer, List<CartItemReturnDto>>> cartItems = (Map<Integer, Map<Integer, List<CartItemReturnDto>>>) httpSession.getAttribute("tempCart");
+      // model.addAttribute("cartItems", cartItems);
+      // if (cartItems != null) {
+      //   model.addAttribute("totalPrice", userService.totalOrderItemsPrice(cartItems));
+      // }
     }
 
     return "user/cart";
@@ -375,9 +388,10 @@ public class UserController {
 
     // 주문 상품, 주문 개수
     // 그 고객의 장바구니 아이템 모두 보여주기!!!
-    Map<Integer, Map<Integer, List<CartItemReturnDto>>> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
-   // Map<Integer, List<CartItemReturnDto>> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
-
+    List<BrandSummaryDto> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
+    model.addAttribute("cartItems", cartItems);
+    // 디버깅용
+    model.addAttribute("cartItemsJson", DebugUtil.toJsonString(cartItems));
     // 할인 (쿠폰, 포인트 등)
 
     // 결제 수단
@@ -389,8 +403,6 @@ public class UserController {
     // model.addAllAttributes(userService.getProductDate(product_id));
     // model.addAttribute("address", address);
     model.addAttribute("customerDto", customerDto);
-    model.addAttribute("cartItems", cartItems);
-    model.addAttribute("totalPrice", userService.totalOrderItemsPrice(cartItems));
     
     return "user/order";
   }
@@ -407,7 +419,7 @@ public class UserController {
 
     //제품 번호, 수량 정보 => 나중에 옵션 추가하면 변경, 배송지, 진행상태("결제완료") => 결제수단 따로 있으면 "결제대기"
     OrderDto orderDto = userService.createOrderAndDelivery(customer_id, address_id, deliveryMessage);
-    userService.setOrderDetail(customer_id, orderDto.getOrder_id());
+    userService.setOrderDetail(customer_id, orderDto.getOrder_id()); // 장바구니에 있는거 다 결제
 
     redirectAttributes.addFlashAttribute("order", orderDto);
 

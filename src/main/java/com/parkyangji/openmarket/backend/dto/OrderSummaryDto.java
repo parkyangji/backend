@@ -17,7 +17,7 @@ public class OrderSummaryDto { // 주문의 기본 정보를 담고 있는 객�
   private List<ProductSummaryDto> products; // 주문에 포함된 제품 목록
 
 
-  // 주문 날짜를 yyyy.MM.dd 형식으로 반환
+  // // 주문 날짜를 yyyy.MM.dd 형식으로 반환
   public String getFormattedOrderDate() {
     if (order_date == null) {
         return "";

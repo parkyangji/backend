@@ -35,20 +35,19 @@
                     <img class="img-fluid rounded me-3" th:src="${product.image_url}" alt="상품 이미지" style="width: 120px;">
                     <div>
                       <p class="mb-1 fw-bold" th:text="${product.title}"></p>
-                      <p class="mb-1" th:text="'가격: ' + ${product.formattedOriginPrice} + '원'"></p>
-                      <p class="mb-1" th:if="${product.discount_rate != null}" th:text="'할인가: ' + ${product.formattedSalePrice} + '원 (' + ${product.discount_rate} + '% 할인)'"></p>
+                      <!-- <p class="mb-1" th:text="'가격: ' + ${product.formattedOriginPrice} + '원'"></p>
+                      <p class="mb-1" th:if="${product.discount_rate != null}" th:text="'할인가: ' + ${product.formattedSalePrice} + '원 (' + ${product.discount_rate} + '% 할인)'"></p> -->
                     </div>
                   </div>
-                  <th:block th:each="optionDetail, stat : ${option.optionDetails}">
+                  <!-- <th:block th:each="optionDetail, stat : ${option.optionDetails}">
                     <span class="m-0" th:each="value :${optionDetail.values()}" th:text="${value}"></span>
                     <span th:if="${!stat.last}"> x </span>
                   </th:block>
                   <span class="m-0" th:text="'/ ' + ${option.quantity}"></span>
-                  <!-- 리뷰 작성 버튼: 배송 완료된 경우에만 표시 -->
                   <div class="mb-2">
                     <span class="d-block btn btn-danger" th:text="${option.status}" ></span>
                     <button th:if="${option.status == '배송완료'}" class="d-block w-100 btn btn-primary" onclick="location.href='/mypage/review'">리뷰 작성</button>
-                  </div>
+                  </div> -->
                 </div>
               </div>
             </th:block>

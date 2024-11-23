@@ -77,7 +77,7 @@
     on pkv.keyword_id = k.keyword_id 
     WHERE pkv.product_id = #{product_id};
   </select>
-    <select id="selectProductOptionAndInventory" resultType="com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto">
+    <select id="selectProductOptionAndInventory" resultType="com.parkyangji.openmarket.backend.dto.ProductOptionReturnDto">
     SELECT cv.combination_id, cv.combination_value_id 
     ,ov.optionvalue , po.optionvalue as optionname , poi.quantity 
     , poi.price as origin_price,
@@ -98,9 +98,9 @@
   </select>
   <select id="selectProductById" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
     SELECT p.product_id, s.store_name, p.category_id, p.title,
-    poi.price as origin_price,
+          MIN(poi.price) as rep_price, -- 최소 가격
           IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-          IF(ssi.discount_rate IS NOT NULL, FLOOR(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as sale_price
+          IF(ssi.discount_rate IS NOT NULL, FLOOR(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as rep_sale_price
     FROM product p
     JOIN seller s ON p.seller_id = s.seller_id
     JOIN product_option_combination poc 

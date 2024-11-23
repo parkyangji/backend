@@ -155,7 +155,7 @@
                     </th:block>
                   </div>
                   <div th:each="option, optionStat : ${entry.value}">
-                      <span th:if="${optionStat.last}" th:text="'재고: ' + ${option.quantity} + ' 가격: ' + ${option.formattedOriginPrice}"></span>
+                      <span th:if="${optionStat.last}" th:text="'재고: ' + ${option.quantity} + ' 가격: ' + ${option.origin_price}"></span>
                       <div>
                         <form class="d-inline" th:if="${optionStat.last}" action="./edit" method="post">
                           <input type="hidden" name="product_id" th:value="${product_id}">
@@ -174,7 +174,7 @@
                       </div>
                       <div>
                         <span th:if="${option.discount_rate != null && optionStat.last}" th:text="'할인률 ' + ${option.discount_rate}"></span>
-                        <span th:if="${option.discount_rate != null && optionStat.last}" th:text="'할인가 ' + ${option.formattedSalePrice}"></span>
+                        <span th:if="${option.discount_rate != null && optionStat.last}" th:text="'할인가 ' + ${option.sale_price}"></span>
                       </div>
                   </div>
                 </div>

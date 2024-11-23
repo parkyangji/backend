@@ -149,9 +149,9 @@
   <select id="selectProductListByCategoryId" parameterType="list" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
     SELECT p.product_id, s.store_name,
           p.category_id, p.title,
-          poi.price as origin_price, 
+          MIN(poi.price) as rep_price, -- 최소가격
           IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as sale_price
+          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as rep_sale_price -- 최소가격에서
     FROM seller s
     JOIN product p ON p.seller_id = s.seller_id
     JOIN product_image pi ON p.product_id = pi.product_id
@@ -170,9 +170,9 @@
   <select id="selectBrandProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
     SELECT p.product_id, s.store_name,
           p.category_id, p.title,
-          poi.price as origin_price, 
+          MIN(poi.price) as rep_price, -- 최소가격
           IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as sale_price
+          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as rep_sale_price -- 최소가격에서
     FROM seller s
     JOIN product p ON p.seller_id = s.seller_id
     JOIN product_image pi ON p.product_id = pi.product_id

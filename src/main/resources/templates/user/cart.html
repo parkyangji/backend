@@ -8,68 +8,86 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://kit.fontawesome.com/b0822c7a94.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/common.js}"></script>
   </head>
   <body>
     <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
       <!-- 네비/헤더 -->
       <!-- <div th:insert="~{fragments/header::header}" class="container-sm fixed-top main-bg-color main-text-ligth-color"></div> -->
       <div th:insert="~{fragments/sideheader::sideheader('장바구니')}" class="px-0 container-sm fixed-top"></div>
-
       <!-- 컨텐츠 -->
       <div class="container-sm" style="padding-bottom: 48px;">
       <!-- <div class="container-sm" style="padding-bottom: 48px;"> -->
       <!-- <div class="container-sm" style="height: calc(100vh - 48px - 45px); width: 100vw;"> -->
-
-        <th:block th:if="${cartItems != null}" th:each="productEntry : ${cartItems}">
+        <th:block th:if="${cartItems != null}" th:each="brand : ${cartItems}">
           <!-- product_id에 해당하는 그룹 -->
           <div class="mb-3 border rounded">
-            <!-- <h4>상품 ID: <span th:text="${productEntry.key}"></span></h4> -->
-            <!-- 각 product_id 그룹 안에서 combination_id로 그룹핑된 데이터 반복 -->
-            <th:block th:each="combinationEntry : ${productEntry.value}">
-              <th:block th:if="${combinationEntryStat.first}">
-                <p th:text="${combinationEntry.value[combinationEntryStat.index].store_name}"></p>
-              </th:block>
-              <!-- <h5>옵션 ID: <span th:text="${combinationEntry.key}"></span></h5> -->
-              <!-- combination_id 그룹에 해당하는 옵션 항목 반복 -->
-              <th:block th:each="option : ${combinationEntry.value}" th:if="${optionStat.last}">
-                <img class="w-25" th:src="${option.image_url}" alt="">
-                <p class="m-0" th:text="${option.title}"></p>
-              </th:block>
-
-              <th:block th:each="option : ${combinationEntry.value}">
-                <span th:text="${option.optionname} + ': ' + ${option.optionvalue}"></span>
-                <p class="m-0" th:if="${optionStat.last}" th:text="|수량 : ${option.quantity}|"></p>
-                <p class="fw-bold letter-spacing-05 m-0" th:if="${optionStat.last}" 
-                th:text="|${option.discount_rate != null ? 
-                  option.sale_price * option.quantity : option.origin_price * option.quantity}원|">가격</p>
+            <p th:text="${brand.store_name}"></p>
+            <th:block th:each="product : ${brand.products}">
+              <img class="w-25" th:src="${product.image_url}" alt="">
+              <p class="m-0" th:text="${product.title}"></p>
+              <th:block th:each="inventory : ${product.options}">
+                <th:block th:each="data : ${inventory.option}">
+                  <th:block th:each="entry : ${data}">
+                    <span th:text="${entry.key}"></span> 
+                    <span th:text="${entry.value}"></span>
+                    <span th:if="${!entryStat.last}"> x </span>
+                  </th:block>
                 </th:block>
-                <button class="btn btn-primary d-block">삭제</button>
+                <span> / </span>
+                <span th:text="${inventory.quantity}"></span>
+                <p class="formattedPrice">가격</p>
+              </th:block>
             </th:block>
           </div>
-      </th:block>
-      
-        <!-- <div>
-          <div th:if="${cartItems != null}" th:each="entry, state : ${cartItems}" class="mb-3">
-            <th:block th:each="option : ${entry.value}">
-              <span th:if="${optionStat.first}" th:text="${state.index+1}"></span>
-              <span th:text="${option.optionname} + ': ' + ${option.optionvalue}"></span>
-              <div th:if="${optionStat.last}">
-                <img class="w-25" th:src="${option.image_url}" alt="">
-                <p th:text="${option.store_name}"></p>
-                <p class="m-0"  th:text="${option.title}"></p>
-                <span th:text="|수량 : ${option.quantity}|"></span>
-                <span class="fw-bold letter-spacing-05" th:text="|${option.discount_rate != null ? 
-                  option.formattedSalePrice : option.formattedOriginPrice}원|">가격</span>
-              </div>
-            </th:block>
-          </div>
-        </div> -->
+        </th:block>
       </div>
 
       <!-- 하단 푸터 -->
-      <div th:insert="~{fragments/orderfooter::orderfooter(totalPrice=${totalPrice}, text=${'구매하기'})}" class="container-sm fixed-bottom"></div>
+      <div th:insert="~{fragments/orderfooter::orderfooter(text=${'구매하기'})}" class="container-sm fixed-bottom"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script th:inline="javascript">
+      /* <![CDATA[ */
+      var cartItemsJson = /*[[${cartItemsJson}]]*/ 'N/A';
+      /* ]]> */
+
+      console.log("Cart Items: ",  JSON.parse(cartItemsJson));
+
+      const cartItems = JSON.parse(cartItemsJson);
+
+
+      let totalOriginPrice = 0;
+
+      const formattedPrice = document.querySelectorAll('.formattedPrice');
+      let customIndex = 0;
+      cartItems.forEach((item) => {
+          item.products.forEach(product => {
+              product.options.forEach((option) => {
+                  const details = option;
+                  const prices = calculatePrices(details.origin_price, details.sale_price, details.discount_rate, details.quantity);
+
+                  if (formattedPrice[customIndex]) {
+                      formattedPrice[customIndex].innerText = prices.TotalPrice + "원";
+                  }
+
+                  // 총 가격 계산
+                  totalOriginPrice += prices.TotalPrice;
+
+                  // 커스텀 인덱스를 증가
+                  customIndex++;
+              });
+          });
+      });
+
+      // orderfooter 버튼에 JavaScript로 계산된 totalPrice 값 설정
+      const orderFooterButton = document.querySelector('#orderfooter button');
+        if (totalOriginPrice == 0 || totalOriginPrice == null) {
+          orderFooterButton.textContent = "구매하기";
+        } else {
+          orderFooterButton.textContent = `${formatPrice(totalOriginPrice)}원 구매하기`;
+        }
+  </script>
   </body>
 </html>
