@@ -58,16 +58,20 @@ public interface UserSqlMapper extends CommonSqlMapper{
 
   // 좋아요
   public ProductFavoriteDto selectLike(ProductFavoriteDto productFavoriteDto);
+  public List<ProductFavoriteDto> selectLike(List<ProductFavoriteDto> productFavoriteDto);
   public void insertLike(ProductFavoriteDto productFavoriteDto);
   public void deleteLike(ProductFavoriteDto productFavoriteDto);
 
   public List<ProductFavoriteDto> selectUserFavoriteList(int customer_id);
 
   public List<ProductDto> selectCategoryIdProducts(List<Integer> categoryIds);
-  public List<ProductDetailReturnDto> selectProductListByCategoryId(List<Integer> categoryIds);
+  //public List<ProductDetailReturnDto> selectProductListByCategoryId(List<Integer> categoryIds);
+  public List<ProductDetailReturnDto> selectProductListByCategoryId(Integer categoryId);
 
   public List<ProductDetailReturnDto> selectBrandProducts(String store_name);
+  public List<ProductDetailReturnDto> selectBrandProductByCategoryId(@Param("store_name") String store_name, @Param("category_id") int category_id);
 
+  public List<ProductDetailReturnDto> selectKeywordFromCategory(@Param("keyword_name") String keyword_name, @Param("category_id") Integer category_id);
   // 상품 상세 페이지
  // public ProductDetailReturnDto selectProductDetail(int product_id);
 

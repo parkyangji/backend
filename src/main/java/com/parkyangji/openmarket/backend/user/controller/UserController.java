@@ -2,6 +2,7 @@ package com.parkyangji.openmarket.backend.user.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +21,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parkyangji.openmarket.backend.common.DebugUtil;
+import com.parkyangji.openmarket.backend.common.ShuffleUtil;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.BrandSummaryDto;
 import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
+import com.parkyangji.openmarket.backend.dto.KeywordDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
@@ -133,31 +136,49 @@ public class UserController {
 
   @RequestMapping("category")
   public String productListPage(Model model, HttpSession httpSession, @RequestParam("menu_id") Integer parent_category_id){
-
     //System.out.println("카테고리넘버"+ category_id);
-
-    boolean isLoggedIn = httpSession.getAttribute("sessionInfo") != null;
-    model.addAttribute("isLoggedIn", isLoggedIn);
 
     // 상단이름
     String category_name = userService.getCategoryName(parent_category_id);
     model.addAttribute("category_name", category_name);
 
+    // 서브 카테고리들
     List<Map<String, Object>> subCategoryIdAndName = userService.getSubTabCategorys(parent_category_id);
+    model.addAttribute("sub_categorys", subCategoryIdAndName);
+
+    // 키워드
+    List<KeywordDto> keywords = userService.getAllKeywords();
+    model.addAttribute("keywords", keywords);
+
+    // => 상품 리스트 ajax로!!
+
+    // 디버깅용
+    model.addAttribute("subCategoryIdAndName", DebugUtil.toJsonString(subCategoryIdAndName));
+    model.addAttribute("keywords", DebugUtil.toJsonString(keywords));
+
+    return "user/productList";
+  }
+
+  @RequestMapping("brand")
+  public String brandPage(@RequestParam("name") String name, Model model){
+    System.out.println(name);
+
+    model.addAttribute("storename", name);
+
+    List<Map<String, Object>> subCategoryIdAndName = userService.getSubTabCategorys(null);
     List<String> categoryNames = new ArrayList<>();
     for (Map<String, Object> category : subCategoryIdAndName) {
       categoryNames.add((String) category.get("category_name"));
     }
     model.addAttribute("sub_categorys", categoryNames);
 
-    // 상품 리스트
-    List<ProductSummaryDto> productList = userService.getCategoryProductList(subCategoryIdAndName);
-    model.addAttribute("productList", productList);
+    // => 상품 리스트 ajax로!!
 
     // 디버깅용
-    model.addAttribute("productListJson", DebugUtil.toJsonString(productList));
+    model.addAttribute("storenameJson", DebugUtil.toJsonString(name));
+    model.addAttribute("subCategoryIdAndNameJson", DebugUtil.toJsonString(subCategoryIdAndName));
 
-    return "user/productList";
+    return "user/brand";
   }
 
   @RequestMapping("product")
@@ -172,6 +193,7 @@ public class UserController {
 
       ProductFavoriteDto likeData = userService.findLike(productFavoriteDto);
       model.addAttribute("likeData", likeData);
+      model.addAttribute("likeDataJson", DebugUtil.toJsonString(likeData));
     }
 
     ProductSummaryDto productData = userService.getProductDate(product_id);
@@ -181,23 +203,6 @@ public class UserController {
     model.addAttribute("productDataJson", DebugUtil.toJsonString(productData));
     // System.out.println("상품 페이지");
     return "user/product";
-  }
-  
-  @RequestMapping("likeProgress")
-  public String likeProcess(HttpSession httpSession, Model model, @RequestParam("productId") int product_id){
-    if (httpSession.getAttribute("sessionInfo")==null) {
-      return "redirect:/login";
-    }
-
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
-
-    ProductFavoriteDto productFavoriteDto = new ProductFavoriteDto();
-    productFavoriteDto.setCustomer_id(customerDto.getCustomer_id());
-    productFavoriteDto.setProduct_id(product_id);
-    
-    userService.toggleLike(productFavoriteDto);
-    
-    return "redirect:/product?id=" + product_id;
   }
 
   @RequestMapping("/mypage/like")
@@ -266,28 +271,6 @@ public class UserController {
     return "redirect:/mypage/review";
   }
 
-
-  @RequestMapping("brand")
-  public String brandPage(@RequestParam("name") String name, Model model){
-    System.out.println(name);
-
-    model.addAttribute("storename", name);
-
-    List<Map<String, Object>> subCategoryIdAndName = userService.getSubTabCategorys(null);
-    List<String> categoryNames = new ArrayList<>();
-    for (Map<String, Object> category : subCategoryIdAndName) {
-      categoryNames.add((String) category.get("category_name"));
-    }
-    model.addAttribute("sub_categorys", categoryNames);
-
-    List<ProductSummaryDto> brandList = userService.getBrandProducts(name);
-    model.addAttribute("brandList", brandList);
-
-    // 디버깅용
-    model.addAttribute("brandListJson", DebugUtil.toJsonString(brandList));
-
-    return "user/brand";
-  }
 
   @RequestMapping("temp_option")
   public String tempOptionChoice(@RequestParam("productId") int productId, Model model){

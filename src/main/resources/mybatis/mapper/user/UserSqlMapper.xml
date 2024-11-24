@@ -13,6 +13,7 @@
       VALUES(#{username}, SHA2(concat(#{password}, '!@www'), '256'), #{nickname})
   </insert>
 
+  <!-- 배송지 관련 -->
   <select id="getAddressCountByCustomerId" resultType="int">
       SELECT COUNT(*)
       FROM address
@@ -36,6 +37,7 @@
     SELECT * FROM product WHERE product_id = #{product_id}
   </select> -->
 
+  <!-- 상품 대표 정보 -->
   <select id="selectAvgRating" resultType="Float">
     SELECT AVG(pr.rating)
     FROM order_detail od 
@@ -92,6 +94,7 @@
     SELECT * FROM product_order WHERE customer_id = #{customer_id} ORDER BY order_id DESC;
   </select> -->
 
+  <!-- 평점 -->
   <select id="selectRatingCheck" resultType="com.parkyangji.openmarket.backend.dto.ProductRatingDto">
     SELECT * FROM product_rating WHERE order_detail_id = #{order_detail_id}
   </select>
@@ -121,6 +124,7 @@
       WHERE review_id = #{review_id}
   </update> -->
 
+  <!-- 좋아요 -->
   <select id="selectLike" resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
     select * from product_favorite where customer_id = #{customer_id} and product_id = #{product_id}
   </select>
@@ -133,11 +137,10 @@
     delete from product_favorite where customer_id = #{customer_id} and product_id = #{product_id}
   </delete>
 
+  <!-- 상품 리스트 -->
   <select id="selectUserFavoriteList"  resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
     select * from product_favorite where customer_id = #{customer_id}
   </select>
-
-
   <select id="selectCategoryIdProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDto" parameterType="list">
       SELECT * FROM product
       WHERE category_id IN
@@ -145,8 +148,7 @@
           #{categoryId}
       </foreach>
   </select>
-
-  <select id="selectProductListByCategoryId" parameterType="list" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
+  <select id="selectProductListByCategoryId" parameterType="Integer" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
     SELECT p.product_id, s.store_name,
           p.category_id, p.title,
           MIN(poi.price) as rep_price, -- 최소가격
@@ -158,15 +160,11 @@
     JOIN product_option_combination poc ON p.product_id = poc.product_id
     JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
     LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
-    WHERE p.category_id IN 
-    <foreach item="categoryId" collection="list" open="(" separator="," close=")">
-      #{categoryId}
-    </foreach>
+    WHERE p.category_id = #{categoryId}
     GROUP BY p.product_id 
     ORDER BY p.created_date DESC
     ;
   </select>
-
   <select id="selectBrandProducts" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
     SELECT p.product_id, s.store_name,
           p.category_id, p.title,
@@ -180,6 +178,42 @@
     JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
     LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
     WHERE s.store_name = #{store_name}
+    GROUP BY p.product_id 
+    ORDER BY p.created_date DESC
+    ;
+  </select>
+  <select id="selectBrandProductByCategoryId" parameterType="map" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto">
+    SELECT p.product_id, s.store_name,
+          p.category_id, p.title,
+          MIN(poi.price) as rep_price, -- 최소가격
+          IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as rep_sale_price -- 최소가격에서
+    FROM seller s
+    JOIN product p ON p.seller_id = s.seller_id
+    JOIN product_image pi ON p.product_id = pi.product_id
+    JOIN product_option_combination poc ON p.product_id = poc.product_id
+    JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
+    LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
+    WHERE s.store_name = #{store_name} and p.category_id = #{category_id}
+    GROUP BY p.product_id 
+    ORDER BY p.created_date DESC
+    ;
+  </select>
+  <select id="selectKeywordFromCategory" resultType="com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto" >
+    SELECT p.product_id, s.store_name,
+          p.category_id, p.title,
+          MIN(poi.price) as rep_price, -- 최소가격
+          IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
+          IF(ssi.discount_rate IS NOT NULL, Floor(MIN(poi.price) * (100 - ssi.discount_rate) / 100), NULL) as rep_sale_price -- 최소가격에서
+    FROM seller s
+    JOIN product p ON p.seller_id = s.seller_id
+    LEFT JOIN product_keyword_value pkv ON pkv.product_id = p.product_id
+    LEFT JOIN keyword k ON k.keyword_id = pkv.keyword_id
+    JOIN product_image pi ON p.product_id = pi.product_id
+    JOIN product_option_combination poc ON p.product_id = poc.product_id
+    JOIN product_option_inventory poi ON poc.combination_id = poi.combination_id
+    LEFT JOIN seller_sale_item ssi ON poc.product_id = ssi.product_id
+    WHERE p.category_id = #{category_id} and k.keyword_name = #{keyword_name}
     GROUP BY p.product_id 
     ORDER BY p.created_date DESC
     ;
@@ -343,37 +377,6 @@
     WHERE cc.customer_id = #{customer_id}
     ORDER BY order_id desc, order_detail_id desc, optionname
     ;
-  </select>
-
-
-  <select id="사용자 구매내역 찜 리스트 카테고리 추천 5개 상품">
-    WITH MostOrderedCategories AS (
-        SELECT p.category_id, COUNT(*) AS order_count
-        FROM product_order o
-        JOIN product p ON o.product_id = p.product_id
-        WHERE o.customer_id = :customerId
-        GROUP BY p.category_id
-        ORDER BY order_count DESC
-        LIMIT 1
-    ),
-    MostLikedCategories AS (
-        SELECT p.category_id, COUNT(*) AS like_count
-        FROM product_favorite f
-        JOIN product p ON f.product_id = p.product_id
-        WHERE f.customer_id = :customerId
-        GROUP BY p.category_id
-        ORDER BY like_count DESC
-        LIMIT 1
-    ),
-    RecommendedCategories AS (
-        SELECT category_id FROM MostOrderedCategories
-        UNION
-        SELECT category_id FROM MostLikedCategories
-    )
-    SELECT *
-    FROM product
-    WHERE category_id IN (SELECT category_id FROM RecommendedCategories)
-    LIMIT 5;
   </select>
 
 </mapper>

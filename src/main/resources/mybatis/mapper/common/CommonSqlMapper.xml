@@ -70,6 +70,9 @@
     LIMIT 1
     ;
   </select>
+  <select id="selectAllkeywords" resultType="com.parkyangji.openmarket.backend.dto.KeywordDto">
+    SELECT * FROM keyword;
+  </select>
   <select id="selectProductKeywords" resultType="String">
     SELECT k.keyword_name 
     FROM product_keyword_value pkv 

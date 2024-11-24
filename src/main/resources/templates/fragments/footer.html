@@ -10,17 +10,18 @@
         <i class="fs-1 bi bi-list"></i>
       </div>
     </a>
-    <a th:href="@{/home}" class="col">
+    <!-- 인터셉터 추가로 if 필요없음 -->
+    <a th:href="@{/mypage/like}" class="col"> 
       <div>
-        <i class="bi bi-search"></i>
+        <!-- <i class="bi bi-search"></i> -->
+        <svg class="" stroke-linejoin="round" stroke-linecap="round" 
+              stroke-width="2" stroke="currentColor" fill="none" viewBox="-2 0 28 28" 
+              height="28" width="28" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
       </div>
     </a>
-    <a th:if="${session.sessionInfo != null}" th:href="@{/mypage}" class="col">
-      <div>
-        <i class="fa-solid fa-user"></i>
-      </div>
-    </a>
-    <a th:unless="${session.sessionInfo != null}" th:href="@{/login}" class="col">
+    <a th:href="@{/mypage}" class="col">
       <div>
         <i class="fa-solid fa-user"></i>
       </div>

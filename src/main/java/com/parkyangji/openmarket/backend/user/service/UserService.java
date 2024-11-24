@@ -16,6 +16,7 @@ import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerCartDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.DeliveryInfoDto;
+import com.parkyangji.openmarket.backend.dto.KeywordDto;
 import com.parkyangji.openmarket.backend.dto.OrderDetailDto;
 import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
@@ -68,36 +69,47 @@ public class UserService {
     return userSqlMapper.selectCategoryName(parent_category_id);
   }
 
+  public List<KeywordDto> getAllKeywords(){
+    return userSqlMapper.selectAllkeywords();
+  }
+
   public List<Map<String, Object>> getSubTabCategorys(Integer parent_category_id) {
     return userSqlMapper.selectSubCategorys(parent_category_id);
   }
 
-  public List<ProductSummaryDto> getCategoryProductList(List<Map<String, Object>> subCategoryIdAndName){
-    List<ProductSummaryDto> parentCategoryAllProducts = new ArrayList<>();
-
+  public List<Integer> getSubCategoryIds(List<Map<String, Object>> subCategoryIdAndName) {
     // 1뎁스 기준 상품 출력
     List<Integer> categoryId = new ArrayList<>();
     for (Map<String, Object> category : subCategoryIdAndName) {
       categoryId.add((Integer) category.get("category_id"));
     }
+    return categoryId;
+  }
 
-    List<ProductDetailReturnDto> categoryAllProductList = userSqlMapper.selectProductListByCategoryId(categoryId);
-    for (ProductDetailReturnDto product : categoryAllProductList) {
-      ProductSummaryDto productSummaryDto = new ProductSummaryDto();
-      productSummaryDto.setProduct_id(product.getProduct_id());
-      productSummaryDto.setStore_name(product.getStore_name());
-      productSummaryDto.setCategory_id(product.getCategory_id());
-      productSummaryDto.setTitle(product.getTitle());
-      productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
-      productSummaryDto.setDiscount_rate(product.getDiscount_rate());
-      productSummaryDto.setRep_price(product.getRep_price());
-      productSummaryDto.setRep_sale_price(product.getRep_sale_price());
-      productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
-      productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
-      productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
+  public List<ProductSummaryDto> getCategoryProductList(List<Integer> categoryId){
+    List<ProductSummaryDto> parentCategoryAllProducts = new ArrayList<>();
 
-      parentCategoryAllProducts.add(productSummaryDto);
+    for (Integer id : categoryId) {
+      List<ProductDetailReturnDto> categoryProducts = userSqlMapper.selectProductListByCategoryId(id);
+
+      for (ProductDetailReturnDto product : categoryProducts) {
+        ProductSummaryDto productSummaryDto = new ProductSummaryDto();
+        productSummaryDto.setProduct_id(product.getProduct_id());
+        productSummaryDto.setStore_name(product.getStore_name());
+        productSummaryDto.setCategory_id(product.getCategory_id());
+        productSummaryDto.setTitle(product.getTitle());
+        productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
+        productSummaryDto.setDiscount_rate(product.getDiscount_rate());
+        productSummaryDto.setRep_price(product.getRep_price());
+        productSummaryDto.setRep_sale_price(product.getRep_sale_price());
+        productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
+        productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
+        productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
+        
+        parentCategoryAllProducts.add(productSummaryDto);
+      }
     }
+
     return parentCategoryAllProducts;
   }
 
@@ -124,8 +136,111 @@ public class UserService {
       transformedMap.computeIfAbsent(typeName, k -> new ArrayList<>()).add(imageUrl);
     }
     product.setDetailsImages(transformedMap);
-    
+
     return product;
+  }
+
+
+  public List<ProductSummaryDto> getBrandProducts(String store_name) {
+    List<ProductSummaryDto> brandAllProducts = new ArrayList<>();
+
+    List<ProductDetailReturnDto> selectBrandProducts = userSqlMapper.selectBrandProducts(store_name);
+    for (ProductDetailReturnDto product : selectBrandProducts) {
+      ProductSummaryDto productSummaryDto = new ProductSummaryDto();
+      productSummaryDto.setProduct_id(product.getProduct_id());
+      productSummaryDto.setStore_name(product.getStore_name());
+      productSummaryDto.setCategory_id(product.getCategory_id());
+      productSummaryDto.setTitle(product.getTitle());
+      productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
+      productSummaryDto.setDiscount_rate(product.getDiscount_rate());
+      productSummaryDto.setRep_price(product.getRep_price());
+      productSummaryDto.setRep_sale_price(product.getRep_sale_price());
+      productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
+      productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
+      productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
+
+      brandAllProducts.add(productSummaryDto);
+    }
+    return brandAllProducts;
+  }
+
+  public List<ProductSummaryDto> getBrandProductsByCategoryId(String store_name, int parent_category_id) {
+    List<Integer> categoryIds = getSubCategoryIds(getSubTabCategorys(parent_category_id));
+
+    List<ProductSummaryDto> brandProducts = new ArrayList<>();
+    
+    for (Integer id : categoryIds) {
+      List<ProductDetailReturnDto> selectBrandProducts =  userSqlMapper.selectBrandProductByCategoryId(store_name, id);
+      for (ProductDetailReturnDto product : selectBrandProducts) {
+        ProductSummaryDto productSummaryDto = new ProductSummaryDto();
+        productSummaryDto.setProduct_id(product.getProduct_id());
+        productSummaryDto.setStore_name(product.getStore_name());
+        productSummaryDto.setCategory_id(product.getCategory_id());
+        productSummaryDto.setTitle(product.getTitle());
+        productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
+        productSummaryDto.setDiscount_rate(product.getDiscount_rate());
+        productSummaryDto.setRep_price(product.getRep_price());
+        productSummaryDto.setRep_sale_price(product.getRep_sale_price());
+        productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
+        productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
+        productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
+        
+        brandProducts.add(productSummaryDto);
+      }
+    }
+
+    return brandProducts;
+  }
+
+  public List<ProductSummaryDto> getKeywordFilter(String keyword, Map<String, Object> categorys){
+    List<ProductSummaryDto> keywordProducts = new ArrayList<>();
+
+    Integer parent_category_id = (Integer) categorys.get("parent_category_id");
+    Integer sub_category_id = (Integer) categorys.get("sub_category_id");
+
+    if (sub_category_id == null) { // 부모 카테고리 기준 검색
+      List<Integer> categoryIds = getSubCategoryIds(getSubTabCategorys(parent_category_id)); 
+      for (Integer id : categoryIds) {
+        List<ProductDetailReturnDto> keywordsearchs = userSqlMapper.selectKeywordFromCategory(keyword, id);
+
+        for (ProductDetailReturnDto product : keywordsearchs) {
+          ProductSummaryDto productSummaryDto = new ProductSummaryDto();
+          productSummaryDto.setProduct_id(product.getProduct_id());
+          productSummaryDto.setStore_name(product.getStore_name());
+          productSummaryDto.setCategory_id(product.getCategory_id());
+          productSummaryDto.setTitle(product.getTitle());
+          productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
+          productSummaryDto.setDiscount_rate(product.getDiscount_rate());
+          productSummaryDto.setRep_price(product.getRep_price());
+          productSummaryDto.setRep_sale_price(product.getRep_sale_price());
+          productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
+          productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
+          productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
+          
+          keywordProducts.add(productSummaryDto);
+        }
+      }
+    } else {
+      List<ProductDetailReturnDto> keywordsearchs = userSqlMapper.selectKeywordFromCategory(keyword, sub_category_id);
+
+      for (ProductDetailReturnDto product : keywordsearchs) {
+        ProductSummaryDto productSummaryDto = new ProductSummaryDto();
+        productSummaryDto.setProduct_id(product.getProduct_id());
+        productSummaryDto.setStore_name(product.getStore_name());
+        productSummaryDto.setCategory_id(product.getCategory_id());
+        productSummaryDto.setTitle(product.getTitle());
+        productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
+        productSummaryDto.setDiscount_rate(product.getDiscount_rate());
+        productSummaryDto.setRep_price(product.getRep_price());
+        productSummaryDto.setRep_sale_price(product.getRep_sale_price());
+        productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
+        productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
+        productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
+        
+        keywordProducts.add(productSummaryDto);
+      }
+    }
+    return keywordProducts;
   }
 
   public List<String> getAddressList(int customer_id){
@@ -289,20 +404,34 @@ public class UserService {
     }
   }
 
-  public void toggleLike(ProductFavoriteDto productFavoriteDto) {
+  public Boolean toggleLike(ProductFavoriteDto productFavoriteDto) {
 
     ProductFavoriteDto existingLike = userSqlMapper.selectLike(productFavoriteDto);
 
     if (existingLike == null) {
-      userSqlMapper.insertLike(productFavoriteDto);
+     userSqlMapper.insertLike(productFavoriteDto);
+      return true;
     } else {
-      userSqlMapper.deleteLike(productFavoriteDto);
+     userSqlMapper.deleteLike(productFavoriteDto);
+      return false;
     }
-
-  }
+  }  
 
   public ProductFavoriteDto findLike(ProductFavoriteDto productFavoriteDto){
     return userSqlMapper.selectLike(productFavoriteDto);
+  }
+
+  public List<ProductFavoriteDto> isLikeCheck(List<ProductSummaryDto> productList, int customer_id){
+    List<ProductFavoriteDto> list = new ArrayList<>();
+    
+    for (ProductSummaryDto productSummaryDto : productList) {
+      ProductFavoriteDto productFavoriteDto = new ProductFavoriteDto();
+      productFavoriteDto.setCustomer_id(customer_id);
+      productFavoriteDto.setProduct_id(productSummaryDto.getProduct_id());
+      
+      list.add(userSqlMapper.selectLike(productFavoriteDto));
+    }
+    return list;
   }
 
   public List<ProductOptionSummaryDto> tempoptionChoice(int product_id){
@@ -380,64 +509,7 @@ public class UserService {
 
     // 아이템 + 수량 + 가격 정보!! => cart 페이지 띄울때 필요함
   }
-  /* 
-  public List<ProductSummaryDto> getCustomerCartItem(int customer_id) {
-    // 고객의 장바구니 항목 조회
-    List<CartItemReturnDto> cartitems = userSqlMapper.selectCustomerCartItems(customer_id);
 
-    // product_id로 그룹핑하여 ProductSummaryDto에 매핑
-    Map<Integer, List<CartItemReturnDto>> groupByProductId = cartitems.stream()
-        .collect(Collectors.groupingBy(CartItemReturnDto::getProduct_id));
-
-    // 각 제품별로 ProductSummaryDto 생성
-    List<ProductSummaryDto> productSummaryList = groupByProductId.entrySet().stream()
-        .map(productEntry -> {
-            List<CartItemReturnDto> productItems = productEntry.getValue();
-            CartItemReturnDto representativeItem = productItems.get(0); // 대표 아이템 선택
-
-            // 제품 요약 정보 생성
-            ProductSummaryDto productSummary = new ProductSummaryDto();
-            productSummary.setProduct_id(representativeItem.getProduct_id());
-            productSummary.setStore_name(representativeItem.getStore_name());
-            productSummary.setTitle(representativeItem.getTitle());
-            productSummary.setImage_url(userSqlMapper.selectThumbnailImage(representativeItem.getProduct_id()));
-            productSummary.setOrigin_price(representativeItem.getOrigin_price());
-            productSummary.setDiscount_rate(representativeItem.getDiscount_rate());
-            productSummary.setSale_price(representativeItem.getSale_price());
-
-            // combination_id로 옵션 그룹핑하여 Map으로 저장
-            Map<Integer, ProductInventorySummaryDto> optionsMap = productItems.stream()
-                .collect(Collectors.toMap(
-                    CartItemReturnDto::getCombination_id,
-                    item -> {
-                        ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
-                        inventorySummary.setQuantity(item.getQuantity());
-                        inventorySummary.setStatus("In Stock"); // 임의로 상태를 설정 (필요에 따라 수정 가능)
-                        inventorySummary.setOrigin_price(item.getOrigin_price());
-                        inventorySummary.setDiscount_rate(item.getDiscount_rate());
-                        inventorySummary.setSale_price(item.getSale_price());
-
-                        // 옵션의 이름과 값을 리스트 형태로 저장
-                        List<Map<String, Object>> optionDetails = productItems.stream()
-                            .map(detailItem -> {
-                                Map<String, Object> optionMap = new HashMap<>();
-                                optionMap.put(detailItem.getOptionname(), detailItem.getOptionvalue());
-                                return optionMap;
-                            }).collect(Collectors.toList());
-
-                        inventorySummary.setOption(optionDetails);
-                        return inventorySummary;
-                    }
-                ));
-
-            productSummary.setOptions(optionsMap);
-            return productSummary;
-        }).collect(Collectors.toList());
-
-    return productSummaryList;
-  }
-  */
-  
 public List<BrandSummaryDto> getCustomerCartItem(int customer_id) {
     // 고객의 장바구니 항목 조회
     List<CartItemReturnDto> cartItems = userSqlMapper.selectCustomerCartItems(customer_id);
@@ -596,29 +668,6 @@ public List<BrandSummaryDto> getCustomerCartItem(int customer_id) {
         userSqlMapper.updateCartItemExQuantity(ex);
       }
     }
-  }
-
-  public List<ProductSummaryDto> getBrandProducts(String store_name) {
-    List<ProductSummaryDto> brandAllProducts = new ArrayList<>();
-
-    List<ProductDetailReturnDto> selectBrandProducts = userSqlMapper.selectBrandProducts(store_name);
-    for (ProductDetailReturnDto product : selectBrandProducts) {
-      ProductSummaryDto productSummaryDto = new ProductSummaryDto();
-      productSummaryDto.setProduct_id(product.getProduct_id());
-      productSummaryDto.setStore_name(product.getStore_name());
-      productSummaryDto.setCategory_id(product.getCategory_id());
-      productSummaryDto.setTitle(product.getTitle());
-      productSummaryDto.setImage_url(userSqlMapper.selectThumbnailImage(product.getProduct_id()));
-      productSummaryDto.setDiscount_rate(product.getDiscount_rate());
-      productSummaryDto.setRep_price(product.getRep_price());
-      productSummaryDto.setRep_sale_price(product.getRep_sale_price());
-      productSummaryDto.setAvgRating(userSqlMapper.selectAvgRating(product.getProduct_id()));
-      productSummaryDto.setReviewCount(userSqlMapper.selectReviews(product.getProduct_id()).size());
-      productSummaryDto.setKeywords(userSqlMapper.selectProductKeywords(product.getProduct_id()));
-
-      brandAllProducts.add(productSummaryDto);
-    }
-    return brandAllProducts;
   }
 
 }
