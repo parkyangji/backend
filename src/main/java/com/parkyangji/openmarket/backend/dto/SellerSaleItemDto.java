@@ -8,6 +8,4 @@ import lombok.Data;
 public class SellerSaleItemDto {
   private int product_id;
   private int discount_rate;
-  // private Date start_date;
-  // private Date end_date;
 }

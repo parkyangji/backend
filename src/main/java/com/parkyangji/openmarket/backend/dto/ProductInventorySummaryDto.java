@@ -9,6 +9,8 @@ import lombok.Data;
 
 @Data
 public class ProductInventorySummaryDto {
+  private int combination_id;
+  private int order_detail_id;
   private List<Map<String, Object>> option; // 옵션명과 값을 한꺼번에 담은 리스트
   private int quantity;
   private String status;

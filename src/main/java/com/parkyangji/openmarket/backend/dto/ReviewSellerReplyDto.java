@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class ReviewSellerReplyDto {
   private int order_review_id;
-  private int seller_reply;
+  private String seller_reply;
   private Date created_date;
 }

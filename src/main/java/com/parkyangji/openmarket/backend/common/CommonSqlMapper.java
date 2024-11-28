@@ -9,6 +9,9 @@ import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
+import com.parkyangji.openmarket.backend.dto.ProductRatingDto;
+import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
+import com.parkyangji.openmarket.backend.dto.ReviewSellerReplyDto;
 import com.parkyangji.openmarket.backend.dto.CartItemReturnDto;
 import com.parkyangji.openmarket.backend.dto.KeywordDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
@@ -28,5 +31,9 @@ public interface CommonSqlMapper {
   public List<ProductOptionReturnDto> selectProductOptionAndInventory(int product_id);
   public ProductDetailReturnDto selectProductById (int product_id);
   public String selectThumbnailImage(int product_id); 
-
+  // 평점 리뷰 답글
+  public List<ProductReviewDto> selectReviewByProductId(int product_id);
+  public List<ProductRatingDto> selectRatingByProductId(int product_id);
+  public ReviewSellerReplyDto selectReviewReplyByOrderReviewId(int order_review_id);
+  public String selectReviewerByOrderDetailId(int order_detail_id);
 }

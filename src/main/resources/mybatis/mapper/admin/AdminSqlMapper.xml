@@ -21,12 +21,46 @@
     select * from product_order where product_id = #{product_id}
   </select>
 
-  <select id="selectReviewByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
-    select * from product_review where product_id = #{product_id}
+  <!-- <select id="selectReviewByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
+    SELECT pr.order_review_id , pr.order_detail_id , pr.review_content , pr.created_date 
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    JOIN product p
+    ON p.product_id = poc.product_id 
+    JOIN product_review pr 
+    ON pr.order_detail_id = od.order_detail_id 
+    WHERE p.product_id = #{product_id}
+    ;
   </select>
+  <select id="selectRatingByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductRatingDto">
+    SELECT pr.rating_id , pr.order_detail_id , pr.rating , pr.created_date 
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    JOIN product p
+    ON p.product_id = poc.product_id 
+    JOIN product_rating pr 
+    ON pr.order_detail_id = od.order_detail_id 
+    WHERE p.product_id = #{product_id}
+    ;
+  </select>
+  <select id="selectReviewReplyByOrderReviewId" resultType="com.parkyangji.openmarket.backend.dto.ReviewSellerReplyDto">
+    SELECT rsr.order_review_id ,rsr.seller_reply , rsr.crated_date 
+    FROM product_review pr 
+    LEFT JOIN review_seller_reply rsr 
+    ON pr.order_review_id = rsr.order_review_id 
+    WHERE rsr.order_review_id = #{order_review_id}
+    ;
+  </select> -->
 
   <insert id="inserReply">
-    Update product_review set seller_reply = #{seller_reply}, reply_date = NOW() where review_id = #{review_id}
+    insert into review_seller_reply(order_review_id, seller_reply)
+    values(#{order_review_id}, #{seller_reply})
   </insert>
 
   <insert id="insertSeller">

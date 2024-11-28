@@ -16,8 +16,71 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm" style="height: calc(100vh - 48px - 45px); width: 100vw;">
-      주문이 완료되었어요
-      <a th:href="@{/home}">홈으로</a>
+
+      <div th:if="${orderItems != null}" th:each="brand : ${orderItems}" class="mb-4 border rounded p-3">
+        <!-- 브랜드 이름 -->
+        <div class="d-flex align-items-center mb-3">
+          <!-- <input type="checkbox" class="form-check-input me-2" /> -->
+          <span class="fw-bold fs-5" th:text="${brand.store_name}"></span>
+        </div>
+    
+        <!-- 상품 반복 -->
+        <div th:each="product : ${brand.products}" class="border-bottom pb-3 mb-3">
+          <div class="orderProduct mt-3" th:each="inventory : ${product.options}">
+            <div class="d-flex align-items-start" >
+              <!-- 상품 이미지 -->
+               <a th:href="|/product?id=${product.product_id}|">
+                 <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="max-width: 80px; height: auto;" />
+               </a>
+      
+              <!-- 상품 정보 -->
+              <div class="flex-grow-1">
+                <p class="fw-bold mb-1" th:text="${product.title}"></p>
+                <!-- <p class="small text-muted mb-1">12.02(월) 이내 발송 예정</p>
+                <div class="d-inline-flex align-items-center gap-1 mb-2">
+                  <span class="badge bg-secondary small">직배송</span>
+                </div> -->
+                <div class="d-flex align-items-center">
+                  <th:block th:each="data : ${inventory.option}">
+                    <th:block th:each="entry : ${data}">
+                      <span class="text-muted" th:text="${entry.value}"></span>
+                    </th:block>
+                    <span class="text-muted mx-2" th:if="${!dataStat.last}"> x </span>
+                  </th:block>
+                  <span class="mx-2"> / </span>
+                  <span th:text="|${inventory.quantity}개|"></span>
+                </div>
+              </div>
+      
+              <!-- 삭제 버튼 -->
+              <!-- <button th:data-combination-id="${inventory.combination_id}" onclick="optionDelete(event)" class="btn btn-outline-danger btn-sm ms-3">X</button> -->
+            </div>
+    
+            <!-- 가격 정보 -->
+            <div class="mt-3 d-flex justify-content-between">
+              <div>
+                <span>상품 금액</span>
+                <span class="fw-bold ms-2 formattedPrice" ></span>
+              </div>
+              <!-- <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary btn-sm">-</button>
+                <span type="number" class="form-control text-center mx-2" style="width: 50px;">1</span>
+                <button class="btn btn-outline-secondary btn-sm">+</button>
+              </div> -->
+            </div>
+          </div>
+        </div>
+    
+        <!-- 브랜드당 금액 -->
+        <!-- <div class="d-flex justify-content-center align-items-center gap-1">
+          <span>합계 :</span>
+          <span class="brandSumPrice"></span>
+        </div> -->
+      </div>
+
+      <div>
+        결제 해줭
+      </div>
     </div>
 
     <!-- 하단 푸터 -->

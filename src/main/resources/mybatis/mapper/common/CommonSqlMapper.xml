@@ -117,4 +117,52 @@
     ;
   </select>
 
+  <!-- 상품 평점/리뷰 답글 -->
+  <select id="selectReviewByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductReviewDto">
+    SELECT pr.order_review_id , pr.order_detail_id , pr.review_content , pr.created_date 
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    JOIN product p
+    ON p.product_id = poc.product_id 
+    JOIN product_review pr 
+    ON pr.order_detail_id = od.order_detail_id 
+    WHERE p.product_id = #{product_id}
+    ;
+  </select>
+  <select id="selectRatingByProductId" resultType="com.parkyangji.openmarket.backend.dto.ProductRatingDto">
+    SELECT pr.rating_id , pr.order_detail_id , pr.rating , pr.created_date 
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    JOIN product p
+    ON p.product_id = poc.product_id 
+    JOIN product_rating pr 
+    ON pr.order_detail_id = od.order_detail_id 
+    WHERE p.product_id = #{product_id}
+    ;
+  </select>
+  <select id="selectReviewReplyByOrderReviewId" resultType="com.parkyangji.openmarket.backend.dto.ReviewSellerReplyDto">
+    SELECT rsr.order_review_id ,rsr.seller_reply , rsr.created_date 
+    FROM product_review pr 
+    LEFT JOIN review_seller_reply rsr 
+    ON pr.order_review_id = rsr.order_review_id 
+    WHERE rsr.order_review_id = #{order_review_id}
+    ;
+  </select>
+  <select id="selectReviewerByOrderDetailId" resultType="String">
+    SELECT c.nickname 
+    FROM order_detail od 
+    LEFT JOIN `order` o 
+    ON od.order_id = o.order_id
+    JOIN customer c 
+    ON o.customer_id = c.customer_id 
+    WHERE od.order_detail_id = #{order_detail_id}
+    ;
+  </select>
+
 </mapper>

@@ -28,8 +28,7 @@
               <ul class="d-flex flex-column justify-content-center gap-2">
                 <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/products}">상품 조회/수정</a></li>
                 <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/productRegister}">상품 등록</a></li>
-                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/order}">주문 조회</a></li>
-                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;">배송현황 관리</li>
+                <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/order}">주문/배송 조회</a></li>
                 <li class="py-2 mx-3 border-bottom" style="border-color: #515d6f !important;"><a th:href="@{/admin/review}">리뷰 관리</a></li>
               </ul>
             </div>
@@ -43,16 +42,16 @@
                     <!-- 리뷰 정보 출력 -->
                     <div class="review-info">
                         <div class="product-title" th:text="${item.product.title}">상품명</div>
-                        <div class="rating" th:text="'평점: ' + ${item.review.rating}">평점</div>
-                        <div class="review-content" th:text="${item.review.content}">리뷰 내용</div>
+                        <div class="rating" th:text="'평점: ' + ${item.rating.rating}">평점</div>
+                        <div class="review-content" th:text="${item.review.review_content}">리뷰 내용</div>
                         <div class="created-date" th:text="${item.review.created_date}">작성일</div>
                     </div>
-                    <div th:if="${item.review.seller_reply != null}" th:text="${item.review.seller_reply}">
+                    <div th:if="${item.reply != null}" th:text="${item.reply.seller_reply}">
                       답글 내역
                     </div>
-                    <div th:if="${item.review.content != null && item.review.seller_reply == null}">
+                    <div th:if="${item.review.review_content != null && item.reply == null}">
                       <form action="./replyProcess" method="POST">
-                          <input type="hidden" name="review_id" th:value="${item.review.review_id}" />
+                          <input type="hidden" name="order_review_id" th:value="${item.review.order_review_id}" />
                           <div class="mb-2">
                               <label for="seller_reply" class="form-label"></label>
                               <textarea class="form-control" id="seller_reply" name="seller_reply" rows="2" placeholder="답글을 입력하세요"></textarea>
@@ -60,11 +59,10 @@
                           <button type="submit" class="btn main-bg-color">답글 등록</button>
                       </form>
                     </div>
-                    <div th:if="${item.review.content == null}">
+                    <div th:if="${item.review.review_content == null}">
                       사용자가 아직 리뷰를 작성하지 않아 답글을 작성할 수 없어요!
                     </div>
                   </div>
-                </div>
               </div>
           </div>
         </div>
@@ -72,5 +70,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script th:inline="javascript">
+      /* <![CDATA[ */
+      var reviewListJson = /*[[${reviewListJson}]]*/ 'N/A';
+      /* ]]> */
+
+      console.log("reviews: ",  JSON.parse(reviewListJson));
+    </script>
   </body>
 </html>

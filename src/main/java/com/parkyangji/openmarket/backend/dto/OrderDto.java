@@ -8,9 +8,7 @@ import lombok.Data;
 public class OrderDto { 
   private int order_id;
   private int customer_id;
-  //private int product_id;
-  //private int quantity;
-  //private String delivery_address;
+  private int address_id;
+  private String delivery_message;
   private Date order_date;
-  // private String status; 
 }

@@ -1,5 +1,5 @@
 <!-- <div th:fragment="footer" class="container-sm fixed-bottom" > -->
-  <div th:fragment="buyfooter(productId)" class="row fs-2 bg-white text-center align-items-center border-top border-light-subtle" style="min-height: 68px;">
+  <div th:fragment="buyfooter" class="row fs-2 bg-white text-center align-items-center border-top border-light-subtle" style="min-height: 68px;">
     <!-- <a th:href="@{/home}" class="col-2 pe-0">
       <div class="border border-subtle d-flex align-items-center justify-content-between" style="height: 50px; border-radius: 10px; color: #09aa5c;">
         <i class="flex-fill fs-5 bi bi-heart"></i>
@@ -13,10 +13,10 @@
       </button> -->
     </div>
     <!-- <form id="orderForm" action="/order" method="POST" class="col-10"> -->
-    <form id="orderForm" action="/temp_option" method="POST" class="col-10">
-      <input type="hidden" name="productId" th:value="${productId}">
-      <input class="button-style m-0 fs-1-5" type="submit" value="구매하기">
-    </form>
+    <div id="orderInput" class="col-10">
+      <!-- <input type="hidden" name="productId" th:value="${productId}"> -->
+      <span class="d-block button-style m-0 fs-1-5" style="line-height: 50px;">구매하기</span>
+    </div>
     <!-- <a th:href="@{/order}" class="col-10">
       <div class="d-flex align-items-center justify-content-between button-style m-0 fs-1-5 main-bg-strong-color">
         <span class="flex-fill">구매하기</span>

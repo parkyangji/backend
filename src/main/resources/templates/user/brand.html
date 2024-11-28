@@ -9,7 +9,6 @@
     <link rel="stylesheet" th:href="@{/style.css}">
     <script th:src="@{/common.js}"></script>
     <script th:src="@{/api.js}"></script>
-    <script th:src="@{/components/productlist.js}"></script>
   </head>
   <body>
     <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: calc(48px + 44px);">
@@ -36,9 +35,16 @@
       <!-- 하단 푸터 -->
       <div th:insert="~{fragments/footer::footer}" class="container-sm fixed-bottom"></div>
       <div th:insert="~{fragments/popup/failmessagePopup::failmessagePopup}"></div>
+      <div id="previewPopup" class="d-none" th:insert="~{fragments/popup/previewPopup::previewPopup}"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+    <script th:src="@{/components/productlist.js}"></script>
+    <script th:src="@{/components/tempModal.js}"></script>
+    <script th:src="@{/components/chartjs.js}"></script>
+
     <script th:inline="javascript">
       /* <![CDATA[ */
       var subCategoryIdAndNameJson = /*[[${subCategoryIdAndNameJson}]]*/ 'N/A';

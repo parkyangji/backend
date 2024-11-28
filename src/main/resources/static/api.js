@@ -24,6 +24,13 @@
 //   reloadCommentList();
 // })
 
+/*
+JSON 데이터를 서버로 보낼 때 > 1. fetch 2. formData 3. 고전적인 form
+단 fetch는 페이지로 반환은 불가능하고 JSON 형태로 반환받아야 하기 때문에
+페이지 이동(리다이렉트)을 수동으로 처리해야 합니다
+*/
+
+
 const fetchCheckIsUserLike = async (productId) => {
   const response = await fetch('/api/favorite/isLike?id='+productId);
   if (!response.ok) throw new Error('Failed to fetch data');
@@ -73,6 +80,128 @@ const fetchKeywordFromCategory = async (keyword, menu_id, categoryId) => {
       'Content-Type': 'application/json', // URL 인코딩된 데이터 전송 시 필요
     },
     body : JSON.stringify(type) // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchPreviewProductId = async (productId) => {
+  const response = await fetch('/api/preview?id='+productId);
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+} 
+
+const fetchGetProductOption = async (productId) => {
+  const response = await fetch('/api/product/option?id='+productId);
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchPostChoiceOption = async (data) => {
+  const response = await fetch('/api/product/cart', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/json', // URL 인코딩된 데이터 전송 시 필요
+    },
+    body : JSON.stringify(data) // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchDeleteCartItem = async (combinationId) => {
+  const response = await fetch('/api/product/cart/delete', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body : `id=${combinationId}` // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchUpdateQuantity = async (requestData) => {
+  const response = await fetch("/api/product/updateCartQuantity", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestData),
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+
+const fetchPurchaseProcess = async (data) => { // 상품 정보
+  const response = await fetch('/api/product/purchase', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/json', // URL 인코딩된 데이터 전송 시 필요
+    },
+    body : JSON.stringify(data) // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchPaymentProcess = async (data) => { // 배송에 대한 정보
+  const response = await fetch('/api/product/payment', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/json', // URL 인코딩된 데이터 전송 시 필요
+    },
+    body : JSON.stringify(data) // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+
+const fetchProductDetailImages = async (productId) => {
+  const response = await fetch('/api/product/detailImages', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body : `id=${productId}` // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchProductReview = async (productId) => {
+  const response = await fetch('/api/product/review', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body : `id=${productId}` // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchProductQuestion = async (productId) => {
+  const response = await fetch('/api/product/question', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body : `id=${productId}` // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}
+
+const fetchStatisticsOthersBestTop5 = async (productId) => {
+  const response = await fetch('/api/statistics/othersBestTop5', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body : `id=${productId}` // 직렬화 시켜 보내기
   });
   if (!response.ok) throw new Error('Failed to fetch data');
   return response.json();

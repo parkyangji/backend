@@ -23,7 +23,7 @@ public class Appconfig implements WebMvcConfigurer{
     // @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(sessionInterceptor)
-            .addPathPatterns("/mypage/**", "/order/**", "/orderProcess/**")
+            .addPathPatterns("/mypage/**", "/orderProcess/**", "/orderComplete/**")
             .addPathPatterns("/admin/**")
             .excludePathPatterns("/admin", "/admin/loginProcess", "/admin/register", "/admin/registerProcess");
         // .addPathPatterns("/board/writeArticlePage")

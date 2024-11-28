@@ -11,7 +11,6 @@ import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerCartDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
-import com.parkyangji.openmarket.backend.dto.DeliveryInfoDto;
 import com.parkyangji.openmarket.backend.dto.OrderDetailDto;
 import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
@@ -41,7 +40,6 @@ public interface UserSqlMapper extends CommonSqlMapper{
 
   // 주문 넣기
   public void insertOrder(OrderDto orderDto);
-  public void insertDeliveryInfo(DeliveryInfoDto deliveryInfoDto);
 
   // 배송지 가져오기
   public List<String> selectAddressList(int customer_id);
@@ -85,7 +83,7 @@ public interface UserSqlMapper extends CommonSqlMapper{
   public void deleteCart(int cart_id);
   public void deleteCartItem(CartItemDto cartItemDto);
   public List<CartItemReturnDto> selectCustomerCartItems(int customer_id);
-  public List<CartItemReturnDto> selectTempCartItems(@Param("product_id") int productId, @Param("combination_id") List<Integer> combinationId);
+  public List<CartItemReturnDto> selectTempCartItems(int combinationId);
   public List<CartItemReturnDto> selectCustomerOrderDetails(int customer_id);
   public void insertOrderDetails(List<OrderDetailDto> orderDetailDtos);
   public List<CartItemDto> selectExQuantityByOrderId(int order_id);
@@ -93,4 +91,8 @@ public interface UserSqlMapper extends CommonSqlMapper{
   // 마이페이지
   public List<OrderItemReturnDto> selectOrderList(int customer_id);
 
+  public List<Map<String, Object>> selectProductIdRatingChart(int product_id);
+
+  // 미션 : 현재 유저를 제외한 현재 상품을 구매한 사람의 구매한 다른 상품 베스트 5
+  public List<Integer> selectTop5ProductsBoughtByOtherUsers(@Param("product_id") int product_id, @Param("customer_id") int customer_id);
 }

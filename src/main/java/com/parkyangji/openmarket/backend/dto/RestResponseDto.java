@@ -14,5 +14,4 @@ public class RestResponseDto {
     public void add(String name, Object value) { // "count", "isLiked", "commentList"
         data.put(name, value);
     }
-
 }

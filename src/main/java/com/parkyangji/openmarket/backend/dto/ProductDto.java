@@ -10,9 +10,5 @@ public class ProductDto {
   private int seller_id;
   private int category_id;
   private String title;
-  // private String description;
-  //private int price; // 정가
-  // private String main_page_url;
-  // private int total_quantity;
   private Date created_date;
 }

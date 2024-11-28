@@ -48,6 +48,7 @@
     LEFT JOIN product_rating pr 
     ON pr.order_detail_id = od.order_detail_id 
     WHERE poc.product_id = #{product_id}
+    GROUP BY poc.product_id
     ;
   </select>
 
@@ -77,13 +78,8 @@
       <selectKey keyProperty="order_id" resultType="int" order="AFTER">
           SELECT LAST_INSERT_ID()
       </selectKey>
-      INSERT INTO `order` (customer_id) 
-      VALUES (#{customer_id})
-  </insert>
-
-  <insert id="insertDeliveryInfo">
-    INSERT INTO delivery_info(order_id, address_id, delivery_message)
-    VALUES (#{order_id}, #{address_id}, #{delivery_message})
+      INSERT INTO `order` (customer_id, address_id, delivery_message) 
+      VALUES (#{customer_id}, #{address_id}, #{delivery_message})
   </insert>
 
   <select id="selectAddressList" resultType="String">
@@ -108,21 +104,6 @@
     INSERT INTO product_review(order_detail_id, review_content) 
     VALUES(#{order_detail_id}, #{review_content})
   </insert>
-
-  <!-- <insert id="insertReview">
-      INSERT INTO product_review (product_id, customer_id, order_id, content, rating)
-      VALUES (#{product_id}, #{customer_id}, #{order_id}, #{content}, #{rating})
-  </insert>
-
-  <update id="updateReview">
-      UPDATE product_review
-      <set>
-          <if test="content != null">content = #{content},</if>
-          <if test="rating != 0">rating = #{rating},</if>
-          created_date = NOW()
-      </set>
-      WHERE review_id = #{review_id}
-  </update> -->
 
   <!-- 좋아요 -->
   <select id="selectLike" resultType="com.parkyangji.openmarket.backend.dto.ProductFavoriteDto">
@@ -291,9 +272,10 @@
     JOIN seller s
     on p.seller_id = s.seller_id 
     WHERE cc.customer_id = #{customer_id}
+    ORDER BY pcv.combination_id
     ;
   </select>
-  <select id="selectTempCartItems" parameterType="map" resultType="com.parkyangji.openmarket.backend.dto.CartItemReturnDto">
+  <select id="selectTempCartItems" resultType="com.parkyangji.openmarket.backend.dto.CartItemReturnDto">
     SELECT po.product_id , s.store_name, p.title, cv.combination_id
     ,ov.optionvalue , po.optionvalue as optionname , 
     poi.price as origin_price,
@@ -314,11 +296,9 @@
     on poc.product_id = p.product_id 
     JOIN seller s
     on p.seller_id = s.seller_id 
-    where cv.combination_id IN 
-      <foreach item="id" collection="combination_id" open="(" separator="," close=")">
-          #{id}
-      </foreach>
-    and po.product_id = #{product_id};
+    where cv.combination_id = #{combination_id}
+    ORDER BY cv.combination_id
+    ;
   </select>
   <select id="selectCustomerOrderDetails" parameterType="com.parkyangji.openmarket.backend.dto.CartItemReturnDto">
     SELECT ci.combination_id , ci.quantity, poi.price as origin_price,
@@ -376,6 +356,65 @@
     on p.seller_id = s.seller_id 
     WHERE cc.customer_id = #{customer_id}
     ORDER BY order_id desc, order_detail_id desc, optionname
+    ;
+  </select>
+
+  <select id="selectProductIdRatingChart" resultType="map">
+  WITH rating_counts AS (
+      SELECT 
+          pr.rating,
+          COUNT(*) AS rating_count
+      FROM product_rating pr
+      LEFT JOIN order_detail od ON pr.order_detail_id = od.order_detail_id
+      LEFT JOIN product_option_combination poc ON poc.combination_id = od.combination_id
+      WHERE poc.product_id = #{product_id}
+      GROUP BY pr.rating
+  ),
+  -- 전체 리뷰 개수 계산
+  total_count AS (
+      SELECT 
+          COUNT(*) AS total_count
+      FROM product_rating pr
+      LEFT JOIN order_detail od ON pr.order_detail_id = od.order_detail_id
+      LEFT JOIN product_option_combination poc ON poc.combination_id = od.combination_id
+      WHERE poc.product_id = #{product_id}
+  )
+  -- 별점 값과 결합
+  SELECT 
+      sv.rating,
+      COALESCE(rc.rating_count, 0) AS rating_count,
+      COALESCE(ROUND(rc.rating_count * 100.0 / tc.total_count, 2), 0) AS star_percentage
+  FROM (
+      SELECT 1 AS rating
+      UNION ALL SELECT 2
+      UNION ALL SELECT 3
+      UNION ALL SELECT 4
+      UNION ALL SELECT 5
+  ) sv
+  LEFT JOIN rating_counts rc ON sv.rating = rc.rating
+  CROSS JOIN total_count tc;
+  </select>
+
+  <select id="selectTop5ProductsBoughtByOtherUsers" parameterType="map" resultType="Integer">
+    SELECT poc.product_id
+    FROM order_detail od 
+    LEFT JOIN `order` o
+    ON od.order_id = o.order_id 
+    JOIN product_option_combination poc
+    ON od.combination_id = poc.combination_id 
+    WHERE o.customer_id IN (
+      SELECT o.customer_id
+      FROM order_detail od 
+      LEFT JOIN `order` o 
+      ON od.order_id = o.order_id 
+      JOIN product_option_combination poc
+      ON od.combination_id = poc.combination_id 
+      WHERE poc.product_id = #{product_id} AND o.customer_id != #{customer_id}
+      GROUP BY o.customer_id
+    ) and poc.product_id != #{product_id}
+    GROUP BY poc.product_id
+    ORDER BY COUNT(DISTINCT poc.combination_id) DESC  
+    LIMIT 5
     ;
   </select>
 

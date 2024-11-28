@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/style.css}">
     <script th:src="@{/common.js}"></script>
+    <script th:src="@{/api.js}"></script>
   </head>
   <body>
     <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
@@ -18,76 +19,218 @@
       <div class="container-sm" style="padding-bottom: 48px;">
       <!-- <div class="container-sm" style="padding-bottom: 48px;"> -->
       <!-- <div class="container-sm" style="height: calc(100vh - 48px - 45px); width: 100vw;"> -->
-        <th:block th:if="${cartItems != null}" th:each="brand : ${cartItems}">
-          <!-- product_id에 해당하는 그룹 -->
-          <div class="mb-3 border rounded">
-            <p th:text="${brand.store_name}"></p>
-            <th:block th:each="product : ${brand.products}">
-              <img class="w-25" th:src="${product.image_url}" alt="">
-              <p class="m-0" th:text="${product.title}"></p>
-              <th:block th:each="inventory : ${product.options}">
-                <th:block th:each="data : ${inventory.option}">
-                  <th:block th:each="entry : ${data}">
-                    <span th:text="${entry.key}"></span> 
-                    <span th:text="${entry.value}"></span>
-                    <span th:if="${!entryStat.last}"> x </span>
-                  </th:block>
-                </th:block>
-                <span> / </span>
-                <span th:text="${inventory.quantity}"></span>
-                <p class="formattedPrice">가격</p>
-              </th:block>
-            </th:block>
+        <div th:if="${cartItems != null}" th:each="brand : ${cartItems}" class="mb-4 border rounded p-3">
+          <!-- 브랜드 이름 -->
+          <div class="d-flex align-items-center mb-3">
+            <span class="fw-bold fs-5" th:text="${brand.store_name}"></span>
           </div>
-        </th:block>
+      
+          <!-- 상품 반복 -->
+          <div th:each="product : ${brand.products}" class="border-bottom pb-3 mb-3">
+            <div class="orderProduct mt-3" th:each="inventory : ${product.options}">
+              <div class="d-flex align-items-start" >
+                <!-- 상품 이미지 -->
+                 <a th:href="|/product?id=${product.product_id}|">
+                   <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="max-width: 80px; height: auto;" />
+                 </a>
+        
+                <!-- 상품 정보 -->
+                <div class="flex-grow-1">
+                  <p class="fw-bold mb-1" th:text="${product.title}"></p>
+                  <!-- <p class="small text-muted mb-1">12.02(월) 이내 발송 예정</p>
+                  <div class="d-inline-flex align-items-center gap-1 mb-2">
+                    <span class="badge bg-secondary small">직배송</span>
+                  </div> -->
+                  <div class="d-flex align-items-center">
+                    <th:block th:each="data : ${inventory.option}">
+                      <th:block th:each="entry : ${data}">
+                        <span class="text-muted" th:text="${entry.value}"></span>
+                      </th:block>
+                      <span class="text-muted mx-2" th:if="${!dataStat.last}"> x </span>
+                    </th:block>
+                    <!-- <span class="mx-2"> / </span> -->
+                    <!-- <span th:text="|${inventory.quantity}개|"></span> -->
+                  </div>
+                </div>
+        
+                <!-- 삭제 버튼 -->
+                <button th:data-combination-id="${inventory.combination_id}" onclick="optionDelete(event)" class="btn btn-outline-danger btn-sm ms-3">X</button>
+              </div>
+      
+              <!-- 가격 정보 -->
+              <div class="mt-3 d-flex justify-content-between">
+                <div>
+                  <span>상품 금액</span>
+                  <span class="fw-bold ms-2 formattedPrice" ></span>
+                </div>
+                <div th:data-combination-id="${inventory.combination_id}" class="optionChangeContainer d-flex align-items-center">
+                  <button class="decrement btn btn-outline-secondary btn-sm">-</button>
+                  <span class="optionValue form-control text-center mx-2" style="width: 50px;" th:text="${inventory.quantity}">1</span>
+                  <button class="increment btn btn-outline-secondary btn-sm">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+      
+          <!-- 브랜드당 금액 -->
+          <div class="d-flex justify-content-center align-items-center gap-1">
+            <span>합계 :</span>
+            <span class="brandSumPrice"></span>
+          </div>
+        </div>
       </div>
 
       <!-- 하단 푸터 -->
       <div th:insert="~{fragments/orderfooter::orderfooter(text=${'구매하기'})}" class="container-sm fixed-bottom"></div>
+      <div th:insert="~{fragments/popup/failmessagePopup::failmessagePopup}"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script th:src="@{/components/order.js}"></script>
+    <script>
+      document.getElementById('purchase').addEventListener('click', purchase);
+    </script>
     <script th:inline="javascript">
-      /* <![CDATA[ */
-      var cartItemsJson = /*[[${cartItemsJson}]]*/ 'N/A';
-      /* ]]> */
+    /* <![CDATA[ */
+    var cartItemsJson = /*[[${cartItemsJson}]]*/ 'N/A';
+    /* ]]> */
 
-      console.log("Cart Items: ",  JSON.parse(cartItemsJson));
+    console.log("Cart Items: ",  JSON.parse(cartItemsJson));
 
-      const cartItems = JSON.parse(cartItemsJson);
+    const cartItems = JSON.parse(cartItemsJson);
 
-      let totalOriginPrice = 0;
+    let totalOriginPrice = 0;
+    let totalBrandPrice = 0;
 
-      if (cartItems != null) {
-        const formattedPrice = document.querySelectorAll('.formattedPrice');
-        let customIndex = 0;
-        cartItems.forEach((item) => {
-            item.products.forEach(product => {
-                product.options.forEach((option) => {
-                    const details = option;
-                    const prices = calculatePrices(details.origin_price, details.sale_price, details.discount_rate, details.quantity);
-  
-                    if (formattedPrice[customIndex]) {
-                        formattedPrice[customIndex].innerText = prices.TotalPrice + "원";
-                    }
-  
-                    // 총 가격 계산
-                    totalOriginPrice += prices.TotalPrice;
-  
-                    // 커스텀 인덱스를 증가
-                    customIndex++;
-                });
+    if (cartItems != null) {
+      const formattedPrice = document.querySelectorAll('.formattedPrice');
+      const brandSumPrice = document.querySelectorAll('.brandSumPrice');
+
+      let customIndex = 0;
+      let brandIndex = 0;
+
+      let details = null;
+      let prices = null;
+
+      cartItems.forEach((item) => {
+          item.products.forEach(product => {
+            product.options.forEach((option) => {
+
+                details = option;
+                prices = calculatePrices(details.origin_price, details.sale_price, details.discount_rate, details.quantity);
+
+                if (formattedPrice[customIndex]) {
+                    formattedPrice[customIndex].innerText = formatPrice(prices.TotalPrice) + "원";
+                }
+
+                // 총 가격 계산
+                totalOriginPrice += prices.TotalPrice;
+                totalBrandPrice += prices.TotalPrice;
+
+                // 커스텀 인덱스를 증가
+                customIndex++;
             });
-        });
-      }
+          });
 
-      // orderfooter 버튼에 JavaScript로 계산된 totalPrice 값 설정
-      const orderFooterButton = document.querySelector('#orderfooter button');
-        if (totalOriginPrice == 0 || totalOriginPrice == null) {
-          orderFooterButton.textContent = "구매하기";
-        } else {
-          orderFooterButton.textContent = `${formatPrice(totalOriginPrice)}원 구매하기`;
+        if (brandSumPrice[brandIndex]) {
+          brandSumPrice[brandIndex].innerText = formatPrice(totalBrandPrice) + "원";
+          totalBrandPrice = 0
         }
+
+        brandIndex++;
+      });
+    }
+
+    async function optionDelete(event){
+      event.preventDefault();
+      event.stopPropagation();
+
+      let self = event.currentTarget;
+      let productContainer = self.parentElement.parentElement;
+      // let combinationId = self.dataset.combinationId;
+
+      const idx = Array.from(document.querySelectorAll('.orderProduct')).indexOf(productContainer);
+      const combinationId = getCombinationIdByIndex(idx, cartItems);
+
+      const result = await fetchDeleteCartItem(combinationId);
+      
+      // /cart로 이동하면서 히스토리 제거
+      // window.location.replace(result.data.redirectUrl); // 현재 페이지 URL을 새로운 페이지로 대체
+      // history.replaceState({}, '', '/home'); // 히스토리를 대체
+      window.location.reload(); // 새로고침
+    } 
+
+
+    // 클릭한 인덱스를 기반으로 combination_id를 찾는 함수
+    function getCombinationIdByIndex(index, data) {
+      let count = 0; // 전체 상품 옵션 순회 인덱스
+      for (const brand of data) {
+        for (const product of brand.products) {
+          for (const option of product.options) {
+            // 인덱스가 일치하면 해당 combination_id 반환
+            if (count === index) {
+              return option.combination_id;
+            }
+            count++;
+          }
+        }
+      }
+      return null; // 일치하는 데이터가 없을 경우 null 반환
+    }
+
+
+    async function updateQuantity(quantity, combination_id){
+      const requestData = {
+        combination_id: parseInt(combination_id),
+        quantity: quantity
+      };
+
+      const result = await fetchUpdateQuantity(requestData);
+      console.log(result);
+
+      window.location.reload(); // 새로고침
+    }
+
+
+
+    // 이벤트 리스너 추가
+    document.querySelectorAll(".increment").forEach(item=>{
+      item.addEventListener("click", (event) => {
+        const combinationId = event.target.parentElement.dataset.combinationId;
+
+        const quantityElement = event.target.parentElement.querySelector(".optionValue");
+        let currentQuantity = parseInt(quantityElement.textContent);
+
+        currentQuantity += 1;
+        quantityElement.textContent = currentQuantity;
+
+        updateQuantity(currentQuantity , combinationId); // 증가
+      });
+    })
+    document.querySelectorAll(".decrement").forEach(item=>{
+      item.addEventListener("click", (event) => {
+        const combinationId = event.target.parentElement.dataset.combinationId;
+
+        const quantityElement = event.target.parentElement.querySelector(".optionValue");
+        let currentQuantity = parseInt(quantityElement.textContent);
+
+        if (currentQuantity > 1) {
+            currentQuantity -= 1;
+            quantityElement.textContent = currentQuantity;
+    
+            updateQuantity(currentQuantity , combinationId); // 감소
+        }
+      });
+    })
+
+
+    const orderFooterButton = document.querySelector('#purchase button');
+    if (totalOriginPrice == 0 || totalOriginPrice == null) {
+      orderFooterButton.textContent = "구매하기";
+    } else {
+      orderFooterButton.textContent = `${formatPrice(totalOriginPrice)}원 구매하기`;
+    }
+
   </script>
   </body>
 </html>

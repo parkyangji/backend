@@ -1,10 +1,12 @@
 <div id="orderfooter" th:fragment="orderfooter(text)" class="row fs-2 bg-white text-center align-items-center border-top border-light-subtle" style="min-height: 68px;">
-  <form th:if="${text == '결제하기'}" id="orderForm" action="/orderProcess" method="POST">
+  <!-- <form th:if="${text == '결제하기'}" id="orderForm" action="/orderProcess" method="POST"> -->
+  <div id="payment" th:if="${text == '결제하기'}" >
     <!-- <input type="hidden" name="productId" th:value="${productId}"> -->
-    <input class="button-style m-0 fs-1-5" type="submit">
-  </form>
-  <form action="/order" method="POST" th:if="${text == '구매하기'}">
+    <button class="button-style m-0 fs-1-5" >결제하기</button>
+  </div>
+  <!-- <form action="/order" method="POST" th:if="${text == '구매하기'}"> -->
+  <div id="purchase" th:if="${text == '구매하기'}">
     <!-- <input type="hidden" name="productId" th:value="${productId}"> -->
-    <button class="button-style m-0 fs-1-5" th:text="|${totalPrice != 0 && totalPrice != null ? totalPrice+'원 ' : ''} ${text}|"></button>
-  </form>
+    <button class="button-style m-0 fs-1-5">구매하기</button>
+  </div>
 </div>

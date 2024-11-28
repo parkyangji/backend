@@ -20,10 +20,12 @@ import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductCombinationValueDto;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductImageDto;
+import com.parkyangji.openmarket.backend.dto.ProductInventorySummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductKeywordValueDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionCombinationDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionInventoryDto;
+import com.parkyangji.openmarket.backend.dto.ProductOptionReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionValueDto;
 
@@ -298,17 +300,54 @@ public class ProductService {
     // 재고/가격 관리, 할인
     // Map<Integer, List<ProductOptionSummaryDto>> groupByCombinationId 
     //   = adminSqlMapper.selectProductOptionAndInventory(product_id)
-    //   .stream().collect(Collectors.groupingBy(ProductOptionSummaryDto::getCombination_id, 
-    //   LinkedHashMap::new, Collectors.toList()));
-    // // System.out.println(groupByCombinationId);
+    //   .stream().collect(Collectors.groupingBy(ProductOptionReturnDto::getCombination_id));
+    // System.out.println(groupByCombinationId);
 
-    // detailEdit.put("inventory", groupByCombinationId);
+    detailEdit.put("inventory", tempoptionChoice(product_id));
 
     // 키워드
     List<String> checkKeywords = adminSqlMapper.selectProductKeywords(product_id);
     detailEdit.put("checkKeywords", checkKeywords);
 
     return detailEdit;
+  }
+
+  public List<ProductOptionSummaryDto> tempoptionChoice(int product_id){
+    List<ProductOptionReturnDto> optionList = adminSqlMapper.selectProductOptionAndInventory(product_id);
+     
+    // 옵션 조합별로
+    Map<Integer, List<ProductOptionReturnDto>> groupByCombinationId = 
+    optionList.stream().collect(Collectors.groupingBy(ProductOptionReturnDto::getCombination_id));
+
+    // 공통 가격들
+    List<ProductOptionSummaryDto> optionSummaryList =  groupByCombinationId.entrySet().stream()
+    .map(entry -> {
+      int combinationId = entry.getKey(); 
+      List<ProductOptionReturnDto> option = entry.getValue();
+      ProductOptionReturnDto rep = option.get(0);
+
+      ProductOptionSummaryDto productOptionSummaryDto = new ProductOptionSummaryDto();
+      productOptionSummaryDto.setCombination_id(combinationId);
+
+      ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
+      // 옵션 이름, 값 
+      List<Map<String, Object>> optionDetails = option.stream().map(item -> {
+          Map<String, Object> optionMap = new HashMap<>();
+          optionMap.put(item.getOptionname(), item.getOptionvalue());
+          return optionMap;
+      }).collect(Collectors.toList());
+      inventorySummary.setOption(optionDetails);
+      inventorySummary.setQuantity(rep.getQuantity());
+      inventorySummary.setOrigin_price(rep.getOrigin_price());
+      inventorySummary.setDiscount_rate(rep.getDiscount_rate());
+      inventorySummary.setSale_price(rep.getSale_price());
+
+      productOptionSummaryDto.setOptionDetails(inventorySummary);
+
+      return productOptionSummaryDto;
+    }).collect(Collectors.toList());
+    
+    return optionSummaryList;
   }
 
 

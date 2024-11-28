@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.parkyangji.openmarket.backend.admin.service.SellerService;
+import com.parkyangji.openmarket.backend.common.DebugUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -166,6 +167,7 @@ public class AdminController {
     List<ProductDto> productList = productService.sellerProducts(sellerDto.getSeller_id());
 
     model.addAttribute("productList", productList);
+    model.addAttribute("productListJson", DebugUtil.toJsonString(productList));
 
     return "admin/admin_product";
   }
@@ -228,6 +230,7 @@ public class AdminController {
     Map<String, Object> productEdit = productService.getProductDetail(product_id);
 
     model.addAllAttributes(productEdit);
+    model.addAttribute("data", DebugUtil.toJsonString(productEdit));
 
     model.addAttribute("product_id", product_id);
 
@@ -241,7 +244,8 @@ public class AdminController {
     SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
     
     model.addAttribute("orderList", orderService.getAllOrders(sellerDto.getSeller_id()));
-    System.out.println(orderService.getAllOrders(sellerDto.getSeller_id()));
+    model.addAttribute("data", DebugUtil.toJsonString(orderService.getAllOrders(sellerDto.getSeller_id())));
+    // System.out.println(orderService.getAllOrders(sellerDto.getSeller_id()));
     return "admin/admin_order";
   }
 
@@ -267,16 +271,17 @@ public class AdminController {
     // System.out.println(reviewList);
     
     model.addAttribute("reviewList", reviewList);
+    model.addAttribute("reviewListJson", DebugUtil.toJsonString(reviewList));
 
     return "admin/admin_review";
   }
 
   @RequestMapping("replyProcess")
   public String replyProcess(
-    @RequestParam("review_id") int review_id,
+    @RequestParam("order_review_id") int order_review_id,
     @RequestParam("seller_reply") String seller_reply
   ){
-    sellerService.addReply(review_id, seller_reply);
+    sellerService.addReply(order_review_id, seller_reply);
     return "redirect:/admin/review";
   }
 }

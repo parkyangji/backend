@@ -2,16 +2,14 @@ package com.parkyangji.openmarket.backend.user.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.apache.ibatis.javassist.tools.framedump;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,26 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parkyangji.openmarket.backend.common.DebugUtil;
-import com.parkyangji.openmarket.backend.common.ShuffleUtil;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.BrandSummaryDto;
-import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.KeywordDto;
-import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
-import com.parkyangji.openmarket.backend.dto.ProductDetailReturnDto;
-import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
-import com.parkyangji.openmarket.backend.dto.ProductOptionReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
-import com.parkyangji.openmarket.backend.dto.OrderItemReturnDto;
 import com.parkyangji.openmarket.backend.dto.OrderSummaryDto;
-import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
 import com.parkyangji.openmarket.backend.dto.ProductSummaryDto;
-import com.parkyangji.openmarket.backend.dto.SellerDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
 import com.parkyangji.openmarket.backend.dto.CartItemReturnDto;
 
@@ -97,6 +85,15 @@ public class UserController {
     }
 
     httpSession.setAttribute("sessionInfo", customerDto);
+
+    // 비회원 장바구니 아이템을 확인하고 로그인된 사용자의 장바구니로 이동
+    List<Map<String, Object>> UnUserTempCart = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+    // System.out.println(UnUserTempCart);
+    if (UnUserTempCart != null && !UnUserTempCart.isEmpty()) {
+      userService.setCartItem(customerDto, UnUserTempCart);
+      
+      httpSession.removeAttribute("UnUserTempCart");
+    }
 
     return "redirect:/home";
   }
@@ -198,9 +195,8 @@ public class UserController {
 
     ProductSummaryDto productData = userService.getProductDate(product_id);
     model.addAttribute("product", productData);
-
-    // 디버깅
     model.addAttribute("productDataJson", DebugUtil.toJsonString(productData));
+
     // System.out.println("상품 페이지");
     return "user/product";
   }
@@ -218,6 +214,12 @@ public class UserController {
     return "user/myLike";
   }
 
+  @RequestMapping("/mypage/orderDetail")
+  public String myorderDetail(){
+
+    return "user/myOrderDetail";
+  }
+
 
   @RequestMapping("/mypage/order")
   public String myorder(HttpSession httpSession, Model model){
@@ -227,29 +229,35 @@ public class UserController {
     // 주문 정보 + 상품 정보
     List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
-   model.addAttribute("orderItems", orderItems);
-    System.out.println(orderItems);
+    model.addAttribute("orderItems", orderItems);
+    model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
+    // System.out.println(orderItems);
 
     return "user/myOrder";
   }
 
   @RequestMapping("/mypage/review")
-  public String myreview(HttpSession httpSession, Model model){
+  public String myreview(@RequestParam(value = "tab", required = false, defaultValue = "to-write") String tab,
+    HttpSession httpSession, Model model){
+
+    // 데이터가 크지 않다면: 한꺼번에 데이터를 전달받아 클라이언트에서 분리. => 이 방식!!
+    // 데이터가 크거나 확장성이 중요하다면: AJAX 기반으로 탭별로 데이터를 분리 요청.
 
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
 
     // 주문 정보 + 상품 정보
     List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
-    //model.addAttribute("orderItems", orderItems);
-    System.out.println(orderItems);
+    model.addAttribute("orderItems", orderItems);
+    model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
 
-    //model.addAttribute("hasReviewsState", userService.hasReviewsState(orderItems));
+    // 탭 상태 전달
+    model.addAttribute("tab", tab);
 
     return "user/myReview";
   }
 
-  @RequestMapping("/ratingProcess")
+  @RequestMapping("ratingProcess")
   public String ratingProcess(HttpSession httpSession, 
     @RequestParam("rating") int rating, 
     @RequestParam("order_detail_id") int order_detail_id) {
@@ -261,164 +269,86 @@ public class UserController {
     return "redirect:/mypage/review";
   }
 
-  @RequestMapping("/reviewContentProcess")
+  @RequestMapping("reviewContentProcess")
   public String reviewContentProcess(HttpSession httpSession, 
     @RequestParam("review_content") String review_content, 
     @RequestParam("order_detail_id") int order_detail_id) {
 
     userService.saveReviwContent(order_detail_id, review_content);
     
-    return "redirect:/mypage/review";
+    // return "redirect:/mypage/review";
+    return "redirect:/mypage/review?tab=written";
   }
 
-
-  @RequestMapping("temp_option")
-  public String tempOptionChoice(@RequestParam("productId") int productId, Model model){
-    // System.out.println(productId);
-    model.addAttribute("productId", productId);
-
-    List<ProductOptionSummaryDto> options = userService.tempoptionChoice(productId);
-    model.addAttribute("options", options);
-
-    return "user/temp_option";
-  }
-
-  @RequestMapping("temp_cart")
-  public String temp_order(Model model, 
-    HttpSession httpSession,
-    @RequestParam("productId") int productId, 
-    @RequestParam(value = "combination_id[]", required = false) List<Integer> combination_id,
-    @RequestParam(value = "quantity[]", required = false) List<Integer> quantity
-  ){
-    // System.out.println(productId);
-    // System.out.println(combination_id);
-    // System.out.println(quantity);
-
-    // 임시, 수량 0개로 넣었을때 & 체크한 값이 없을때
-    boolean nullcheck = quantity.stream().allMatch(count -> count <= 0 || count == null);
-    if (nullcheck || combination_id == null) return "redirect:/product?id=" + productId; 
-
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
-
-    // 가공 => 나중에 js로 처리
-    List<Integer> newCombinationId = new ArrayList<>();
-    List<Integer> newQuantity = new ArrayList<>();
-    for (int i=0; i<quantity.size(); i++) {
-      if (quantity.get(i) != 0 || quantity.get(i) == null) { // 타임리프는 배열을 인덱스로 접근가능
-        newQuantity.add(quantity.get(i));
-        newCombinationId.add(combination_id.get(i));
-      }
-    }
-    
-    if (customerDto != null) {
-      userService.setCartItem(customerDto, productId, newCombinationId, newQuantity);
-    } else {
-        // 로그인되지 않은 사용자의 경우 세션에 장바구니 정보 저장
-        // 기존 세션에서 장바구니를 가져옵니다.
-        Map<Integer, Map<Integer, List<CartItemReturnDto>>> cartItems = (Map<Integer, Map<Integer, List<CartItemReturnDto>>>) httpSession.getAttribute("tempCart");
-
-        // 만약 세션에 장바구니가 없다면 새로운 맵을 생성합니다.
-        if (cartItems == null) {
-            cartItems = new HashMap<>();
-        }
-
-        // 새로운 항목들을 장바구니에 추가합니다.
-        Map<Integer, Map<Integer, List<CartItemReturnDto>>> pushItems = userService.getTempCartItem(productId, newCombinationId, newQuantity);
-        
-        // 서비스 계층에서 기존 장바구니와 새로운 항목 병합 처리
-        cartItems = userService.updateTempCartItem(cartItems, pushItems);
-
-        // 업데이트된 장바구니를 다시 세션에 저장합니다.
-        httpSession.setAttribute("tempCart", cartItems);
-    }
-
-    return "redirect:/cart";
-  }
 
   @RequestMapping("cart")
   public String cartPage(Model model, HttpSession httpSession){
 
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
-
     if (customerDto != null) {
       List<BrandSummaryDto> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
+
       model.addAttribute("cartItems", cartItems);
       // 디버깅용
       model.addAttribute("cartItemsJson", DebugUtil.toJsonString(cartItems));
     } else {
-      //Map<Integer, Map<Integer, List<CartItemReturnDto>>> cartItems = (Map<Integer, Map<Integer, List<CartItemReturnDto>>>) httpSession.getAttribute("tempCart");
-      // model.addAttribute("cartItems", cartItems);
-      // if (cartItems != null) {
-      //   model.addAttribute("totalPrice", userService.totalOrderItemsPrice(cartItems));
-      // }
+
+      // 세션에서 선택한 옵션 데이터를 가져옴
+      List<Map<String, Object>> selectedOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+
+      if (selectedOptions == null) {
+        model.addAttribute("cartItems", null);
+        // 디버깅용
+        model.addAttribute("cartItemsJson", DebugUtil.toJsonString(null));
+      } else {
+        List<BrandSummaryDto> cartItems = userService.getRevertCartData(selectedOptions);
+        
+        model.addAttribute("cartItems", cartItems);
+        // 디버깅용
+        model.addAttribute("cartItemsJson", DebugUtil.toJsonString(cartItems));
+      }
     }
 
     return "user/cart";
   }
 
-  
-  @RequestMapping("order")
-  public String orderPage(HttpSession httpSession, Model model){
 
-    // 로그인 고객 정보
+  @RequestMapping("order")
+  public String orderPage(HttpSession httpSession, Model model) {
+    // 주문 상품 정보 가져오기
+    List<BrandSummaryDto> orderItems = userService.getRevertCartData((List<Map<String, Object>>) httpSession.getAttribute("orderItems"));
+    
+    if (orderItems == null || orderItems.isEmpty()) {
+        return "redirect:/cart"; // 주문 데이터가 없으면 장바구니로 리다이렉트
+    }
+
+    // 고객 정보 가져오기 (로그인 여부 확인)
     CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
-    // System.out.println(customerDto);
+
+    // 배송지 정보 가져오기 (회원만 가능)
+    AddressDto addressDto = userService.getDefaultAddress(customerDto.getCustomer_id());
+
     // 고객 배송지 목록 => 나중에 버튼 추가시
     //List<String> address = userService.getAddressList(customerDto.getCustomer_id());
 
-    // 전화번호, 주소, 기본 배송지
-    AddressDto addressDto = userService.getDefaultAddress(customerDto.getCustomer_id());
+    // 모델에 데이터 추가
+    model.addAttribute("orderItems", orderItems); // 주문 상품
+    model.addAttribute("customerDto", customerDto); // 고객 정보
+    model.addAttribute("addressDto", addressDto); // 배송지 정보
+    model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
 
-    // 주문 상품, 주문 개수
-    // 그 고객의 장바구니 아이템 모두 보여주기!!!
-    List<BrandSummaryDto> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
-    model.addAttribute("cartItems", cartItems);
-    // 디버깅용
-    model.addAttribute("cartItemsJson", DebugUtil.toJsonString(cartItems));
-    // 할인 (쿠폰, 포인트 등)
-
-    // 결제 수단
-
-    // 결제 금액
-
-    // model.addAttribute("product_id", product_id);
-    model.addAttribute("addressDto", addressDto);
-    // model.addAllAttributes(userService.getProductDate(product_id));
-    // model.addAttribute("address", address);
-    model.addAttribute("customerDto", customerDto);
-    
-    return "user/order";
+    return "user/order"; // 주문 페이지로 이동
   }
-
-  @RequestMapping("orderProcess")
-  public String orderProcess(
-    HttpSession httpSession,
-    @RequestParam("customerId") int customer_id,
-    @RequestParam("addressId") int address_id,
-    @RequestParam("deliveryMessage") String deliveryMessage,
-    RedirectAttributes redirectAttributes
-  ){
-    //리다이렉트 시 데이터 전달 문제 해결: Model은 리다이렉트 후에는 사용할 수 없기 때문에, 리다이렉트 후 데이터를 전달하기 위한 대안으로 플래시 속성이 사용됩니다.
-
-    //제품 번호, 수량 정보 => 나중에 옵션 추가하면 변경, 배송지, 진행상태("결제완료") => 결제수단 따로 있으면 "결제대기"
-    OrderDto orderDto = userService.createOrderAndDelivery(customer_id, address_id, deliveryMessage);
-    userService.setOrderDetail(customer_id, orderDto.getOrder_id()); // 장바구니에 있는거 다 결제
-
-    redirectAttributes.addFlashAttribute("order", orderDto);
-
-    return "redirect:/orderComplete";
-  }
+  
 
   @RequestMapping("orderComplete")
-  public String orderComplete(@ModelAttribute("order") OrderDto order, Model model){
-    System.out.println(order);
-    
-    // order가 있는 detail 에 combination_id 지우기!!!
-    if (order != null) {
-      userService.refreshCustomerCart(order);
-    }
-    
-    model.addAttribute("order", order);
+  public String orderComplete(HttpSession httpSession, Model model){
+
+    List<BrandSummaryDto> orderItems = userService.getRevertCartData((List<Map<String, Object>>) httpSession.getAttribute("orderItems"));
+    model.addAttribute("orderItems", orderItems);
+
+    // 주문 완료 후 세션 삭제
+    httpSession.removeAttribute("orderItems");
     
     return "user/orderComplete";
   }

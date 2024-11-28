@@ -12,12 +12,14 @@ import com.parkyangji.openmarket.backend.dto.ProductOptionCombinationDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionInventoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionValueDto;
+import com.parkyangji.openmarket.backend.dto.ProductRatingDto;
 import com.parkyangji.openmarket.backend.common.CommonSqlMapper;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.OrderItemReturnDto;
 import com.parkyangji.openmarket.backend.dto.ProductCategoryDto;
 import com.parkyangji.openmarket.backend.dto.ProductCombinationValueDto;
 import com.parkyangji.openmarket.backend.dto.ProductReviewDto;
+import com.parkyangji.openmarket.backend.dto.ReviewSellerReplyDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 
 @Mapper
@@ -32,9 +34,11 @@ public interface AdminSqlMapper extends CommonSqlMapper{
 
   public List<OrderDto> selectOrderByProductId(int product_id);
 
-  public List<ProductReviewDto> selectReviewByProductId(int product_id);
+  // public List<ProductReviewDto> selectReviewByProductId(int product_id);
+  // public List<ProductRatingDto> selectRatingByProductId(int product_id);
+  // public ReviewSellerReplyDto selectReviewReplyByOrderReviewId(int order_review_id);
 
-  public void inserReply(ProductReviewDto productReviewDto);
+  public void inserReply(ReviewSellerReplyDto reviewSellerReplyDto);
 
   public void insertSeller(SellerDto sellerDto);
 

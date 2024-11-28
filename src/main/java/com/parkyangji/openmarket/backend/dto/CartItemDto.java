@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class CartItemDto {
   private int cart_id;
-  private int combination_id;
-  private int quantity;
+  private Integer combination_id;
+  private Integer quantity;
 }

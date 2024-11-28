@@ -9,10 +9,9 @@
     <link rel="stylesheet" th:href="@{/style.css}">
     <script th:src="@{/common.js}"></script>
     <script th:src="@{/api.js}"></script>
-    <script th:src="@{/components/productlist.js}"></script>
   </head>
   <body>
-    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
+    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px; padding-bottom: 68px;">
       <!-- 네비/헤더 -->
       <!-- <div th:insert="~{fragments/header::header}" class="container-sm fixed-top main-bg-color main-text-ligth-color"></div> -->
       <div th:insert="~{fragments/sideheader::sideheader('')}" class="px-0 container-sm fixed-top"></div>
@@ -39,7 +38,7 @@
         <div>
           <p class="m-0" th:if="${product.avgRating!=null}">
             <span class="rating-color">★ </span><span class="me-1" th:text="${product.avgRating}" style="font-size: 14px;"></span>
-            <span th:if="${product.reviewCount}" class="text-decoration-underline" style="font-size: 13px;" th:text="|리뷰 ${product.reviewCount}개|"></span>
+            <span th:if="${product.reviewCount}" id="underline_reviewCount" class="text-decoration-underline" style="cursor: pointer; font-size: 13px;" th:text="|리뷰 ${product.reviewCount}개|"></span>
           </p>
         </div>
         <!-- 가격 -->
@@ -58,51 +57,183 @@
       </div>
 
       <!-- 본문 -->
-      <div class="container-sm" style="padding-bottom: 68px;">
-        <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#detail">정보</a>
+      <div class="container-sm mt-3" >
+        <!-- 서브네비 -->
+        <ul id="subMenu" class="align-items-center border-bottom border-top border-light-subtle
+        justify-content-between main-text-sub-color row text-center">
+          <li id="productDetailImages" class="col product-sub-menu-active" style="height: 55px; line-height: 55px;">
+            상품정보
           </li>
-          <li class="nav-item">
-            <a class="nav-link main-text-sub-color" href="#review">리뷰</a>
+          <li id="productReview" class="col" style="height: 55px; line-height: 55px;">
+            리뷰
           </li>
-          <li class="nav-item">
-            <a class="nav-link main-text-sub-color " href="#info">문의</a>
+          <li id="productQuestion" class="col" style="height: 55px; line-height: 55px;">
+            문의
           </li>
         </ul>
-        <!-- 상품 상세 이미지 -->
-        <div id="detail" style="padding-top: 48px;">
-          <th:block th:each="entry : ${product.detailsImages}">
-            <th:block th:if="${entry.key == 'detail'}">
-                <th:block th:each="image, imageStat : ${entry.value}">
-                    <img class="img-fluid" th:src="${image}" alt="상세 이미지">
-                </th:block>
-            </th:block>
-        </th:block>
+        <!-- 상품 상세 이미지 / 리뷰 리스트 / 문의 -->
+        <div id="subContainer" class="my-5"></div>
+
+        <!-- 다른 유저들이 구매한 상품 -->
+        <div id="othersbestTop5-container" class="my-3 d-none" >
+          <p class="fw-semibold fs-1-5">다른 유저들이 구매한 상품들</p>
+          <div>
+            <div class="scrollNone">
+              <div id="top5List" class="d-flex"></div>
+            </div>
+          </div>
         </div>
-        <!-- 리뷰 리스트 -->
-        <!-- <div id="review" style="height: 100vh; padding-top: 48px;">
-          <div th:if="${reviewData.size()!=0}" th:each="data : ${reviewData}">
+      </div>
+
+      <!-- 하단 푸터 -->
+      <div id="buyfooter" th:insert="~{fragments/buyfooter::buyfooter}" class="container-sm fixed-bottom"></div>
+      <div th:insert="~{fragments/popup/failmessagePopup::failmessagePopup}"></div>
+      <div th:insert="~{fragments/option::option}"></div>
+        
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script th:src="@{/components/productlist.js}"></script>
+    <script th:src="@{/components/option.js}"></script>
+    <script th:src="@{/components/order.js}"></script>
+    <script th:inline="javascript">
+      /* <![CDATA[ */
+      var productDataJson = /*[[${productDataJson}]]*/ 'N/A';
+      var likeDataJson = /*[[${likeDataJson}]]*/ 'N/A';
+      // var othersbestTop5Json = /*[[${othersbestTop5Json}]]*/ 'N/A';
+      /* ]]> */
+
+      console.log("Products: ",  JSON.parse(productDataJson));
+      console.log("likedata: ",  JSON.parse(likeDataJson));
+      // console.log("othersbestTop5Json: ",  JSON.parse(othersbestTop5Json));
+
+      const productData = JSON.parse(productDataJson);
+      const likeData = JSON.parse(likeDataJson);
+      // const othersbestTop5 = JSON.parse(othersbestTop5Json);
+
+
+
+      document.querySelectorAll(".rep_price").forEach(price=>price.innerHTML = formatPrice(productData.rep_price) + "원");
+      if (productData.discount_rate != null) {
+        document.getElementById("discount_rate").innerText = productData.discount_rate + "%";
+        document.getElementById("rep_sale_price").innerText = formatPrice(productData.rep_sale_price) + "원";
+      }
+
+      const likecheckEl = document.getElementById('likeInput');
+      likecheckEl.innerHTML = `
+        <span data-product-id="${productData.product_id}" onclick="like(event)" 
+              class="border border-subtle d-flex align-items-center justify-content-between" style="width: 100%; height: 50px; border-radius: 10px; color: #09aa5c;">
+          <input value="favorite-button" name="favorite-checkbox" class="favorite" type="checkbox"
+            ${likeData != null ? 'checked' : null} />
+          <label class="detail-favorite flex-fill mb-1" for="favorite">
+            <svg class="feather feather-heart" stroke-linejoin="round" stroke-linecap="round" 
+                  stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" 
+                  height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </label>
+        </span>
+      `;
+
+      
+      // 서브 메뉴
+      document.addEventListener('DOMContentLoaded', async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = parseInt(urlParams.get('id'));  
+        
+        const detailContainer = document.getElementById('subContainer');
+        productDetailImages(detailContainer, productId);
+
+        const result = await fetchStatisticsOthersBestTop5(productId);
+        if (result.result === 'success') {
+          const othersbestTop5 = result.data.othersbestTop5;
+          if (othersbestTop5.length != 0) {
+            document.getElementById('othersbestTop5-container').classList.remove('d-none');
+            updateProductList(document.getElementById('top5List'), othersbestTop5, null);
+          }
+        }
+      })
+
+
+      const subMenus = document.getElementById('subMenu').querySelectorAll('li');
+
+      subMenus.forEach((menu, i)=> {
+        menu.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+
+          subMenus.forEach((el)=>el.classList.remove('product-sub-menu-active'));
+          this.classList.add('product-sub-menu-active');
+
+          const detailContainer = document.getElementById('subContainer');
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const productId = parseInt(urlParams.get('id'));  
+
+          detailContainer.innerHTML = ``;
+          if (this === document.getElementById('productDetailImages')) {
+            productDetailImages(detailContainer, productId);
+          }
+          if (this === document.getElementById('productReview')) {
+            productReview(detailContainer, productId);
+          }
+          if (this === document.getElementById('productQuestion')) {
+            productQuestion(detailContainer, productId);
+          }
+
+        })
+      })
+
+      
+      async function productDetailImages(container, productId){
+        console.log('productDetailImages')
+
+        const result = await fetchProductDetailImages(productId);
+        // console.log(result.data.detailImages)
+
+        result.data.detailImages.forEach(img => {
+          const imgHtml = `<img class="img-fluid" src="${img}" alt="상세 이미지">`
+          container.insertAdjacentHTML('beforeend', imgHtml);
+        })
+      }
+
+      async function productReview(container, productId) {
+        console.log('productReview')
+
+        const result = await fetchProductReview(productId);
+        console.log(result.data.reviewData)
+
+        result.data.reviewData.forEach(review => {
+          if (result.data.reviewData.length == 0) return;
+
+          const reviewHtml = `
+          <div>
             <div class="align-items-center d-flex gap-2">
               <i class="bi bi-person-circle fs-1" style="color: #eaeaea;"></i>
-              <span class="fs-14" th:text="${data.reviewer.nickname}"></span>
+              <span class="fs-14">${review.reviewer}</span>
             </div>
             <p class="mb-2">
               <span class="rating-color">★ </span>
-              <span th:if="${data.review.rating!=null}" class="fs-13 fw-bold" th:text="${data.review.rating}"></span>
-              <span th:text="${#dates.format(data.review.created_date, 'YY.MM.dd')}" style="font-size: 12px; color: #c0c0c0;"></span>
+              ${review.rating.rating!=null ? `<span class="fs-13 fw-bold"> ${review.rating.rating}</span>` : ''}
+              <span style="font-size: 12px; color: #c0c0c0;">${review.review.created_date}</span>
             </p>
-            <p class="mx-1 my-3" th:if="${data.review.content!=null}" th:text="${data.review.content}"></p>
-            <p th:if="${data.review.seller_reply==null}" class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;">판매자가 아직 답글을 달지 않았습니다</p>
+            ${review.review.review_content!=null ? `<p class="mx-1 my-3">${review.review.review_content}</p>` : ''} 
+            ${review.reply==null ? `<p class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;">판매자가 아직 답글을 달지 않았습니다</p>` : ''} 
             <div class="position-relative">
-              <p th:if="${data.review.seller_reply!=null}" class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;" th:text="${data.review.seller_reply}"></p>
-              <span th:if="${data.review.reply_date!=null}" th:text="${#dates.format(data.review.created_date, 'YY.MM.dd')}" 
-                class="position-absolute bottom-0 end-0" style="font-size: 12px; color: #c0c0c0;"></span>
+              ${review.reply!=null ? `<p class="fs-13 m-0 p-3 text-secondary" style="background: #fafafb;">${review.reply.seller_reply}</p>` : ''} 
+              ${review.reply!=null ? `<span class="position-absolute bottom-0 end-0" style="font-size: 12px; color: #c0c0c0;">${review.reply.created_date}</span>` : ''}
             </div>
           </div>
-        </div> -->
-        <!-- 문의 리스트 -->
-        <!-- <div id="info" style="height: 100vh; padding-top: 48px;">
+          `
+          container.insertAdjacentHTML('beforeend', reviewHtml);
+        })
+      }
+
+      async function productQuestion(container, productId){
+        console.log('productQuestion')
+
+        // const result = await fetchProductQuestion(productId);
+        // console.log(result.data.questionData)
+        const questionHtml = `
           <div>
             <div class="d-flex align-items-center main-text-sub-color">
               <p class="m-0">비밀글입니다.</p>
@@ -115,51 +246,10 @@
               <span>d**</span>
               <span>2024.11.11</span>
             </div>
-          </div>
-        </div> -->
-      </div>
-      
-
-      <!-- 하단 푸터 -->
-      <div id="buyfooter" th:insert="~{fragments/buyfooter::buyfooter(productId=${product.product_id})}" class="container-sm fixed-bottom"></div>
-      <div th:insert="~{fragments/popup/failmessagePopup::failmessagePopup}"></div>
-        
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script th:inline="javascript">
-      /* <![CDATA[ */
-      var productDataJson = /*[[${productDataJson}]]*/ 'N/A';
-      var likeDataJson = /*[[${likeDataJson}]]*/ 'N/A';
-      /* ]]> */
-
-      console.log("Products: ",  JSON.parse(productDataJson));
-      console.log("likedata: ",  JSON.parse(likeDataJson));
-
-      const productData = JSON.parse(productDataJson);
-      const likeData = JSON.parse(likeDataJson);
-
-      document.querySelectorAll(".rep_price").forEach(price=>price.innerHTML = formatPrice(productData.rep_price));
-      if (productData.discount_rate != null) {
-        document.getElementById("discount_rate").innerText = productData.discount_rate + "%";
-        document.getElementById("rep_sale_price").innerText = formatPrice(productData.rep_sale_price) + "원";
+          </div>`;
+        container.insertAdjacentHTML('beforeend', questionHtml);
       }
 
-      const likecheckEl = document.getElementById('likeInput');
-      likecheckEl.innerHTML = `
-          <span data-product-id="${productData.product_id}" onclick="like(event)" 
-                class="border border-subtle d-flex align-items-center justify-content-between" style="width: 100%; height: 50px; border-radius: 10px; color: #09aa5c;">
-            <input value="favorite-button" name="favorite-checkbox" class="favorite" type="checkbox"
-              ${likeData != null ? 'checked' : null} />
-            <label class="detail-favorite flex-fill mb-1" for="favorite">
-              <svg class="feather feather-heart" stroke-linejoin="round" stroke-linecap="round" 
-                    stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" 
-                    height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-              </svg>
-            </label>
-          </span>
-      `
 
     </script>
   </body>

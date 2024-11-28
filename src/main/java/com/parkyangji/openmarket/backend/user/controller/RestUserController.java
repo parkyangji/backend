@@ -1,5 +1,6 @@
 package com.parkyangji.openmarket.backend.user.controller;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,15 +8,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.parkyangji.openmarket.backend.common.DebugUtil;
 import com.parkyangji.openmarket.backend.common.ShuffleUtil;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
+import com.parkyangji.openmarket.backend.dto.OrderDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
+import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductSummaryDto;
 import com.parkyangji.openmarket.backend.dto.RestResponseDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
@@ -148,4 +154,204 @@ public class RestUserController {
 
     return responseDto;
   }
+
+  @RequestMapping("preview")
+  public RestResponseDto previewProduct(HttpSession httpSession, @RequestParam("id") int product_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    ProductSummaryDto productData = userService.getProductDate(product_id);
+    responseDto.add("product", productData);
+
+    List<Map<String, Object>> ratingData = userService.getProductRatingChartData(product_id);
+    responseDto.add("ratingData", ratingData);
+
+    return responseDto;
+  }
+
+  @RequestMapping("product/option")
+  public RestResponseDto productOption(@RequestParam("id") int product_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    List<ProductOptionSummaryDto> options = userService.tempoptionChoice(product_id);
+    responseDto.add("options", options);
+
+    return responseDto;
+  }
+
+  @RequestMapping("product/cart")
+  public RestResponseDto handleCart(@RequestBody List<Map<String, Object>> selectedOptions, HttpSession httpSession) {
+      RestResponseDto responseDto = new RestResponseDto();
+      responseDto.setResult("success");
+
+      // 회원 여부 확인
+      CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+  
+      if (customerDto != null) {
+        // 회원인 경우 DB에 저장
+        userService.setCartItem(customerDto, selectedOptions); // [{quantity=1, combination_id=67}]
+      } else {
+        // 비회원인 경우
+        List<Map<String, Object>> existingOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+
+        if (existingOptions == null) {
+            existingOptions = new ArrayList<>();
+        }
+
+        // 새로운 데이터 병합
+        userService.mergeOptions(existingOptions, selectedOptions);
+
+        // 병합된 데이터를 세션에 저장
+        httpSession.setAttribute("UnUserTempCart", existingOptions);
+        System.out.println(existingOptions);
+      }
+  
+      // 리다이렉트 URL 추가
+      responseDto.add("message", "장바구니에 상품을 담았습니다");
+  
+      return responseDto;
+  }
+
+  @RequestMapping("product/cart/delete")
+  public RestResponseDto deleteCartItem(HttpSession httpSession ,@RequestParam("id") int combination_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    // 회원 여부 확인
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    if (customerDto != null) {
+      userService.removeCustomerOption(customerDto, combination_id);
+    } else {
+      List<Map<String, Object>> existingOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+      
+      userService.removeOptions(existingOptions, combination_id);
+    }
+
+    // 리다이렉트 URL 추가
+    responseDto.add("redirectUrl", "/cart");
+    return responseDto;
+  }
+
+  @RequestMapping("product/updateCartQuantity")
+  public RestResponseDto updateCartItem(HttpSession httpSession , @RequestBody Map<String, Object> data){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    // 회원 여부 확인
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    if (customerDto != null) {
+      userService.UpdateCustomerCartItem(customerDto, data);
+    } else {
+      List<Map<String, Object>> existingOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+      // System.out.println(existingOptions);
+      // System.out.println("받아온" + data);
+      userService.UpdateTempCartItem(existingOptions, data);
+    }
+
+    responseDto.add("redirectUrl", "/cart");
+    return responseDto;
+  }
+  
+
+  @RequestMapping("product/purchase")
+  public RestResponseDto PurchaseProcess(HttpSession httpSession , @RequestBody List<Map<String, Object>> orderdata){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    // System.out.println(id);
+
+    httpSession.setAttribute("orderItems", orderdata);
+    System.out.println("Setting orderItems in session: " + orderdata); // 디버깅 출력
+
+    if (customerDto == null) {
+      responseDto.setResult("fail");
+      responseDto.setReason("로그인 후 이용 가능합니다.");
+      responseDto.add("redirectUrl", "/login");
+    } else {
+      responseDto.add("redirectUrl", "/order");
+    }
+    return responseDto;
+  }
+
+  @RequestMapping("product/payment")
+  public RestResponseDto PaymentProcess(HttpSession httpSession , @RequestBody Map<String, Object> addressdata){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+
+    Integer customerId = (Integer) Integer.parseInt(addressdata.get("customerId").toString());
+    Integer addressId = (Integer) Integer.parseInt(addressdata.get("addressId").toString());
+    String deliveryMessage = (String) addressdata.get("deliveryMessage");
+
+    if (customerDto.getCustomer_id() != customerId) {
+      responseDto.setResult("fail");
+      responseDto.setReason("주문 회원이 일치하지 않아요.");
+      responseDto.add("redirectUrl", "/login");
+      return responseDto;
+    }
+
+    OrderDto orderDto = userService.createOrderAndDelivery(customerDto.getCustomer_id(), addressId, deliveryMessage);
+
+    List<Map<String, Object>> orderItems = (List<Map<String, Object>>) httpSession.getAttribute("orderItems");
+
+    userService.setOrderDetail(customerId, orderDto.getOrder_id(), orderItems);
+
+    // 장바구니 리프레쉬
+    userService.refreshCustomerCart(orderDto);
+
+    responseDto.add("redirectUrl", "/orderComplete");
+    return responseDto;
+  }
+
+  @RequestMapping("product/detailImages")
+  public RestResponseDto productTabDetailImages(@RequestParam("id") int product_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    List<String> detailImages = userService.getProductDetailImages(product_id);
+    responseDto.add("detailImages", detailImages);
+
+    return responseDto;
+  }
+
+  @RequestMapping("product/review")
+  public RestResponseDto productTabReview(@RequestParam("id") int product_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    List<Map<String,Object>> reviewData = userService.getProductReviews(product_id);
+    responseDto.add("reviewData", reviewData);
+
+    return responseDto;
+  }
+
+  @RequestMapping("product/question")
+  public RestResponseDto productTabQuestion(@RequestParam("id") int product_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    return responseDto;
+  }
+
+  @RequestMapping("statistics/othersBestTop5")
+  public RestResponseDto othersBestTop5(HttpSession httpSession, @RequestParam("id") int product_id){
+    RestResponseDto responseDto = new RestResponseDto();
+    
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    if (customerDto != null) {
+      responseDto.setResult("success");
+      List<ProductSummaryDto> othersbestTop5 = userService.getProductTop5(customerDto.getCustomer_id(), product_id);
+      responseDto.add("othersbestTop5", othersbestTop5);
+    } else {
+      responseDto.setResult("fail");
+      responseDto.setReason("로그인 하셔야 데이터를 조회할 수 있습니다");
+    }
+    return responseDto;
+  }
+
 }
