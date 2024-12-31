@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.parkyangji.openmarket.backend.common.DebugUtil;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.BrandSummaryDto;
+import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.KeywordDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
@@ -30,6 +32,8 @@ import com.parkyangji.openmarket.backend.dto.ProductSummaryDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
 import com.parkyangji.openmarket.backend.dto.CartItemReturnDto;
 
+import com.parkyangji.openmarket.backend.common.SessionConstants;
+
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -39,10 +43,10 @@ public class UserController {
   @Autowired
   private UserService userService;
 
-  @RequestMapping("home")
+  @RequestMapping("")
   public String homePage(HttpSession httpSession, Model model){
     
-    System.out.println("home "+httpSession.getAttribute("sessionInfo"));
+    System.out.println("home "+httpSession.getAttribute(SessionConstants.USER_INFO));
 
     List<String> exList = Arrays.asList("SlideType/Main/main_slide1.jpg", "SlideType/Main/main_slide2.jpg", "SlideType/Main/main_slide3.jpg", "SlideType/Main/main_slide4.webp");
     model.addAttribute("exList", exList);
@@ -79,23 +83,22 @@ public class UserController {
     
     // 로그인 확인 하기 sql
     CustomerDto customerDto = userService.loginCheck(params);
-
     if (customerDto == null) {
-      return "redirect:/login"; // 나중에 js 처리!!!!!!
+      return "redirect:/login"; // 유효성 검사 필요
     }
 
-    httpSession.setAttribute("sessionInfo", customerDto);
+    httpSession.setAttribute(SessionConstants.USER_INFO, customerDto);
 
     // 비회원 장바구니 아이템을 확인하고 로그인된 사용자의 장바구니로 이동
-    List<Map<String, Object>> UnUserTempCart = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+    List<CartItemDto> UnUserTempCart = (List<CartItemDto>) httpSession.getAttribute(SessionConstants.TEMP_CART);
     // System.out.println(UnUserTempCart);
     if (UnUserTempCart != null && !UnUserTempCart.isEmpty()) {
       userService.setCartItem(customerDto, UnUserTempCart);
       
-      httpSession.removeAttribute("UnUserTempCart");
+      httpSession.removeAttribute(SessionConstants.TEMP_CART);
     }
 
-    return "redirect:/home";
+    return "redirect:/";
   }
 
   @RequestMapping("logout")
@@ -103,7 +106,7 @@ public class UserController {
 
     httpSession.invalidate(); // 세션 재구성 
 
-    return "redirect:/home";
+    return "redirect:/";
   }
 
   @RequestMapping("registerProcess")
@@ -128,7 +131,7 @@ public class UserController {
 
     userService.userRegister(customerDto, addressDto);
 
-    return "redirect:/home";
+    return "redirect:/";
   }
 
   @RequestMapping("category")
@@ -169,8 +172,6 @@ public class UserController {
     }
     model.addAttribute("sub_categorys", categoryNames);
 
-    // => 상품 리스트 ajax로!!
-
     // 디버깅용
     model.addAttribute("storenameJson", DebugUtil.toJsonString(name));
     model.addAttribute("subCategoryIdAndNameJson", DebugUtil.toJsonString(subCategoryIdAndName));
@@ -180,9 +181,8 @@ public class UserController {
 
   @RequestMapping("product")
   public String productPage(HttpSession httpSession, Model model, @RequestParam("id") int product_id){
-    //System.out.println("상품번호" + product_id);
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     if (customerDto != null) {
       ProductFavoriteDto productFavoriteDto = new ProductFavoriteDto();
       productFavoriteDto.setCustomer_id(customerDto.getCustomer_id());
@@ -197,14 +197,13 @@ public class UserController {
     model.addAttribute("product", productData);
     model.addAttribute("productDataJson", DebugUtil.toJsonString(productData));
 
-    // System.out.println("상품 페이지");
     return "user/product";
   }
 
   @RequestMapping("/mypage/like")
   public String myLike(HttpSession httpSession, Model model){
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
 
     List<Map<String, Object>> likeList = userService.getLikeList(customerDto.getCustomer_id());
 
@@ -215,7 +214,13 @@ public class UserController {
   }
 
   @RequestMapping("/mypage/orderDetail")
-  public String myorderDetail(){
+  public String myorderDetail(HttpSession httpSession , @RequestParam("order_id") int order_id, Model model){
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
+    OrderSummaryDto orderDetail = userService.findOrderDetailByOrderId(customerDto, order_id);
+
+    model.addAttribute("orderdetail", orderDetail);
+    model.addAttribute("orderdetailJson", DebugUtil.toJsonString(orderDetail));
 
     return "user/myOrderDetail";
   }
@@ -224,35 +229,30 @@ public class UserController {
   @RequestMapping("/mypage/order")
   public String myorder(HttpSession httpSession, Model model){
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     
     // 주문 정보 + 상품 정보
     List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
-    model.addAttribute("orderItems", orderItems);
+    model.addAttribute(SessionConstants.ORDER_ITEMS, orderItems);
     model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
-    // System.out.println(orderItems);
 
     return "user/myOrder";
   }
 
   @RequestMapping("/mypage/review")
-  public String myreview(@RequestParam(value = "tab", required = false, defaultValue = "to-write") String tab,
-    HttpSession httpSession, Model model){
+  public String myreview(HttpSession httpSession, Model model){
 
     // 데이터가 크지 않다면: 한꺼번에 데이터를 전달받아 클라이언트에서 분리. => 이 방식!!
     // 데이터가 크거나 확장성이 중요하다면: AJAX 기반으로 탭별로 데이터를 분리 요청.
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    //CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
 
     // 주문 정보 + 상품 정보
-    List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
+    //List<OrderSummaryDto> orderItems = userService.getOrderSummaryList(customerDto.getCustomer_id());
 
-    model.addAttribute("orderItems", orderItems);
-    model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
-
-    // 탭 상태 전달
-    model.addAttribute("tab", tab);
+    // model.addAttribute(SessionConstants.ORDER_ITEMS, orderItems);
+    // model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
 
     return "user/myReview";
   }
@@ -261,8 +261,6 @@ public class UserController {
   public String ratingProcess(HttpSession httpSession, 
     @RequestParam("rating") int rating, 
     @RequestParam("order_detail_id") int order_detail_id) {
-    System.out.println(rating);
-    System.out.println(order_detail_id);
 
     userService.saveRating(order_detail_id, rating);
     
@@ -273,35 +271,30 @@ public class UserController {
   public String reviewContentProcess(HttpSession httpSession, 
     @RequestParam("review_content") String review_content, 
     @RequestParam("order_detail_id") int order_detail_id) {
-
+    
     userService.saveReviwContent(order_detail_id, review_content);
     
-    // return "redirect:/mypage/review";
-    return "redirect:/mypage/review?tab=written";
+    return "redirect:/mypage/review?tab=writtenReview";
   }
 
 
   @RequestMapping("cart")
   public String cartPage(Model model, HttpSession httpSession){
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
+
+    List<BrandSummaryDto> cartItems = null;
     if (customerDto != null) {
-      List<BrandSummaryDto> cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
+      cartItems = userService.getCustomerCartItem(customerDto.getCustomer_id());
 
       model.addAttribute("cartItems", cartItems);
       // 디버깅용
       model.addAttribute("cartItemsJson", DebugUtil.toJsonString(cartItems));
     } else {
-
       // 세션에서 선택한 옵션 데이터를 가져옴
-      List<Map<String, Object>> selectedOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
-
-      if (selectedOptions == null) {
-        model.addAttribute("cartItems", null);
-        // 디버깅용
-        model.addAttribute("cartItemsJson", DebugUtil.toJsonString(null));
-      } else {
-        List<BrandSummaryDto> cartItems = userService.getRevertCartData(selectedOptions);
+      List<CartItemDto> selectedOptions = (List<CartItemDto>) httpSession.getAttribute(SessionConstants.TEMP_CART);
+      if (selectedOptions != null) {
+        cartItems = userService.getRevertCartData(selectedOptions);
         
         model.addAttribute("cartItems", cartItems);
         // 디버깅용
@@ -316,14 +309,14 @@ public class UserController {
   @RequestMapping("order")
   public String orderPage(HttpSession httpSession, Model model) {
     // 주문 상품 정보 가져오기
-    List<BrandSummaryDto> orderItems = userService.getRevertCartData((List<Map<String, Object>>) httpSession.getAttribute("orderItems"));
+    List<BrandSummaryDto> orderItems = userService.getRevertCartData((List<CartItemDto>) httpSession.getAttribute(SessionConstants.ORDER_ITEMS));
     
     if (orderItems == null || orderItems.isEmpty()) {
         return "redirect:/cart"; // 주문 데이터가 없으면 장바구니로 리다이렉트
     }
 
     // 고객 정보 가져오기 (로그인 여부 확인)
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
 
     // 배송지 정보 가져오기 (회원만 가능)
     AddressDto addressDto = userService.getDefaultAddress(customerDto.getCustomer_id());
@@ -332,7 +325,7 @@ public class UserController {
     //List<String> address = userService.getAddressList(customerDto.getCustomer_id());
 
     // 모델에 데이터 추가
-    model.addAttribute("orderItems", orderItems); // 주문 상품
+    model.addAttribute(SessionConstants.ORDER_ITEMS, orderItems); // 주문 상품
     model.addAttribute("customerDto", customerDto); // 고객 정보
     model.addAttribute("addressDto", addressDto); // 배송지 정보
     model.addAttribute("orderItemsJson", DebugUtil.toJsonString(orderItems));
@@ -344,12 +337,40 @@ public class UserController {
   @RequestMapping("orderComplete")
   public String orderComplete(HttpSession httpSession, Model model){
 
-    List<BrandSummaryDto> orderItems = userService.getRevertCartData((List<Map<String, Object>>) httpSession.getAttribute("orderItems"));
-    model.addAttribute("orderItems", orderItems);
+    List<BrandSummaryDto> orderItems = userService.getRevertCartData((List<CartItemDto>) httpSession.getAttribute(SessionConstants.ORDER_ITEMS));
+    model.addAttribute(SessionConstants.ORDER_ITEMS, orderItems);
 
     // 주문 완료 후 세션 삭제
-    httpSession.removeAttribute("orderItems");
+    httpSession.removeAttribute(SessionConstants.ORDER_ITEMS);
     
     return "user/orderComplete";
+  }
+
+  @RequestMapping("order/address")
+  public String orderAddress(HttpSession httpSession, Model model){
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
+    
+    List<AddressDto> allAddress = userService.getUserAddress(customerDto);
+
+    model.addAttribute("allAddress", allAddress);
+
+    return "user/orderAddress";
+  }
+
+  @RequestMapping("order/addressAdd")
+  public String userAddressAdd(HttpSession httpSession,
+    AddressDto addressDto, @RequestParam(value = "is_default", required = false, defaultValue = "false") boolean is_default,
+    @RequestParam("default_address") String default_address, @RequestParam("detail_address") String detail_address, @RequestParam("zipp_code") int zipp_code){
+  
+    // // 고객 정보 가져오기 (로그인 여부 확인)
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
+
+    String addressRevert = default_address + ", " + detail_address + " [" + zipp_code + "]";
+
+    addressDto.set_default(is_default);
+    userService.addAddress(addressDto, customerDto , addressRevert);
+
+    return "redirect:/order/address";
   }
 }

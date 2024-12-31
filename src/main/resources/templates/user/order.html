@@ -30,7 +30,7 @@
             <div class="d-flex align-items-center">
               <span class="fw-semibold" th:text="${addressDto.name}">고객이름</span>
               <span class="back-bg fs-13 p-0 px-1 text-secondary ms-2">기본 배송지</span>
-              <span class="border border-1 rounded px-1 fs-14" style="margin-left: auto;">배송지 변경</span>
+              <a href="/order/address" class="border border-1 rounded px-1 fs-14" style="margin-left: auto;">배송지 변경</a>
             </div>
           </div>
           <div class="fs-14 mt-2" th:text="${addressDto.address}">
@@ -41,71 +41,81 @@
           </div>
           <div class="fs-14 mt-2">
             <span>배송 메세지</span>
-            <textarea name="deliveryMessage" class="w-100 border border-1" maxlength="50" placeholder="최대 50자까지 입력 가능합니다."
+            <textarea name="deliveryMessage" class="w-100 border border-1 mt-1" maxlength="50" placeholder="최대 50자까지 입력 가능합니다."
               id="deliveryMessageTextarea"></textarea>
           </div>
         </div>
         <!-- 주문 상품 -->
-        <div class="mt-2 pt-3 border-top">
+        <div class="mt-5 pt-3 border-top">
           <p class="fs-1-5 fw-semibold ">주문 상품</p>
-          <div th:if="${orderItems != null}" th:each="brand : ${orderItems}" class="mb-4 border rounded p-3">
+          <div th:if="${orderItems != null}" th:each="brand : ${orderItems}" class="mb-4 rounded border p-3">
             <!-- 브랜드 이름 -->
-            <div class="d-flex align-items-center mb-3">
-              <!-- <input type="checkbox" class="form-check-input me-2" /> -->
-              <span class="fw-bold fs-5" th:text="${brand.store_name}"></span>
+            <div class="d-flex align-items-center ">
+              <!-- <div class="me-2">
+                <input type="checkbox" name="check" class="chk">
+                <label for="chk"></label>
+              </div> -->
+              <!-- <a th:href="@{/brand(name=${brand.store_name})}"> -->
+                <span class="fw-medium" th:text="${brand.store_name}"></span>
+              <!-- </a> -->
             </div>
-        
             <!-- 상품 반복 -->
-            <div th:each="product : ${brand.products}" class="border-bottom pb-3 mb-3">
+            <div th:each="product : ${brand.products}" class="mb-3">
               <div class="orderProduct mt-3" th:each="inventory : ${product.options}">
+                <input type="hidden" name="combination_id" th:value="${inventory.combination_id}">
                 <div class="d-flex align-items-start" >
+                  <!-- <div class="me-3">
+                    <input type="checkbox" name="check" class="chkd">
+                    <label for="chkd"></label>
+                  </div> -->
                   <!-- 상품 이미지 -->
-                   <a th:href="|/product?id=${product.product_id}|">
+                   <!-- <a th:href="|/product?id=${product.product_id}|"> -->
                      <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="max-width: 80px; height: auto;" />
-                   </a>
-          
+                   <!-- </a> -->
                   <!-- 상품 정보 -->
                   <div class="flex-grow-1">
-                    <p class="fw-bold mb-1" th:text="${product.title}"></p>
+                    <p class="fs-14 mb-1" th:text="${product.title}"></p>
                     <!-- <p class="small text-muted mb-1">12.02(월) 이내 발송 예정</p>
                     <div class="d-inline-flex align-items-center gap-1 mb-2">
                       <span class="badge bg-secondary small">직배송</span>
                     </div> -->
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center text-secondary mb-1">
                       <th:block th:each="data : ${inventory.option}">
                         <th:block th:each="entry : ${data}">
-                          <span class="text-muted" th:text="${entry.value}"></span>
+                          <span th:text="${entry.value}"></span>
                         </th:block>
-                        <span class="text-muted mx-2" th:if="${!dataStat.last}"> x </span>
+                        <span class="mx-2" th:if="${!dataStat.last}"> x </span>
                       </th:block>
                       <span class="mx-2"> / </span>
                       <span th:text="|${inventory.quantity}개|"></span>
                     </div>
+                    <div>
+                      <span class="text-decoration-line-through text-muted fs-14 originPrice"></span>
+                      <span class="fw-semibold formattedPrice" ></span>
+                    </div>
                   </div>
-          
                   <!-- 삭제 버튼 -->
-                  <!-- <button th:data-combination-id="${inventory.combination_id}" onclick="optionDelete(event)" class="btn btn-outline-danger btn-sm ms-3">X</button> -->
+                  <!-- <button onclick="optionDelete(event)" class="btn">X</button> -->
                 </div>
-        
                 <!-- 가격 정보 -->
-                <div class="mt-3 d-flex justify-content-between">
+                <!-- <div class="mt-3 d-flex justify-content-between align-items-center">
                   <div>
-                    <span>상품 금액</span>
-                    <span class="fw-bold ms-2 formattedPrice" ></span>
+                    <span class="text-decoration-line-through text-muted fs-14 originPrice"></span>
+                    <span class="fw-semibold formattedPrice" ></span>
                   </div>
-                  <!-- <div class="d-flex align-items-center">
-                    <button class="btn btn-outline-secondary btn-sm">-</button>
-                    <span type="number" class="form-control text-center mx-2" style="width: 50px;">1</span>
-                    <button class="btn btn-outline-secondary btn-sm">+</button>
-                  </div> -->
-                </div>
+  
+                  <div class="optionChangeContainer d-flex align-items-center">
+                    <button class="decrement">-</button>
+                    <span class="optionValue text-center mx-2" style="width: 50px;" th:text="${inventory.quantity}">1</span>
+                    <button class="increment">+</button>
+                  </div>
+                </div> -->
               </div>
             </div>
-        
             <!-- 브랜드당 금액 -->
-            <!-- <div class="d-flex justify-content-center align-items-center gap-1">
+            <!-- <div class="d-flex justify-content-center align-items-center gap-1 main-text-sub-color">
               <span>합계 :</span>
-              <span class="brandSumPrice"></span>
+              <span class="brandSumPrice fw-medium"></span>
             </div> -->
           </div>
         </div>
@@ -122,32 +132,39 @@
         <!-- 결제수단 -->
         <div class="mt-5 pt-3 border-top">
           <p class="fs-1-5 fw-semibold ">결제수단</p>
-          <div class="d-flex align-items-center gap-2">
+          <div class="d-flex align-items-center">
+            <div class="me-2">
+              <input type="checkbox" name="paymentcheck" class="paymentcheck">
+              <label for="paymentcheck"></label>
+            </div>
+            <span>계좌 이체</span>
+          </div>
+          <!-- <div class="d-flex align-items-center gap-2">
             <svg width="18" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
               color="#D2D5D6">
               <path
                 d="M12 2C17.5197 2 22 6.48032 22 12C22 17.5197 17.5197 22 12 22C6.48032 22 2 17.5197 2 12C2 6.48032 6.48032 2 12 2Z"
                 stroke="currentColor" stroke-width="2"></path>
-            </svg>
+            </svg> 
             <span>계좌 이체</span>
-          </div>
+           </div> -->
         </div>
         <!-- 결제금액 -->
-        <div class="mt-3 pt-3 border-top">
+        <div class="mt-4 pt-3 border-top">
           <!-- <button th:text="|${totalPrice}원 결제하기|" class="w-100 mt-2 mb-4 button-style fs-1-5 fw-semibold text-center" style="width: auto; line-height: 3rem;">
             결제하기
           </button> -->
           <p class="fs-1-5 fw-semibold ">결제금액</p>
           <ul class="fs-14">
-            <li class="d-flex justify-content-between">
+            <li class="d-flex justify-content-between my-1">
               <span>상품금액</span>
               <span id="totalOriginPrice">000원</span>
             </li>
-            <li class="d-flex justify-content-between">
+            <li class="d-flex justify-content-between my-1">
               <span>할인금액</span>
               <span id="totalDiscount">0원</span>
             </li>
-            <li class="d-flex justify-content-between">
+            <li class="d-flex justify-content-between my-1">
               <span>배송비</span>
               <span>무료 배송</span>
             </li>
@@ -160,17 +177,13 @@
         <!-- 결제동의 -->
         <div class="mt-4 pt-2 border-top">
           <div class="fs-14">
-            <label class="checkbox">
-              <input type="checkbox"
-                style="border: 0px; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px; white-space: nowrap;"><svg
-                width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M-41 -55H485V-57H-41V-55ZM486 -54V71H488V-54H486ZM485 72H-41V74H485V72ZM-42 71V-54H-44V71H-42ZM-41 72C-41.5523 72 -42 71.5523 -42 71H-44C-44 72.6568 -42.6569 74 -41 74V72ZM486 71C486 71.5523 485.552 72 485 72V74C486.657 74 488 72.6568 488 71H486ZM485 -55C485.552 -55 486 -54.5523 486 -54H488C488 -55.6568 486.657 -57 485 -57V-55ZM-41 -57C-42.6569 -57 -44 -55.6569 -44 -54H-42C-42 -54.5523 -41.5523 -55 -41 -55V-57Z"
-                  fill="#0AF355"></path>
-                <rect x="0.5" y="0.5" width="15" height="15" rx="3.5" stroke="#D2D5D6"></rect>
-              </svg>
-              <span> 주문내용 확인 및 결제 동의</span>
-            </label>
+            <div class="d-flex">
+              <div class="me-2">
+                <input type="checkbox" name="ordercheck" class="ordercheck">
+                <label for="ordercheck"></label>
+              </div>
+              <span>주문내용 확인 및 결제 모두 동의</span>
+            </div>
             <div class="css-69qvom etree0k1 mt-3">
               <div class="d-flex justify-content-between">
                 <div class="row_title"><label class="css-rishjr"><svg width="16"
@@ -215,6 +228,7 @@
 
     <!-- 하단 푸터 -->
     <div th:insert="~{fragments/orderfooter::orderfooter(text=${'결제하기'})}" class="container-sm fixed-bottom"></div>
+    <div th:insert="~{fragments/popup/failmessagePopup::failmessagePopup}"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -271,7 +285,6 @@
       orderFooterButton.textContent = `${formatPrice(totalOriginPrice)}원 결제하기`;
     } 
 
-    
   </script>
 </body>
 

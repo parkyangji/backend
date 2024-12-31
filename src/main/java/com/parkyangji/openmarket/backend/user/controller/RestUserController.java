@@ -18,13 +18,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.parkyangji.openmarket.backend.common.DebugUtil;
 import com.parkyangji.openmarket.backend.common.ShuffleUtil;
+import com.parkyangji.openmarket.backend.dto.CartItemDto;
 import com.parkyangji.openmarket.backend.dto.CustomerDto;
 import com.parkyangji.openmarket.backend.dto.OrderDto;
+import com.parkyangji.openmarket.backend.dto.OrderSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductFavoriteDto;
 import com.parkyangji.openmarket.backend.dto.ProductOptionSummaryDto;
 import com.parkyangji.openmarket.backend.dto.ProductSummaryDto;
 import com.parkyangji.openmarket.backend.dto.RestResponseDto;
 import com.parkyangji.openmarket.backend.user.service.UserService;
+
+import com.parkyangji.openmarket.backend.common.SessionConstants;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -39,7 +43,7 @@ public class RestUserController {
   public RestResponseDto isUserLike(HttpSession httpSession, @RequestParam("id") int id){
     RestResponseDto responseDto = new RestResponseDto();
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     // System.out.println(id);
     if (customerDto == null) {
       responseDto.setResult("fail");
@@ -64,7 +68,7 @@ public class RestUserController {
     List<ProductSummaryDto> productList = userService.getCategoryProductList(ids);
     // ShuffleUtil.shuffle(productList);
     
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     if (customerDto != null) {
       // 위에 순서 섞인 productList로 
       List<ProductFavoriteDto> likeList = userService.isLikeCheck(productList, customerDto.getCustomer_id());
@@ -97,7 +101,7 @@ public class RestUserController {
     }
     // ShuffleUtil.shuffle(productList);
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     if (customerDto != null) {
       // 위에 순서 섞인 productList로 
       List<ProductFavoriteDto> likeList = userService.isLikeCheck(productList, customerDto.getCustomer_id());
@@ -141,7 +145,7 @@ public class RestUserController {
     
     List<ProductSummaryDto> productList = userService.getKeywordFilter(keyword, categorys);
     
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     if (customerDto != null) {
       // 위에 순서 섞인 productList로 
       List<ProductFavoriteDto> likeList = userService.isLikeCheck(productList, customerDto.getCustomer_id());
@@ -181,19 +185,19 @@ public class RestUserController {
   }
 
   @RequestMapping("product/cart")
-  public RestResponseDto handleCart(@RequestBody List<Map<String, Object>> selectedOptions, HttpSession httpSession) {
+  public RestResponseDto handleCart(@RequestBody List<CartItemDto> selectedOptions, HttpSession httpSession) {
       RestResponseDto responseDto = new RestResponseDto();
       responseDto.setResult("success");
 
       // 회원 여부 확인
-      CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+      CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
   
       if (customerDto != null) {
         // 회원인 경우 DB에 저장
         userService.setCartItem(customerDto, selectedOptions); // [{quantity=1, combination_id=67}]
       } else {
         // 비회원인 경우
-        List<Map<String, Object>> existingOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+        List<CartItemDto> existingOptions = (List<CartItemDto>) httpSession.getAttribute(SessionConstants.TEMP_CART);
 
         if (existingOptions == null) {
             existingOptions = new ArrayList<>();
@@ -203,7 +207,7 @@ public class RestUserController {
         userService.mergeOptions(existingOptions, selectedOptions);
 
         // 병합된 데이터를 세션에 저장
-        httpSession.setAttribute("UnUserTempCart", existingOptions);
+        httpSession.setAttribute(SessionConstants.TEMP_CART, existingOptions);
         System.out.println(existingOptions);
       }
   
@@ -219,12 +223,12 @@ public class RestUserController {
     responseDto.setResult("success");
 
     // 회원 여부 확인
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
 
     if (customerDto != null) {
       userService.removeCustomerOption(customerDto, combination_id);
     } else {
-      List<Map<String, Object>> existingOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+      List<CartItemDto> existingOptions = (List<CartItemDto>) httpSession.getAttribute(SessionConstants.TEMP_CART);
       
       userService.removeOptions(existingOptions, combination_id);
     }
@@ -235,36 +239,36 @@ public class RestUserController {
   }
 
   @RequestMapping("product/updateCartQuantity")
-  public RestResponseDto updateCartItem(HttpSession httpSession , @RequestBody Map<String, Object> data){
+  public RestResponseDto updateCartItem(HttpSession httpSession , @RequestBody CartItemDto data){
     RestResponseDto responseDto = new RestResponseDto();
     responseDto.setResult("success");
 
     // 회원 여부 확인
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
 
     if (customerDto != null) {
       userService.UpdateCustomerCartItem(customerDto, data);
     } else {
-      List<Map<String, Object>> existingOptions = (List<Map<String, Object>>) httpSession.getAttribute("UnUserTempCart");
+      List<CartItemDto> existingOptions = (List<CartItemDto>) httpSession.getAttribute(SessionConstants.TEMP_CART);
       // System.out.println(existingOptions);
       // System.out.println("받아온" + data);
       userService.UpdateTempCartItem(existingOptions, data);
     }
 
-    responseDto.add("redirectUrl", "/cart");
+    // responseDto.add("redirectUrl", "/cart");
     return responseDto;
   }
   
 
   @RequestMapping("product/purchase")
-  public RestResponseDto PurchaseProcess(HttpSession httpSession , @RequestBody List<Map<String, Object>> orderdata){
+  public RestResponseDto PurchaseProcess(HttpSession httpSession , @RequestBody List<CartItemDto> orderdata){
     RestResponseDto responseDto = new RestResponseDto();
     responseDto.setResult("success");
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     // System.out.println(id);
 
-    httpSession.setAttribute("orderItems", orderdata);
+    httpSession.setAttribute(SessionConstants.ORDER_ITEMS, orderdata);
     System.out.println("Setting orderItems in session: " + orderdata); // 디버깅 출력
 
     if (customerDto == null) {
@@ -282,7 +286,7 @@ public class RestUserController {
     RestResponseDto responseDto = new RestResponseDto();
     responseDto.setResult("success");
 
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
 
     Integer customerId = (Integer) Integer.parseInt(addressdata.get("customerId").toString());
     Integer addressId = (Integer) Integer.parseInt(addressdata.get("addressId").toString());
@@ -297,7 +301,7 @@ public class RestUserController {
 
     OrderDto orderDto = userService.createOrderAndDelivery(customerDto.getCustomer_id(), addressId, deliveryMessage);
 
-    List<Map<String, Object>> orderItems = (List<Map<String, Object>>) httpSession.getAttribute("orderItems");
+    List<CartItemDto> orderItems = (List<CartItemDto>) httpSession.getAttribute(SessionConstants.ORDER_ITEMS);
 
     userService.setOrderDetail(customerId, orderDto.getOrder_id(), orderItems);
 
@@ -342,7 +346,7 @@ public class RestUserController {
   public RestResponseDto othersBestTop5(HttpSession httpSession, @RequestParam("id") int product_id){
     RestResponseDto responseDto = new RestResponseDto();
     
-    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute("sessionInfo");
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
     if (customerDto != null) {
       responseDto.setResult("success");
       List<ProductSummaryDto> othersbestTop5 = userService.getProductTop5(customerDto.getCustomer_id(), product_id);
@@ -351,6 +355,27 @@ public class RestUserController {
       responseDto.setResult("fail");
       responseDto.setReason("로그인 하셔야 데이터를 조회할 수 있습니다");
     }
+    return responseDto;
+  }
+
+  @RequestMapping("mydata/review")
+  public RestResponseDto reviewData (HttpSession httpSession, @RequestParam("tab") String tab){
+    RestResponseDto responseDto = new RestResponseDto();
+    responseDto.setResult("success");
+
+    CustomerDto customerDto = (CustomerDto) httpSession.getAttribute(SessionConstants.USER_INFO);
+
+    if (tab.equals("write") ) {
+      List<OrderSummaryDto> writeProducts = userService.getOrderReviewWrite(customerDto.getCustomer_id());
+      responseDto.add("writeProducts", writeProducts);
+      responseDto.add("redirectUrl", "/mypage/review?tab=writeReview");
+    }
+    if (tab.equals("written")) {
+      List<OrderSummaryDto> writtenProducts = userService.getOrderReviewWritten(customerDto.getCustomer_id());
+      responseDto.add("writtenProducts", writtenProducts);
+      responseDto.add("redirectUrl", "/mypage/review?tab=writtenReview");
+    }
+
     return responseDto;
   }
 

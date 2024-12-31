@@ -17,6 +17,83 @@
 
     <!-- 컨텐츠 -->
     <div class="container-sm px-4" style="padding-bottom: 48px;">
+
+      <!-- 주문 목록 -->
+      <div th:if="${orderdetail != null}" >
+        <!-- 주문 ID와 날짜 -->
+        <div class=" d-flex justify-content-between align-items-center mb-2 px-1">
+          <div class="fs-1-5 fw-semibold">
+            <p class="orderDate mb-0" th:text="'주문일자: ' + ${orderdetail.order_date}"></p>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="border rounded p-3">
+            <!-- 브랜드 목록 -->
+            <div th:each="brand : ${orderdetail.brands}" class="mb-4">
+              <p th:text="${brand.store_name}" class="border-bottom pb-2 mb-3 fs-1-5 fw-medium main-text-sub-color"></p>
+
+              <!-- 상품 목록 -->
+              <div th:each="product : ${brand.products}" class="mb-3">
+                <!-- 진행 상태 -->
+                <th:block th:each="option : ${product.options}">
+                  <div class="mb-3">
+                    <p class="mb-3 main-text-strong-color fw-semibold" th:text="${option.status}"></p>
+                    <div class="d-flex align-items-start">
+                      <!-- 상품 이미지 -->
+                      <a th:href="'/product?id=' + ${product.product_id}">
+                        <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="max-width: 80px; height: auto;">
+                      </a>
+                      <!-- 상품 정보 -->
+                      <div class="flex-grow-1">
+                        <p class="fs-14 mb-1" th:text="${product.title}"></p>
+                        <!-- <p class="text-muted mb-0" th:if="${product.discount_rate != null}" th:text="'할인율: ' + ${product.discount_rate} + '%'"></p> -->
+                      
+                          <!-- 옵션 목록 -->
+                        <div class="fs-14 d-flex align-items-center text-secondary">
+                          <th:block th:each="data : ${option.option}">
+                            <th:block th:each="entry : ${data}">
+                              <span th:text="${entry.value}"></span>
+                            </th:block>
+                            <span class="mx-2" th:if="${!dataStat.last}"> x </span>
+                          </th:block>
+                          <!-- <p class="text-muted mb-0"> -->
+                            <!-- <span th:each="opt : ${option.option}" th:text="${#strings.arrayJoin(opt.values(), ', ')}"></span> -->
+                            <span class="mx-1">/</span>
+                            <span th:text="|${option.quantity}개|"></span>
+                          <!-- </p> -->
+                        </div>
+
+                        <p class="buyPrice fw-semibold m-0 mt-1"></p>
+                      </div>
+                    </div>
+                  </div>
+                </th:block>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div th:if="${orderdetail != null}">
+        <ul>
+          <li class="d-flex justify-content-between"><span>수령인</span><span th:text="${orderdetail.addressDto.name}"></span></li>
+          <li class="d-flex justify-content-between"><span>휴대폰</span><span th:text="${orderdetail.addressDto.phone}"></span></li>
+          <li class="d-flex justify-content-between"><span>주소</span><span th:text="${orderdetail.addressDto.address}"></span></li>
+          <li class="d-flex justify-content-between"><span>배송메모</span><span th:text="${orderdetail.delivery_message==null ? '없음' : order.delivery_message}"></span></li>
+        </ul>
+      </div>
+
+      <!-- 결제 정보 -->
+      <div>
+        <div>
+          <span>총 결제 금액</span>
+          <div>
+            <span class="totalPrice"></span>
+            <span>계좌이체</span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- 하단 푸터 -->
@@ -28,10 +105,30 @@
   </script>
   <script th:inline="javascript">
     /* <![CDATA[ */
-    
+    var orderdetailJson = /*[[${orderdetailJson}]]*/ 'N/A';
     /* ]]> */
 
-    // console.log("orders: ",  JSON.parse(orderItemsJson));
+    console.log("order: ",  JSON.parse(orderdetailJson));
+
+    const orderDetail = JSON.parse(orderdetailJson);
+
+    document.querySelector('.orderDate').innerText = `주문일자 : ${formatOrderDateTime(orderDetail.order_date)}`;
+
+    let totalOriginPrice = 0;
+    
+    let idx = 0;
+    orderDetail.brands.forEach((brand) => {
+      brand.products.forEach((product)=>{
+        product.options.forEach((option) => {
+          document.querySelectorAll('.buyPrice')[idx].innerText = formatPrice(option.buy_price) + "원";
+          totalOriginPrice += option.buy_price;
+          idx++;
+        });
+      })
+    });
+
+    document.querySelector('.totalPrice').innerText= `${formatPrice(totalOriginPrice)}원`
+      
   </script>
 </body>
 

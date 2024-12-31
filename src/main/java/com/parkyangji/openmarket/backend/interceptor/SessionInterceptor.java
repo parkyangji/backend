@@ -3,6 +3,8 @@ package com.parkyangji.openmarket.backend.interceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.parkyangji.openmarket.backend.common.SessionConstants;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -19,14 +21,14 @@ public class SessionInterceptor implements HandlerInterceptor{
 
     if (requestURI.startsWith("/admin")) { // 관리자 페이지 요청일 때
 
-      if (session.getAttribute("sellerInfo") == null) { // 관리자 로그인 여부 확인
+      if (session.getAttribute(SessionConstants.SELLER_INFO) == null) { // 관리자 로그인 여부 확인
           response.sendRedirect("/admin");
           return false;
       }
 
     } else { // 사용자 페이지 요청일 때
 
-        if (session.getAttribute("sessionInfo") == null) { // 사용자 로그인 여부 확인
+        if (session.getAttribute(SessionConstants.USER_INFO) == null) { // 사용자 로그인 여부 확인
             response.sendRedirect("/login"); // 사용자 로그인 페이지로 리디렉션
             return false;
         }

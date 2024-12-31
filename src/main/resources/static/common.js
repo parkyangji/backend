@@ -19,6 +19,12 @@ function back(){
     window.history.back();
     return;
   }
+  if (currentUrl === '/order') {
+    // console.warn('Back navigation is not allowed from /cart');
+    // window.location.href = '/home'; // 안전한 페이지로 이동
+    window.history.back();
+    return;
+  }
   if (currentUrl === '/mypage/review') {
     window.location.href = '/mypage'; // 안전한 페이지로 이동
     return;
@@ -29,7 +35,7 @@ function back(){
     window.history.back();
   } else {
     // 이전 페이지가 없을 경우 기본 페이지로 이동
-    window.location.href = '/home';
+    window.location.href = '/';
   }
 }
 
@@ -55,6 +61,26 @@ function calculatePrices(originPrice, salePrice, discountRate, quantity) {
       DiscountAmount: discountAmount,
       TotalPrice: totalPrice
   };
+}
+
+// yyyy.MM.dd
+function formatOrderDate(timestamp) {
+  const date = new Date(timestamp);
+  const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+  return date.toLocaleDateString('ko-KR', options).replace(/\//g, '.');
+}
+
+// yyyy.MM.dd HH:mm
+function formatOrderDateTime(timestamp) {
+  const date = new Date(timestamp);
+  
+  const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+  const formattedDate = date.toLocaleDateString('ko-KR', dateOptions).replace(/\//g, '.');
+
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+
+  return `${formattedDate} ${hours}:${minutes}`;
 }
 
 

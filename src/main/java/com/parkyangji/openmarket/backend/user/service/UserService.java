@@ -1,17 +1,20 @@
 package com.parkyangji.openmarket.backend.user.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.parkyangji.openmarket.backend.common.DebugUtil;
 import com.parkyangji.openmarket.backend.dto.AddressDto;
 import com.parkyangji.openmarket.backend.dto.BrandSummaryDto;
 import com.parkyangji.openmarket.backend.dto.CartItemDto;
@@ -53,7 +56,7 @@ public class UserService {
 
     // 3. Address 저장
     // 고객의 기존 주소 개수 확인
-    int count = userSqlMapper.getAddressCountByCustomerId(addressDto.getCustomer_id());
+    int count = userSqlMapper.getAddressCountByCustomerId(addressDto.getCustomer_id()).size() ;
 
     // 첫 번째 주소일 경우 기본 주소로 설정
     if (count == 0) {
@@ -63,6 +66,10 @@ public class UserService {
     }
 
     userSqlMapper.insertAddress(addressDto);
+  }
+
+  public List<AddressDto> getUserAddress(CustomerDto customerDto){
+    return userSqlMapper.getAddressCountByCustomerId(customerDto.getCustomer_id());
   }
 
   public CustomerDto loginCheck(CustomerDto customerDto){
@@ -267,17 +274,16 @@ public class UserService {
   }
 
 
-  public void setOrderDetail(int customer_id, int order_id, List<Map<String, Object>> orderItems) {
+  public void setOrderDetail(int customer_id, int order_id, List<CartItemDto> orderItems) {
     List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
 
     List<Integer> combination_ids = new ArrayList<>();
     // List<Integer> productIds = new ArrayList<>();
     List<Integer> quantitys = new ArrayList<>();
 
-    for (Map<String, Object> option : orderItems) {
-      combination_ids.add(Integer.valueOf(option.get("combination_id").toString())) ;
-      // productIds.add(Integer.valueOf(option.get("productId").toString()));
-      quantitys.add(Integer.valueOf(option.get("quantity").toString()));
+    for (CartItemDto option : orderItems) {
+      combination_ids.add(option.getCombination_id());
+      quantitys.add(option.getQuantity());
     }
 
     List<CartItemReturnDto> cartitems = new ArrayList<>();
@@ -310,92 +316,22 @@ public class UserService {
     userSqlMapper.insertOrderDetails(orderDetailDtos);
   }
 
+  
+
   public List<OrderSummaryDto> getOrderSummaryList(int customerId) {
     List<OrderItemReturnDto> orderList = userSqlMapper.selectOrderList(customerId);
-
-    // 주문 ID로 그룹핑
-    Map<Integer, List<OrderItemReturnDto>> groupByOrderId = orderList.stream()
-    .sorted(Comparator.comparing(OrderItemReturnDto::getOrder_id).reversed()) // 정렬 기준
-    .collect(Collectors.groupingBy(
-        OrderItemReturnDto::getOrder_id, 
-        LinkedHashMap::new, // LinkedHashMap 사용
-        Collectors.toList()
-    ));
-
-    // 각 주문별로 제품 및 옵션을 나누어 OrderSummaryDto에 매핑
-    List<OrderSummaryDto> orderSummaryList = groupByOrderId.entrySet().stream()
-    .map(orderEntry -> {
-        int orderId = orderEntry.getKey();
-        List<OrderItemReturnDto> items = orderEntry.getValue();
-
-        // 주문 요약 정보 생성
-        OrderSummaryDto orderSummary = new OrderSummaryDto();
-        orderSummary.setOrder_id(orderId);
-        orderSummary.setOrder_date(items.get(0).getOrder_date());
-        // orderSummary.setStatus(items.get(0).getStatus());
-
-        // 제품 ID로 그룹핑
-        Map<Integer, List<OrderItemReturnDto>> groupByProductId = items.stream()
-            .collect(Collectors.groupingBy(OrderItemReturnDto::getProduct_id));
-
-        List<ProductSummaryDto> productSummaryList = groupByProductId.entrySet().stream()
-            .map(productEntry -> {
-                List<OrderItemReturnDto> productItems = productEntry.getValue();
-                OrderItemReturnDto representativeItem = productItems.get(0); // 대표 아이템
-
-                // 제품 요약 정보 생성
-                ProductSummaryDto productSummary = new ProductSummaryDto();
-                productSummary.setProduct_id(representativeItem.getProduct_id());
-                productSummary.setStore_name(representativeItem.getStore_name());
-                productSummary.setTitle(representativeItem.getTitle());
-                productSummary.setImage_url(userSqlMapper.selectThumbnailImage(representativeItem.getProduct_id()));
-               productSummary.setRep_price(representativeItem.getOrigin_price());
-                productSummary.setDiscount_rate(representativeItem.getDiscount_rate());
-               productSummary.setRep_sale_price(representativeItem.getSale_price());
-
-                // combinationId로 옵션 그룹핑
-                Map<Integer, List<OrderItemReturnDto>> combinationMap = productItems.stream()
-                    .collect(Collectors.groupingBy(OrderItemReturnDto::getCombination_id));
-
-                    List<ProductInventorySummaryDto> inventorySummaryList = combinationMap.entrySet().stream()
-                        .map(combinationEntry -> {
-                            List<OrderItemReturnDto> combinationItems = combinationEntry.getValue();
-                            OrderItemReturnDto combinationRepresentative = combinationItems.get(0);
-
-                            ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
-                            inventorySummary.setCombination_id(combinationEntry.getKey());
-                            inventorySummary.setOrder_detail_id(combinationRepresentative.getOrder_detail_id());
-                            inventorySummary.setQuantity(combinationRepresentative.getQuantity());
-                            inventorySummary.setStatus(combinationRepresentative.getStatus()); // 임의로 상태를 설정 (필요에 따라 수정 가능)
-                            inventorySummary.setOrigin_price(combinationRepresentative.getOrigin_price());
-                            inventorySummary.setDiscount_rate(combinationRepresentative.getDiscount_rate());
-                            inventorySummary.setSale_price(combinationRepresentative.getSale_price());
-                            inventorySummary.setRating(combinationRepresentative.getRating());
-                            inventorySummary.setReview_content(combinationRepresentative.getReview_content());
-                            inventorySummary.setSeller_reply(combinationRepresentative.getSeller_reply());
-
-                            // 옵션의 이름과 값을 리스트 형태로 저장
-                            List<Map<String, Object>> optionDetails = combinationItems.stream()
-                                .map(item -> {
-                                    Map<String, Object> optionMap = new HashMap<>();
-                                    optionMap.put(item.getOptionname(), item.getOptionvalue());
-                                    return optionMap;
-                                }).collect(Collectors.toList());
-
-                            inventorySummary.setOption(optionDetails);
-                            return inventorySummary;
-                        }).collect(Collectors.toList());
-
-                    productSummary.setOptions(inventorySummaryList);
-                    return productSummary;
-                }).collect(Collectors.toList());
-
-        orderSummary.setProducts(productSummaryList);
-        return orderSummary;
-    }).collect(Collectors.toList());
-
-    return orderSummaryList;
+    return revertOrderSummary(orderList, false, true);
   }
+
+  public List<OrderSummaryDto> getOrderReviewWrite(int customerId){
+    List<OrderItemReturnDto> reviewWrite = userSqlMapper.selectWriteReviews(customerId);
+    return revertOrderSummary(reviewWrite, true, false);
+  }
+  public List<OrderSummaryDto> getOrderReviewWritten(int customerId){
+    List<OrderItemReturnDto> reviewWritten = userSqlMapper.selectWrittenReviews(customerId);
+    return revertOrderSummary(reviewWritten, true, false);
+  }
+
 
   public List<Map<String, Object>> getLikeList(int customer_id) {
     List<Map<String, Object>> LikeData = new ArrayList<>();
@@ -492,7 +428,7 @@ public class UserService {
     return optionSummaryList;
   }
 
-  public void setCartItem(CustomerDto customerDto, List<Map<String, Object>> optiondata) {
+  public void setCartItem(CustomerDto customerDto, List<CartItemDto> optiondata) {
 
     if (userSqlMapper.selectCustomerCart(customerDto.getCustomer_id()) == null) {
       // 고객 장바구니가 없으면 장바구니 추가
@@ -503,23 +439,13 @@ public class UserService {
 
     CustomerCartDto customerCart = userSqlMapper.selectCustomerCart(customerDto.getCustomer_id());
 
-    // List<Integer> combination_ids = new ArrayList<>();
-    // List<Integer> productIds = new ArrayList<>();
-    // List<Integer> quantitys = new ArrayList<>();
-
-    // for (Map<String, Object> option : optiondata) {
-    //   combination_ids.add(Integer.valueOf(option.get("combination_id").toString())) ;
-    //   productIds.add(Integer.valueOf(option.get("productId").toString()));
-    //   quantitys.add(Integer.valueOf(option.get("quantity").toString()));
-    // }
-
     // 아이템 추가 
     List<CartItemDto> items = new ArrayList<>();
-    for (Map<String, Object> option : optiondata) {
+    for (CartItemDto option : optiondata) {
       CartItemDto item = new CartItemDto();
       item.setCart_id(customerCart.getCart_id());
-      item.setCombination_id( (Integer) Integer.valueOf(option.get("combination_id").toString()));
-      item.setQuantity( (Integer) Integer.valueOf(option.get("quantity").toString()));
+      item.setCombination_id(option.getCombination_id());
+      item.setQuantity(option.getQuantity());
 
       items.add(item);
     }
@@ -544,89 +470,16 @@ public class UserService {
     return revertBrandSummary(cartItems);
   }
 
-  public List<BrandSummaryDto> revertBrandSummary(List<CartItemReturnDto> cartItems){
-    // store_name으로 그룹핑하여 BrandSummaryDto 생성
-    Map<String, Map<Integer, List<CartItemReturnDto>>> groupedItems = cartItems.stream()
-        .collect(Collectors.groupingBy(CartItemReturnDto::getStore_name,
-            Collectors.groupingBy(CartItemReturnDto::getProduct_id)));
-
-    // 각 store_name별로 BrandSummaryDto 생성
-    List<BrandSummaryDto> brandSummaryList = groupedItems.entrySet().stream()
-        .map(brandEntry -> {
-            String storeName = brandEntry.getKey();
-            Map<Integer, List<CartItemReturnDto>> productMap = brandEntry.getValue();
-
-            BrandSummaryDto brandSummary = new BrandSummaryDto();
-            brandSummary.setStore_name(storeName);
-
-            // 각 product_id별로 ProductSummaryDto 생성
-            List<ProductSummaryDto> productSummaryList = productMap.entrySet().stream()
-                .map(productEntry -> {
-                    int productId = productEntry.getKey();
-                    List<CartItemReturnDto> productItems = productEntry.getValue();
-                    CartItemReturnDto representativeItem = productItems.get(0);
-
-                    // 제품 요약 정보 생성
-                    ProductSummaryDto productSummary = new ProductSummaryDto();
-                    productSummary.setProduct_id(productId);
-                    productSummary.setStore_name(representativeItem.getStore_name());
-                    productSummary.setTitle(representativeItem.getTitle());
-                    productSummary.setImage_url(userSqlMapper.selectThumbnailImage(productId));
-                    productSummary.setRep_price(representativeItem.getOrigin_price());
-                    productSummary.setDiscount_rate(representativeItem.getDiscount_rate());
-                    productSummary.setRep_sale_price(representativeItem.getSale_price());
-
-                    // combination_id로 옵션 그룹핑하여 옵션 정보 생성
-                    Map<Integer, List<CartItemReturnDto>> combinationMap = productItems.stream()
-                        .collect(Collectors.groupingBy(CartItemReturnDto::getCombination_id));
-
-                    List<ProductInventorySummaryDto> inventorySummaryList = combinationMap.entrySet().stream()
-                        .map(combinationEntry -> {
-                            List<CartItemReturnDto> combinationItems = combinationEntry.getValue();
-                            CartItemReturnDto combinationRepresentative = combinationItems.get(0);
-
-                            ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
-                            inventorySummary.setCombination_id(combinationEntry.getKey());
-                            inventorySummary.setQuantity(combinationRepresentative.getQuantity());
-                            inventorySummary.setStatus("In Stock"); // 임의로 상태를 설정 (필요에 따라 수정 가능)
-                            inventorySummary.setOrigin_price(combinationRepresentative.getOrigin_price());
-                            inventorySummary.setDiscount_rate(combinationRepresentative.getDiscount_rate());
-                            inventorySummary.setSale_price(combinationRepresentative.getSale_price());
-
-                            // 옵션의 이름과 값을 리스트 형태로 저장
-                            List<Map<String, Object>> optionDetails = combinationItems.stream()
-                                .map(item -> {
-                                    Map<String, Object> optionMap = new HashMap<>();
-                                    optionMap.put(item.getOptionname(), item.getOptionvalue());
-                                    return optionMap;
-                                }).collect(Collectors.toList());
-
-                            inventorySummary.setOption(optionDetails);
-                            return inventorySummary;
-                        }).collect(Collectors.toList());
-
-                    productSummary.setOptions(inventorySummaryList);
-                    return productSummary;
-                }).collect(Collectors.toList());
-
-            brandSummary.setProducts(productSummaryList);
-            return brandSummary;
-        }).collect(Collectors.toList());
-
-    return brandSummaryList;
-  }
-
-  public List<BrandSummaryDto> getRevertCartData(List<Map<String, Object>> selectedOptions){
+  public List<BrandSummaryDto> getRevertCartData(List<CartItemDto> selectedOptions){
     System.out.println(selectedOptions);
     List<Integer> combination_ids = new ArrayList<>();
     // List<Integer> productIds = new ArrayList<>();
     List<Integer> quantitys = new ArrayList<>();
 
     
-    for (Map<String, Object> option : selectedOptions) {
-      combination_ids.add(Integer.valueOf(option.get("combination_id").toString())) ;
-      // productIds.add(Integer.valueOf(option.get("productId").toString()));
-      quantitys.add(Integer.valueOf(option.get("quantity").toString()));
+    for (CartItemDto option : selectedOptions) {
+      combination_ids.add(option.getCombination_id());
+      quantitys.add(option.getQuantity());
     }
 
     List<CartItemReturnDto> cartitems = new ArrayList<>();
@@ -697,18 +550,19 @@ public class UserService {
    * 새로운 옵션 데이터를 기존 데이터에 병합.
    * 중복 데이터는 수량을 합치고, 중복되지 않은 데이터는 추가.
    */
-  public void mergeOptions(List<Map<String, Object>> existingOptions, List<Map<String, Object>> newOptions) {
-      for (Map<String, Object> newOption : newOptions) {
-          Map<String, Object> matchingOption = findMatchingOption(existingOptions, newOption);
+  public void mergeOptions(List<CartItemDto> existingOptions, List<CartItemDto> newOptions) {
+      for (CartItemDto newOption : newOptions) {
+        CartItemDto matchingOption = findMatchingOption(existingOptions, newOption);
 
           if (matchingOption != null) {
               // 중복 데이터: 수량 합치기
-              Integer existingQuantity = (Integer) matchingOption.get("quantity");
-              Integer newQuantity = (Integer) newOption.get("quantity");
-              matchingOption.put("quantity", existingQuantity + newQuantity);
+              Integer existingQuantity = matchingOption.getQuantity();
+              Integer newQuantity = newOption.getQuantity();
+
+              matchingOption.setQuantity(existingQuantity + newQuantity);
           } else {
               // 중복되지 않은 새로운 데이터 추가
-              Map<String, Object> newEntry = createNewEntry(newOption);
+              CartItemDto newEntry = createNewEntry(newOption);
               existingOptions.add(newEntry);
           }
       }
@@ -717,11 +571,11 @@ public class UserService {
   /**
    * 기존 옵션 데이터에서 동일한 productId와 combination_id를 가진 항목을 찾음.
    */
-  public Map<String, Object> findMatchingOption(List<Map<String, Object>> existingOptions,  Map<String, Object> newOption) {
-      Integer newCombinationId = (Integer) newOption.get("combination_id");
+  public CartItemDto findMatchingOption(List<CartItemDto> existingOptions,  CartItemDto newOption) {
+      Integer newCombinationId = newOption.getCombination_id();
 
-      for (Map<String, Object> existingOption : existingOptions) {
-          Integer existingCombinationId = (Integer) existingOption.get("combination_id");
+      for (CartItemDto existingOption : existingOptions) {
+          Integer existingCombinationId = existingOption.getCombination_id();
 
           if (newCombinationId.equals(existingCombinationId)) {
               return existingOption;
@@ -733,18 +587,18 @@ public class UserService {
   /**
    * 새로운 옵션 데이터를 생성.
    */
-  public Map<String, Object> createNewEntry( Map<String, Object> newOption) {
-      Map<String, Object> newEntry = new HashMap<>();
+  public CartItemDto createNewEntry( CartItemDto newOption) {
+      CartItemDto newEntry = new CartItemDto();
       // newEntry.put("product_id", newOption.get("product_id"));
-      newEntry.put("combination_id", newOption.get("combination_id"));
-      newEntry.put("quantity", newOption.get("quantity"));
+      newEntry.setCombination_id(newOption.getCombination_id());
+      newEntry.setQuantity(newOption.getQuantity());
       return newEntry;
   }
 
-  public void removeOptions(List<Map<String, Object>> existingOptions, int combination_id){
+  public void removeOptions(List<CartItemDto> existingOptions, int combination_id){
     for (int i = 0; i < existingOptions.size(); i++) {
-      Map<String, Object> option = existingOptions.get(i);
-      if (option.get("combination_id").equals(combination_id)) {
+      CartItemDto option = existingOptions.get(i);
+      if (option.getCombination_id().equals(combination_id)) {
           existingOptions.remove(i);
           break;
       }
@@ -798,23 +652,294 @@ public class UserService {
     return reviewList;
   }
 
-  public void UpdateTempCartItem(List<Map<String, Object>> existingOptions, Map<String, Object> data) {
-    for (Map<String, Object> exist : existingOptions) {
-      if (exist.get("combination_id").equals(data.get("combination_id"))) {
-        exist.put("quantity", data.get("quantity")); //해당 키가 이미 존재하면 값을 대체
+  public void UpdateTempCartItem(List<CartItemDto> existingOptions, CartItemDto data) {
+    for (CartItemDto exist : existingOptions) {
+      if (exist.getCombination_id().equals(data.getCombination_id())) {
+        exist.setQuantity(data.getQuantity());
       }
     }
   }
 
-  public void UpdateCustomerCartItem(CustomerDto customerDto,  Map<String, Object> data) {
+  public void UpdateCustomerCartItem(CustomerDto customerDto, CartItemDto data) {
     CustomerCartDto customerCart = userSqlMapper.selectCustomerCart(customerDto.getCustomer_id());
 
     CartItemDto item = new CartItemDto();
     item.setCart_id(customerCart.getCart_id()); 
-    item.setCombination_id((Integer) Integer.valueOf(data.get("combination_id").toString()));
-    item.setQuantity((Integer) Integer.valueOf(data.get("quantity").toString()));
+    item.setCombination_id(data.getCombination_id());
+    item.setQuantity(data.getQuantity());
 
     userSqlMapper.updateCartItemExQuantity(item);
   }
+
+  public OrderSummaryDto findOrderDetailByOrderId(CustomerDto customerDto, int order_id) {
+    List<OrderSummaryDto> getOrders = getOrderSummaryList(customerDto.getCustomer_id());
+
+    OrderSummaryDto orderSummaryDto = new OrderSummaryDto();
+
+    for (OrderSummaryDto order : getOrders) {
+      if (order.getOrder_id() == order_id) orderSummaryDto = order;
+    }
+    // 이름, 배송지, 배송메세지, 연락처. 
+    orderSummaryDto.setAddressDto(userSqlMapper.selectOrderAddress(order_id));
+
+    return orderSummaryDto;
+  }
+
+
+  public void addAddress(AddressDto addressDto, CustomerDto customerDto, String address){
+    addressDto.setCustomer_id(customerDto.getCustomer_id());
+    addressDto.setAddress(address);
+
+    if (addressDto.is_default()) {
+      userSqlMapper.updateAddressIsDefaultFalse(customerDto.getCustomer_id());
+    }
+    userSqlMapper.insertAddress(addressDto);
+  }
+
+
+
+
+
+
+  /* private */
+
+  private List<OrderSummaryDto> revertOrderSummary(List<OrderItemReturnDto> orderList, boolean includeProducts, boolean includeBrands) {
+    Map<Integer, List<OrderItemReturnDto>> groupingOrder = orderList.stream()
+        .collect(Collectors.groupingBy(
+            OrderItemReturnDto::getOrder_id,
+            LinkedHashMap::new,
+            Collectors.toList()
+        ));
+
+    List<OrderSummaryDto> dataa = groupingOrder.entrySet().stream().map((order) -> {
+        int order_id = order.getKey();
+        List<OrderItemReturnDto> orders = order.getValue();
+        OrderItemReturnDto representativeItem = orders.get(0);
+
+        // OrderSummaryDto 생성
+        OrderSummaryDto orderSummaryDto = new OrderSummaryDto();
+        orderSummaryDto.setOrder_id(order_id);
+        orderSummaryDto.setDelivery_message(representativeItem.getDelivery_message());
+        orderSummaryDto.setOrder_date(representativeItem.getOrder_date());
+
+        if (includeBrands) {
+            // 브랜드별 그룹화
+            Map<String, Map<Integer, List<OrderItemReturnDto>>> groupedItems = orders.stream()
+                .collect(Collectors.groupingBy(OrderItemReturnDto::getStore_name,
+                    Collectors.groupingBy(OrderItemReturnDto::getProduct_id)));
+
+            List<BrandSummaryDto> brandSummaryDtos = groupedItems.entrySet().stream()
+                .map((entry) -> {
+                    String storeName = entry.getKey();
+                    Map<Integer, List<OrderItemReturnDto>> productMap = entry.getValue();
+
+                    BrandSummaryDto brandSummary = new BrandSummaryDto();
+                    brandSummary.setStore_name(storeName);
+
+                    List<ProductSummaryDto> productSummaryList = productMap.entrySet().stream()
+                        .map(productEntry -> {
+                            int productId = productEntry.getKey();
+                            List<OrderItemReturnDto> productItems = productEntry.getValue();
+                            OrderItemReturnDto productRepresentative = productItems.get(0);
+
+                            ProductSummaryDto productSummary = new ProductSummaryDto();
+                            productSummary.setProduct_id(productId);
+                            productSummary.setStore_name(productRepresentative.getStore_name());
+                            productSummary.setTitle(productRepresentative.getTitle());
+                            productSummary.setImage_url(userSqlMapper.selectThumbnailImage(productId));
+
+                            // 조합별 옵션 정보 추가
+                            Map<Integer, List<OrderItemReturnDto>> combinationMap = productItems.stream()
+                                .collect(Collectors.groupingBy(OrderItemReturnDto::getCombination_id));
+
+                            List<ProductInventorySummaryDto> inventorySummaryList = combinationMap.entrySet().stream()
+                            .map(combinationEntry -> {
+                                List<OrderItemReturnDto> combinationItems = combinationEntry.getValue();
+                                OrderItemReturnDto combinationRepresentative = combinationItems.get(0);
+
+                                ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
+                                inventorySummary.setCombination_id(combinationEntry.getKey());
+                                inventorySummary.setOrder_detail_id(combinationRepresentative.getOrder_detail_id());
+                                inventorySummary.setQuantity(combinationRepresentative.getQuantity());
+                                inventorySummary.setStatus(combinationRepresentative.getStatus());
+                                inventorySummary.setBuy_price(combinationRepresentative.getBuy_price());
+                                inventorySummary.setRating(combinationRepresentative.getRating());
+                                inventorySummary.setRating_created(combinationRepresentative.getRating_created());
+                                inventorySummary.setReview_content(combinationRepresentative.getReview_content());
+                                inventorySummary.setReview_created(combinationRepresentative.getReview_created());
+                                inventorySummary.setSeller_reply(combinationRepresentative.getSeller_reply());
+
+                              List<Map<String, Object>> optionDetails = combinationItems.stream()
+                                      .collect(Collectors.toMap(
+                                              OrderItemReturnDto::getOptionname,
+                                              OrderItemReturnDto::getOptionvalue,
+                                              (existing, replacement) -> existing // 중복 옵션 발생 시 기존 값 유지
+                                      ))
+                                      .entrySet()
+                                      .stream()
+                                      .map(item -> {
+                                        Map<String, Object> optionMap = new HashMap<>();
+                                        optionMap.put(item.getKey(), item.getValue());
+                                        return optionMap;
+                                      })
+                                      .collect(Collectors.toList());
+
+                                inventorySummary.setOption(optionDetails);
+                                return inventorySummary;
+                            }).collect(Collectors.toList());
+
+                            productSummary.setOptions(inventorySummaryList);
+                            return productSummary;
+                        }).collect(Collectors.toList());
+
+                    brandSummary.setProducts(productSummaryList);
+                    return brandSummary;
+                }).collect(Collectors.toList());
+
+            orderSummaryDto.setBrands(brandSummaryDtos);
+        }
+
+        if (includeProducts) {
+            // 상품별 그룹화
+            List<ProductSummaryDto> productSummaries = orders.stream()
+                .collect(Collectors.groupingBy(OrderItemReturnDto::getProduct_id))
+                .entrySet().stream()
+                .map(entry -> {
+                    int productId = entry.getKey();
+                    List<OrderItemReturnDto> productItems = entry.getValue();
+                    OrderItemReturnDto representative = productItems.get(0);
+
+                    ProductSummaryDto productSummary = new ProductSummaryDto();
+                    productSummary.setProduct_id(productId);
+                    productSummary.setStore_name(representative.getStore_name());
+                    productSummary.setTitle(representative.getTitle());
+                    productSummary.setImage_url(userSqlMapper.selectThumbnailImage(productId));
+
+                    // 조합별 옵션 정보 추가
+                    Map<Integer, List<OrderItemReturnDto>> combinationMap = productItems.stream()
+                        .collect(Collectors.groupingBy(OrderItemReturnDto::getCombination_id));
+
+                    List<ProductInventorySummaryDto> inventorySummaryList = combinationMap.entrySet().stream()
+                        .map(combinationEntry -> {
+                            List<OrderItemReturnDto> combinationItems = combinationEntry.getValue();
+                            OrderItemReturnDto combinationRepresentative = combinationItems.get(0);
+
+                            ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
+                            inventorySummary.setCombination_id(combinationEntry.getKey());
+                            inventorySummary.setOrder_detail_id(combinationRepresentative.getOrder_detail_id());
+                            inventorySummary.setQuantity(combinationRepresentative.getQuantity());
+                            inventorySummary.setStatus(combinationRepresentative.getStatus());
+                            inventorySummary.setBuy_price(combinationRepresentative.getBuy_price());
+                            inventorySummary.setRating(combinationRepresentative.getRating());
+                            inventorySummary.setRating_created(combinationRepresentative.getRating_created());
+                            inventorySummary.setReview_content(combinationRepresentative.getReview_content());
+                            inventorySummary.setReview_created(combinationRepresentative.getReview_created());
+                            inventorySummary.setSeller_reply(combinationRepresentative.getSeller_reply());
+
+                          List<Map<String, Object>> optionDetails = combinationItems.stream()
+                                  .collect(Collectors.toMap(
+                                          OrderItemReturnDto::getOptionname,
+                                          OrderItemReturnDto::getOptionvalue,
+                                          (existing, replacement) -> existing // 중복 옵션 발생 시 기존 값 유지
+                                  ))
+                                  .entrySet()
+                                  .stream()
+                                  .map(item -> {
+                                    Map<String, Object> optionMap = new HashMap<>();
+                                    optionMap.put(item.getKey(), item.getValue());
+                                    return optionMap;
+                                  })
+                                  .collect(Collectors.toList());
+
+                            inventorySummary.setOption(optionDetails);
+                            return inventorySummary;
+                        }).collect(Collectors.toList());
+
+                    productSummary.setOptions(inventorySummaryList);
+                    return productSummary;
+                }).collect(Collectors.toList());
+
+            orderSummaryDto.setProducts(productSummaries);
+        }
+
+        return orderSummaryDto;
+    }).collect(Collectors.toList());
+
+    return dataa; 
+  }
+
+
+  private List<BrandSummaryDto> revertBrandSummary(List<CartItemReturnDto> cartItems){
+    // store_name으로 그룹핑하여 BrandSummaryDto 생성
+    Map<String, Map<Integer, List<CartItemReturnDto>>> groupedItems = cartItems.stream()
+        .collect(Collectors.groupingBy(CartItemReturnDto::getStore_name,
+            Collectors.groupingBy(CartItemReturnDto::getProduct_id)));
+    
+    // 각 store_name별로 BrandSummaryDto 생성
+    List<BrandSummaryDto> brandSummaryList = groupedItems.entrySet().stream()
+        .map(brandEntry -> {
+            String storeName = brandEntry.getKey();
+            Map<Integer, List<CartItemReturnDto>> productMap = brandEntry.getValue();
+
+            BrandSummaryDto brandSummary = new BrandSummaryDto();
+            brandSummary.setStore_name(storeName);
+
+            // 각 product_id별로 ProductSummaryDto 생성
+            List<ProductSummaryDto> productSummaryList = productMap.entrySet().stream()
+                .map(productEntry -> {
+                    int productId = productEntry.getKey();
+                    List<CartItemReturnDto> productItems = productEntry.getValue();
+                    CartItemReturnDto representativeItem = productItems.get(0);
+
+                    // 제품 요약 정보 생성
+                    ProductSummaryDto productSummary = new ProductSummaryDto();
+                    productSummary.setProduct_id(productId);
+                    productSummary.setStore_name(representativeItem.getStore_name());
+                    productSummary.setTitle(representativeItem.getTitle());
+                    productSummary.setImage_url(userSqlMapper.selectThumbnailImage(productId));
+                    productSummary.setRep_price(representativeItem.getOrigin_price());
+                    productSummary.setDiscount_rate(representativeItem.getDiscount_rate());
+                    productSummary.setRep_sale_price(representativeItem.getSale_price());
+
+                    // combination_id로 옵션 그룹핑하여 옵션 정보 생성
+                    Map<Integer, List<CartItemReturnDto>> combinationMap = productItems.stream()
+                        .collect(Collectors.groupingBy(CartItemReturnDto::getCombination_id));
+
+                    List<ProductInventorySummaryDto> inventorySummaryList = combinationMap.entrySet().stream()
+                        .map(combinationEntry -> {
+                            List<CartItemReturnDto> combinationItems = combinationEntry.getValue();
+                            CartItemReturnDto combinationRepresentative = combinationItems.get(0);
+
+                            ProductInventorySummaryDto inventorySummary = new ProductInventorySummaryDto();
+                            inventorySummary.setCombination_id(combinationEntry.getKey());
+                            inventorySummary.setQuantity(combinationRepresentative.getQuantity());
+                            inventorySummary.setStatus("In Stock"); // 임의로 상태를 설정 (필요에 따라 수정 가능)
+                            inventorySummary.setOrigin_price(combinationRepresentative.getOrigin_price());
+                            inventorySummary.setDiscount_rate(combinationRepresentative.getDiscount_rate());
+                            inventorySummary.setSale_price(combinationRepresentative.getSale_price());
+
+                            // 옵션의 이름과 값을 리스트 형태로 저장
+                            List<Map<String, Object>> optionDetails = combinationItems.stream()
+                                .map(item -> {
+                                    Map<String, Object> optionMap = new HashMap<>();
+                                    optionMap.put(item.getOptionname(), item.getOptionvalue());
+                                    return optionMap;
+                                }).collect(Collectors.toList());
+
+                            inventorySummary.setOption(optionDetails);
+                            return inventorySummary;
+                        }).collect(Collectors.toList());
+
+                    productSummary.setOptions(inventorySummaryList);
+                    return productSummary;
+                }).collect(Collectors.toList());
+
+            brandSummary.setProducts(productSummaryList);
+            return brandSummary;
+        }).collect(Collectors.toList());
+
+    return brandSummaryList;
+  }
+
 
 }

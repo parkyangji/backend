@@ -191,14 +191,10 @@ public class ProductService {
       final MultipartFile[] thumbnailImages = (MultipartFile[]) uploadimageList.get("thumbnail");
       final MultipartFile[] detailImages = (MultipartFile[]) uploadimageList.get("detail");
 
-      String rootPath = "/Users/parkyangji/uploadFiles/";
-
-      // 폴더 생성
-      createFolderPath(rootPath, sellerId, subCategory);
-
-      String url = "ProductUploadImage/" + sellerId + "/" + subCategory + "/";
-      String inserUrl = imageConfig.getBasePath() + url;
-      String rootUrl = rootPath + url;
+      String rootPath = createFolderPath(sellerId, subCategory);
+      String url = "/ProductUploadImage/" + sellerId + "/" + subCategory + "/";
+      String inserUrl = "/ProductUploadImage/" + sellerId + "/" + subCategory + "/";
+      String rootUrl = rootPath;
 
       // 이미지 저장 및 DTO 생성
       List<ProductImageDto> imageList = new ArrayList<>();
@@ -211,18 +207,21 @@ public class ProductService {
       }
   }
 
-  private String createFolderPath(String rootPath ,int sellerId, int subCategory) {
-      String folderPath = rootPath + "ProductUploadImage/" + sellerId + "/" + subCategory + "/";
-      File folder = new File(folderPath);
-      if (!folder.exists()) {
-          if (folder.mkdirs()) {
-              System.out.println("폴더 생성 성공: " + folder.getAbsolutePath());
-          } else {
-              throw new RuntimeException("폴더 생성 실패: " + folder.getAbsolutePath());
-          }
-      }
-      return folderPath;
-  }
+    private String createFolderPath(int sellerId, int subCategory) {
+        // 프로젝트 내 static 경로로 설정
+        String rootPath = System.getProperty("user.dir") + "/src/main/resources/static/ProductUploadImage/";
+        String folderPath = rootPath + sellerId + "/" + subCategory + "/";
+
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            if (folder.mkdirs()) {
+                System.out.println("폴더 생성 성공: " + folder.getAbsolutePath());
+            } else {
+                throw new RuntimeException("폴더 생성 실패: " + folder.getAbsolutePath());
+            }
+        }
+        return folderPath;
+    }
 
     private void processImages(MultipartFile[] images, String imageType, String rootUrl, String inserUrl, int productId,
                                List<ProductImageDto> imageList) {

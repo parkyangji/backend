@@ -11,53 +11,83 @@
     <script th:src="@{/api.js}"></script>
   </head>
 <body>
-  <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
+  <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px; padding-bottom: 68px;">
     <!-- 네비/헤더 -->
     <div th:insert="~{fragments/sideheader::sideheader('주문·배송')}" class="px-0 container-sm fixed-top"></div>
 
     <!-- 컨텐츠 -->
-    <div class="container-sm px-4" style="padding-bottom: 48px;">
-        <!-- 주문 목록 -->
-        <div th:if="${orderItems != null}" th:each="order : ${orderItems}" class="mb-4">
-          <div class="border rounded p-3 mb-3">
-              <!-- 주문 ID와 날짜 -->
-              <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                      <!-- <h5 th:text="'주문번호: ' + ${order.order_id}"></h5> -->
-                      <p class="text-muted mb-0" th:text="'주문일자: ' + ${order.formattedOrderDate}"></p>
-                      <p class="text-muted" th:text="'주문시간: ' + ${order.formattedOrderTime}"></p>
-                  </div>
-                  <div>
-                      <button data-id="detailPageButton" class="btn btn-outline-primary btn-sm">주문 상세</button>
-                  </div>
-              </div>
-
-              <!-- 상품 목록 -->
-              <div class="mt-3" th:each="product : ${order.products}">
-                  <div class="d-flex align-items-start pb-3 mb-3">
-                      <!-- 상품 이미지 -->
-                      <a th:href="'/product?id=' + ${product.product_id}">
-                          <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="width: 80px; height: auto;">
-                      </a>
-                      
-                      <!-- 상품 정보 -->
-                      <div class="flex-grow-1">
-                          <h6 th:text="${product.title}"></h6>
-                          <p class="text-muted mb-0" th:text="'스토어: ' + ${product.store_name}"></p>
-                          <p class="text-muted mb-0" th:if="${product.discount_rate != null}" th:text="'할인율: ' + ${product.discount_rate} + '%'"></p>
-                          <p class="fw-bold" th:if="${product.rep_sale_price != null}" th:text="'판매가: ' + ${product.rep_sale_price} + '원'"></p>
-                          <p class="fw-bold" th:if="${product.rep_sale_price == null}" th:text="'판매가: ' + ${product.rep_price} + '원'"></p>
-                      </div>
-                  </div>
-              </div>
+    <div class="container-sm p-0" style="padding-bottom: 48px;">
+      <!-- 주문 목록 -->
+      <div class="p-4">
+        <div th:if="${orderItems != null}" th:each="order : ${orderItems}" >
+          <!-- 주문 ID와 날짜 -->
+          <div class=" d-flex justify-content-between align-items-center mb-2 px-1">
+            <div class="fs-1-5 fw-semibold">
+              <p class="orderDate mb-0" th:text="'주문일자: ' + ${order.order_date}"></p>
+            </div>
+            <div class="fs-14">
+              <form action="/mypage/orderDetail" method="POST">
+                <input type="hidden" name="order_id" th:value="${order.order_id}">
+                <button type="submit" class="letter-spacing-05">주문 상세</button>
+                <i class="bi bi-chevron-right" style="font-size: 13px; margin-left: 3px;"></i>
+              </form>
+            </div>
           </div>
+          <div class="mb-4">
+            <div class="border rounded p-3">
+              <!-- 브랜드 목록 -->
+              <div th:each="brand : ${order.brands}" class="mb-4">
+                <p th:text="${brand.store_name}" class="border-bottom pb-2 mb-3 fs-1-5 fw-medium main-text-sub-color"></p>
+
+                <!-- 상품 목록 -->
+                <div th:each="product : ${brand.products}" class="mb-3">
+                  <!-- 진행 상태 -->
+                  <div th:each="option : ${product.options}">
+                    <div class="mb-3">
+                      <p class="mb-3 main-text-strong-color fw-semibold" th:text="${option.status}"></p>
+                      <div class="d-flex align-items-start">
+                        <!-- 상품 이미지 -->
+                        <a th:href="'/product?id=' + ${product.product_id}">
+                          <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="max-width: 80px; height: auto;">
+                        </a>
+                        <!-- 상품 정보 -->
+                        <div class="flex-grow-1">
+                          <p class="fs-14 mb-1" th:text="${product.title}"></p>
+                          <!-- <p class="text-muted mb-0" th:if="${product.discount_rate != null}" th:text="'할인율: ' + ${product.discount_rate} + '%'"></p> -->
+
+                            <!-- 옵션 목록 -->
+                          <div class="fs-14 align-items-center text-secondary">
+                            <th:block th:each="data : ${option.option}">
+                              <th:block th:each="entry : ${data}">
+                                <span th:text="${entry.value}"></span>
+                              </th:block>
+                              <span class="mx-2" th:if="${!dataStat.last}"> x </span>
+                            </th:block>
+                            <!-- <p class="text-muted mb-0"> -->
+                              <!-- <span th:each="opt : ${option.option}" th:text="${#strings.arrayJoin(opt.values(), ', ')}"></span> -->
+                              <span class="mx-1">/</span>
+                              <span th:text="|${option.quantity}개|"></span>
+                            <!-- </p> -->
+                          </div>
+
+                          <p class="buyPrice fw-semibold m-0 mt-1"></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 주문이 없는 경우 -->
       <div th:if="${orderItems == null || orderItems.size() == 0}" class="text-center">
-          <p>현재 주문 내역이 없습니다.</p>
+        <p>현재 주문 내역이 없습니다.</p>
       </div>
     </div>
+
 
     <!-- 하단 푸터 -->
     <div th:insert="~{fragments/footer::footer}" class="container-sm fixed-bottom"></div>
@@ -72,9 +102,23 @@
     /* ]]> */
 
     console.log("orders: ",  JSON.parse(orderItemsJson));
-  </script>
-  <script>
-    document.get
+
+    const orderData = JSON.parse(orderItemsJson);
+
+    document.querySelectorAll('.orderDate').forEach((date,i) => { date.innerText = formatOrderDate(orderData[i].order_date);})
+
+    let idx = 0;
+    orderData.forEach((item) => {
+      item.brands.forEach((brand)=>{
+        brand.products.forEach((product)=>{
+          product.options.forEach((option)=>{
+            document.querySelectorAll('.buyPrice')[idx].innerText = formatPrice(option.buy_price) + "원";
+            idx++;
+          })
+        })
+      })
+    })
+
   </script>
 </body>
 

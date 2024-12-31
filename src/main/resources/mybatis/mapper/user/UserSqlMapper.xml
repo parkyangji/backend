@@ -14,8 +14,8 @@
   </insert>
 
   <!-- 배송지 관련 -->
-  <select id="getAddressCountByCustomerId" resultType="int">
-      SELECT COUNT(*)
+  <select id="getAddressCountByCustomerId" resultType="com.parkyangji.openmarket.backend.dto.AddressDto">
+      SELECT *
       FROM address
       WHERE customer_id = #{customerId}
   </select>
@@ -25,6 +25,12 @@
   </insert>
   <select id="selectDefalutAddress" resultType="com.parkyangji.openmarket.backend.dto.AddressDto">
     select * from address where is_default = true and customer_id = #{customerId}
+  </select>
+  <update id="updateAddressIsDefaultFalse">
+    UPDATE address SET is_default = FALSE WHERE customer_id = #{customer_id}
+  </update>
+  <select id="selectOrderAddress" resultType="com.parkyangji.openmarket.backend.dto.AddressDto">
+    SELECT * FROM address a WHERE address_id = ( SELECT address_id FROM `order` o WHERE order_id = #{order_id} )
   </select>
   
   <!-- 아이디 비번 -->
@@ -86,9 +92,6 @@
     SELECT address FROM address WHERE customer_id = #{customer_id};
   </select>
 
-  <!-- <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderDto">
-    SELECT * FROM product_order WHERE customer_id = #{customer_id} ORDER BY order_id DESC;
-  </select> -->
 
   <!-- 평점 -->
   <select id="selectRatingCheck" resultType="com.parkyangji.openmarket.backend.dto.ProductRatingDto">
@@ -324,12 +327,10 @@
     </foreach>
   </insert>
   <select id="selectOrderList" resultType="com.parkyangji.openmarket.backend.dto.OrderItemReturnDto">
-    SELECT cc.order_date , cc.order_id , ci.order_detail_id , ci.status, 
+    SELECT cc.order_date , cc.order_id , ci.order_detail_id , cc.delivery_message ,ci.status, 
     p.product_id ,s.store_name, p.title , pcv.combination_id ,
     ov.optionvalue as optionvalue, po.optionvalue as optionname,
-    ci.quantity, poi.price as origin_price,
-    IF(ssi.discount_rate IS NOT NULL, ssi.discount_rate , NULL ) as discount_rate,
-    IF(ssi.discount_rate IS NOT NULL, poi.price * (100 - ssi.discount_rate) / 100, NULL) as sale_price,
+    ci.quantity, ci.price as buy_price,
     pr.rating , pr2.review_content 
     FROM product_option_combination poc
     join product_combination_value pcv
@@ -355,7 +356,73 @@
     JOIN seller s
     on p.seller_id = s.seller_id 
     WHERE cc.customer_id = #{customer_id}
-    ORDER BY order_id desc, order_detail_id desc, optionname
+    ORDER BY ci.order_id desc, ci.order_detail_id desc, optionname
+    ;
+  </select>
+  <select id="selectWriteReviews" resultType="com.parkyangji.openmarket.backend.dto.OrderItemReturnDto">
+    SELECT cc.order_date ,cc.order_id , ci.order_detail_id ,
+        p.product_id ,s.store_name, p.title , pcv.combination_id ,
+        ov.optionvalue as optionvalue, po.optionvalue as optionname,
+        pr.rating, pr2.review_content
+    FROM product_option_combination poc
+    join product_combination_value pcv
+    on poc.combination_id = pcv.combination_id 
+    JOIN order_detail ci
+    ON ci.combination_id = pcv.combination_id 
+    LEFT JOIN `order` cc 
+    ON ci.order_id = cc.order_id 
+    LEFT JOIN product_rating pr 
+    ON pr.order_detail_id = ci.order_detail_id 
+    LEFT JOIN product_review pr2 
+    ON pr2.order_detail_id = ci.order_detail_id 
+    join product_option_value ov
+    on ov.option_value_id = pcv.option_value_id 
+    join product_option po 
+    on ov.option_id = po.option_id 
+    JOIN product_option_inventory poi 
+    on poi.combination_id = pcv.combination_id 
+    LEFT JOIN seller_sale_item ssi 
+    on ssi.product_id = poc.product_id 
+    join product p 
+    on poc.product_id = p.product_id 
+    JOIN seller s
+    on p.seller_id = s.seller_id 
+    WHERE cc.customer_id = #{customer_id}
+    AND (pr.rating IS NULL OR pr2.review_content IS NULL)
+    ORDER BY ci.order_id desc, ci.order_detail_id desc
+    ;
+  </select>
+    <select id="selectWrittenReviews" resultType="com.parkyangji.openmarket.backend.dto.OrderItemReturnDto">
+    SELECT cc.order_date ,cc.order_id , ci.order_detail_id ,
+        p.product_id ,s.store_name, p.title , pcv.combination_id,
+        ov.optionvalue as optionvalue, po.optionvalue as optionname,
+        pr.rating, pr.created_date as rating_created, pr2.review_content, pr2.created_date as review_created
+    FROM product_option_combination poc
+    join product_combination_value pcv
+    on poc.combination_id = pcv.combination_id 
+    JOIN order_detail ci
+    ON ci.combination_id = pcv.combination_id 
+    LEFT JOIN `order` cc 
+    ON ci.order_id = cc.order_id 
+    LEFT JOIN product_rating pr 
+    ON pr.order_detail_id = ci.order_detail_id 
+    LEFT JOIN product_review pr2 
+    ON pr2.order_detail_id = ci.order_detail_id 
+    join product_option_value ov
+    on ov.option_value_id = pcv.option_value_id 
+    join product_option po 
+    on ov.option_id = po.option_id 
+    JOIN product_option_inventory poi 
+    on poi.combination_id = pcv.combination_id 
+    LEFT JOIN seller_sale_item ssi 
+    on ssi.product_id = poc.product_id 
+    join product p 
+    on poc.product_id = p.product_id 
+    JOIN seller s
+    on p.seller_id = s.seller_id 
+    WHERE cc.customer_id = #{customer_id}
+    AND (pr.rating IS NOT NULL AND pr2.review_content IS NOT NULL)
+    ORDER BY ci.order_id desc, ci.order_detail_id desc
     ;
   </select>
 

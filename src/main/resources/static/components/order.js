@@ -6,25 +6,32 @@ async function purchase(event) { // 구매하기 (cart)
     return failMessagePopup('구매할 상품이 없습니다.');
   }
 
-  // productId, combinationId, quantity
+  // 체크박스된거 체크
+  // let checked_combination = [];
+  // document.querySelectorAll('.chkd[type="checkbox"]:checked').forEach((input)=>{
+  //   const combination_id = input.parentElement.parentElement.parentElement.querySelector('input[type="hidden"]').value;
+  //   checked_combination.push(parseInt(combination_id));
+  // })
 
   const copyCartItems = [...cartItems]; 
   let sendCartData = [];
-
-  // 나중엔 체크 박스 만들어서 체크된 것만 보내기!!
   copyCartItems.forEach((item)=> {
     item.products.forEach((product)=>{
       product.options.forEach((option)=>{
-        const item = {}
-        // item.productId = product.product_id;
-        item.combination_id = option.combination_id;
-        item.quantity = option.quantity;
-        sendCartData.push(item);
+        if (checked_combination.indexOf(option.combination_id) != -1) {
+          // console.log(option.combination_id)
+          const item = {}
+          item.combination_id = option.combination_id;
+          item.quantity = option.quantity;
+          sendCartData.push(item);
+        }
       })
     })
   })
 
   console.log(sendCartData);
+
+  if (sendCartData.length == 0) return failMessagePopup("구매할 상품이 없습니다.");
 
   const result = await fetchPurchaseProcess(sendCartData); // 주문할 아이템을 보냄 
 
@@ -40,6 +47,12 @@ async function payment(event) { // 결제하기 (order)
     addressId : document.getElementById('addressId').value,
     deliveryMessage : document.getElementById('deliveryMessageTextarea').value
   }
+
+  if (document.querySelector("input[name='paymentcheck']").checked == false) 
+    return failMessagePopup('결제 수단을 체크해주세요.');
+  if (document.querySelector("input[name='ordercheck']").checked == false) 
+    return failMessagePopup('동의 사항에 체크해주세요.');
+
   const result = await fetchPaymentProcess(type);
 
   // window.location.replace(result.data.redirectUrl); // 현재 페이지 URL을 새로운 페이지로 대체

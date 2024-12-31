@@ -137,230 +137,228 @@ function updateProductList(container , products, likeData) {
   // console.log(container, products, likeData)
   if (products.length === 0 && likeData === null) return container.innerHTML = ``;
   container.innerHTML = ``;
-  products.forEach((data, i) => {
-    const productDiv = document.createElement('div');
-    productDiv.className = 'p-0 col-6 position-relative';
+  // products.forEach((data, i) => {
+  //   const productDiv = document.createElement('div');
+  //   productDiv.className = 'p-0 col-6 position-relative';
 
-    const productLink = document.createElement('a');
-    productLink.href = `/product?id=${data.product_id}`;
+  //   const productLink = document.createElement('a');
+  //   productLink.href = `/product?id=${data.product_id}`;
 
-    const flexColumnDiv = document.createElement('div');
-    flexColumnDiv.className = 'd-flex flex-column fs-14';
+  //   const flexColumnDiv = document.createElement('div');
+  //   flexColumnDiv.className = 'd-flex flex-column fs-14';
 
-    // Image container
-    const imgContainer = document.createElement('div');
-    imgContainer.className = 'position-relative overflow-hidden';
+  //   // Image container
+  //   const imgContainer = document.createElement('div');
+  //   imgContainer.className = 'position-relative overflow-hidden';
 
-    const productImg = document.createElement('img');
-    productImg.style.cssText = 'width: 100%; height: 230px; object-fit: cover; object-position: top;';
-    productImg.src = data.image_url;
-    productImg.alt = data.title;
+  //   const productImg = document.createElement('img');
+  //   productImg.style.cssText = 'width: 100%; height: 230px; object-fit: cover; object-position: top;';
+  //   productImg.src = data.image_url;
+  //   productImg.alt = data.title;
 
-    const likeSpan = document.createElement('span');
-    likeSpan.className = 'position-absolute z-2 bottom-0 end-0';
-    likeSpan.dataset.productId = data.product_id;
-    likeSpan.onclick = (event) => like(event);
+  //   const likeSpan = document.createElement('span');
+  //   likeSpan.className = 'position-absolute z-2 bottom-0 end-0';
+  //   likeSpan.dataset.productId = data.product_id;
+  //   likeSpan.onclick = (event) => like(event);
 
-    const likeCheckbox = document.createElement('input');
-    likeCheckbox.value = 'favorite-button';
-    likeCheckbox.name = 'favorite-checkbox';
-    likeCheckbox.className = 'favorite';
-    likeCheckbox.type = 'checkbox';
-    if (likeData != null && likeData[i] != null) likeCheckbox.checked = true;
+  //   const likeCheckbox = document.createElement('input');
+  //   likeCheckbox.value = 'favorite-button';
+  //   likeCheckbox.name = 'favorite-checkbox';
+  //   likeCheckbox.className = 'favorite';
+  //   likeCheckbox.type = 'checkbox';
+  //   if (likeData != null && likeData[i] != null) likeCheckbox.checked = true;
 
-    const likeLabel = document.createElement('label');
-    likeLabel.className = 'favorite-container';
-    likeLabel.htmlFor = 'favorite';
+  //   const likeLabel = document.createElement('label');
+  //   likeLabel.className = 'favorite-container';
+  //   likeLabel.htmlFor = 'favorite';
 
-    const likeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    likeSvg.className = 'feather feather-heart';
-    likeSvg.setAttribute('stroke-linejoin', 'round');
-    likeSvg.setAttribute('stroke-linecap', 'round');
-    likeSvg.setAttribute('stroke-width', '2');
-    likeSvg.setAttribute('stroke', 'currentColor');
-    likeSvg.setAttribute('fill', 'none');
-    likeSvg.setAttribute('viewBox', '0 0 24 24');
-    likeSvg.setAttribute('height', '24');
-    likeSvg.setAttribute('width', '24');
+  //   const likeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  //   likeSvg.className = 'feather feather-heart';
+  //   likeSvg.setAttribute('stroke-linejoin', 'round');
+  //   likeSvg.setAttribute('stroke-linecap', 'round');
+  //   likeSvg.setAttribute('stroke-width', '2');
+  //   likeSvg.setAttribute('stroke', 'currentColor');
+  //   likeSvg.setAttribute('fill', 'none');
+  //   likeSvg.setAttribute('viewBox', '0 0 24 24');
+  //   likeSvg.setAttribute('height', '24');
+  //   likeSvg.setAttribute('width', '24');
 
-    const likePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    likePath.setAttribute('d', 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z');
+  //   const likePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  //   likePath.setAttribute('d', 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z');
 
-    likeSvg.appendChild(likePath);
-    likeLabel.appendChild(likeSvg);
-    likeSpan.appendChild(likeCheckbox);
-    likeSpan.appendChild(likeLabel);
-    imgContainer.appendChild(productImg);
-    imgContainer.appendChild(likeSpan);
+  //   likeSvg.appendChild(likePath);
+  //   likeLabel.appendChild(likeSvg);
+  //   likeSpan.appendChild(likeCheckbox);
+  //   likeSpan.appendChild(likeLabel);
+  //   imgContainer.appendChild(productImg);
+  //   imgContainer.appendChild(likeSpan);
 
-    // 임시 모달 추가 -- 24.11.25 //
-    /*
-    const modalSpan = document.createElement('span');
-    modalSpan.className = 'bottom-0 end-0 position-absolute text-white z-2';
-    modalSpan.style.cssText = 'margin-bottom: 3em;';
-    modalSpan.dataset.productId = data.product_id;
-    modalSpan.onclick = (event) => tempModal(event);
+  //   // 임시 모달 추가 -- 24.11.25 //
+  //   /*
+  //   const modalSpan = document.createElement('span');
+  //   modalSpan.className = 'bottom-0 end-0 position-absolute text-white z-2';
+  //   modalSpan.style.cssText = 'margin-bottom: 3em;';
+  //   modalSpan.dataset.productId = data.product_id;
+  //   modalSpan.onclick = (event) => tempModal(event);
 
-    const modalIcon = document.createElement('i');
-    modalIcon.className = 'bi bi-search d-block fs-4';
-    modalIcon.style.cssText = 'margin-right: 0.5em;';
+  //   const modalIcon = document.createElement('i');
+  //   modalIcon.className = 'bi bi-search d-block fs-4';
+  //   modalIcon.style.cssText = 'margin-right: 0.5em;';
 
-    const modalInput = document.createElement('input');
-    modalInput.style = 'display: none';
-    modalInput.value = 'temp-modal';
-    modalInput.name = 'temp-modal';
-    modalInput.type = 'checkbox';
+  //   const modalInput = document.createElement('input');
+  //   modalInput.style = 'display: none';
+  //   modalInput.value = 'temp-modal';
+  //   modalInput.name = 'temp-modal';
+  //   modalInput.type = 'checkbox';
 
-    const modalLabel = document.createElement('label');
-    modalLabel.appendChild(modalIcon);
+  //   const modalLabel = document.createElement('label');
+  //   modalLabel.appendChild(modalIcon);
 
-    modalSpan.appendChild(modalInput);
-    modalSpan.appendChild(modalLabel);
-    imgContainer.appendChild(modalSpan);
-    */
-    //
+  //   modalSpan.appendChild(modalInput);
+  //   modalSpan.appendChild(modalLabel);
+  //   imgContainer.appendChild(modalSpan);
+  //   */
+  //   //
 
-    // Content container
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'px-3 pt-2 pb-4 mb-2';
+  //   // Content container
+  //   const contentDiv = document.createElement('div');
+  //   contentDiv.className = 'px-3 pt-2 pb-4 mb-2';
 
-    const storeNameSpan = document.createElement('span');
-    storeNameSpan.className = 'fs-13 fw-bold';
-    storeNameSpan.textContent = data.store_name;
+  //   const storeNameSpan = document.createElement('span');
+  //   storeNameSpan.className = 'fs-13 fw-bold';
+  //   storeNameSpan.textContent = data.store_name;
 
-    const titleSpan = document.createElement('span');
-    titleSpan.className = 'lh-sm my-1';
-    titleSpan.style.cssText = 'display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;';
-    titleSpan.textContent = data.title;
+  //   const titleSpan = document.createElement('span');
+  //   titleSpan.className = 'lh-sm my-1';
+  //   titleSpan.style.cssText = 'display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;';
+  //   titleSpan.textContent = data.title;
 
-    const priceDiv = document.createElement('div');
-    priceDiv.className = 'd-inline-flex gap-1 my-1';
-    if (data.discount_rate != null) {
-        const discountSpan = document.createElement('span');
-        discountSpan.className = 'fw-bold main-text-strong-color';
-        discountSpan.textContent = `${data.discount_rate}%`;
+  //   const priceDiv = document.createElement('div');
+  //   priceDiv.className = 'd-inline-flex gap-1 my-1';
+  //   if (data.discount_rate != null) {
+  //       const discountSpan = document.createElement('span');
+  //       discountSpan.className = 'fw-bold main-text-strong-color';
+  //       discountSpan.textContent = `${data.discount_rate}%`;
 
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'fw-bold letter-spacing-05';
-        priceSpan.textContent = `${formatPrice(data.rep_sale_price)}원`;
+  //       const priceSpan = document.createElement('span');
+  //       priceSpan.className = 'fw-bold letter-spacing-05';
+  //       priceSpan.textContent = `${formatPrice(data.rep_sale_price)}원`;
 
-        priceDiv.appendChild(discountSpan);
-        priceDiv.appendChild(priceSpan);
-    } else {
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'fw-bold letter-spacing-05';
-        priceSpan.textContent = `${formatPrice(data.rep_price)}원`;
-        priceDiv.appendChild(priceSpan);
-    }
+  //       priceDiv.appendChild(discountSpan);
+  //       priceDiv.appendChild(priceSpan);
+  //   } else {
+  //       const priceSpan = document.createElement('span');
+  //       priceSpan.className = 'fw-bold letter-spacing-05';
+  //       priceSpan.textContent = `${formatPrice(data.rep_price)}원`;
+  //       priceDiv.appendChild(priceSpan);
+  //   }
     
-    contentDiv.appendChild(storeNameSpan);
-    contentDiv.appendChild(titleSpan);
-    contentDiv.appendChild(priceDiv);
+  //   contentDiv.appendChild(storeNameSpan);
+  //   contentDiv.appendChild(titleSpan);
+  //   contentDiv.appendChild(priceDiv);
 
-    // Keywords and ratings
-    //if (data.keywords && data.keywords.length !== 0) {
-        const keywordDiv = document.createElement('div');
-        keywordDiv.className = 'd-flex fs-13 gap-1 mt-1 position-absolute';
+  //   // Keywords and ratings
+  //   //if (data.keywords && data.keywords.length !== 0) {
+  //       const keywordDiv = document.createElement('div');
+  //       keywordDiv.className = 'd-flex fs-13 gap-1 mt-1 position-absolute';
 
-        data.keywords.forEach((keyword) => {
-            const keywordSpan = document.createElement('span');
-            keywordSpan.className = 'badge rounded-0';
-            keywordSpan.style.cssText = 'background: #f0f0f0; color: #9c9c9c;';
-            keywordSpan.textContent = keyword;
-            keywordDiv.appendChild(keywordSpan);
-        });
+  //       data.keywords.forEach((keyword) => {
+  //           const keywordSpan = document.createElement('span');
+  //           keywordSpan.className = 'badge rounded-0';
+  //           keywordSpan.style.cssText = 'background: #f0f0f0; color: #9c9c9c;';
+  //           keywordSpan.textContent = keyword;
+  //           keywordDiv.appendChild(keywordSpan);
+  //       });
 
-        const ratingDiv = document.createElement('div');
-        ratingDiv.className = 'fw-medium';
-        ratingDiv.style.cssText = 'color: #99a1a8; font-size: 12px; letter-spacing: -0.5px;';
+  //       const ratingDiv = document.createElement('div');
+  //       ratingDiv.className = 'fw-medium';
+  //       ratingDiv.style.cssText = 'color: #99a1a8; font-size: 12px; letter-spacing: -0.5px;';
 
-        if (data.avgRating != null) {
-            const starSpan = document.createElement('span');
-            starSpan.className = 'rating-color';
-            starSpan.style.fontSize = '0.8em';
-            starSpan.style.marginRight = '0.1em'
-            starSpan.textContent = '★';
+  //       if (data.avgRating != null) {
+  //           const starSpan = document.createElement('span');
+  //           starSpan.className = 'rating-color';
+  //           starSpan.style.fontSize = '0.8em';
+  //           starSpan.style.marginRight = '0.1em'
+  //           starSpan.textContent = '★';
 
-            const ratingSpan = document.createElement('span');
-            ratingSpan.textContent = data.avgRating;
+  //           const ratingSpan = document.createElement('span');
+  //           ratingSpan.textContent = data.avgRating;
 
-            ratingDiv.appendChild(starSpan);
-            ratingDiv.appendChild(ratingSpan);
-        }
+  //           ratingDiv.appendChild(starSpan);
+  //           ratingDiv.appendChild(ratingSpan);
+  //       }
 
-        if (data.reviewCount && data.reviewCount != 0) {
-            const reviewSpan = document.createElement('span');
-            reviewSpan.textContent = `(${data.reviewCount})`;
-            ratingDiv.appendChild(reviewSpan);
-        }
+  //       if (data.reviewCount && data.reviewCount != 0) {
+  //           const reviewSpan = document.createElement('span');
+  //           reviewSpan.textContent = `(${data.reviewCount})`;
+  //           ratingDiv.appendChild(reviewSpan);
+  //       }
 
-        keywordDiv.appendChild(ratingDiv);
-        contentDiv.appendChild(keywordDiv);
-   // }
+  //       keywordDiv.appendChild(ratingDiv);
+  //       contentDiv.appendChild(keywordDiv);
+  //  // }
 
-    flexColumnDiv.appendChild(imgContainer);
-    flexColumnDiv.appendChild(contentDiv);
-    productLink.appendChild(flexColumnDiv);
-    productDiv.appendChild(productLink);
+  //   flexColumnDiv.appendChild(imgContainer);
+  //   flexColumnDiv.appendChild(contentDiv);
+  //   productLink.appendChild(flexColumnDiv);
+  //   productDiv.appendChild(productLink);
 
-    container.insertAdjacentElement('afterbegin', productDiv);
-  });
+  //   container.insertAdjacentElement('afterbegin', productDiv);
+  // });
   
  // innerHTML 쓰지말랭...
- /*
+ 
   products.forEach((data, i) => {
     const productHtml = `
-    <div class="p-0 col-6 position-relative">
-      <a href="/product?id=${data.product_id}">
-        <div class="d-flex flex-column fs-14">
-          <div class="position-relative overflow-hidden">
-            <img style="width: 100%; height: 230px; object-fit: cover; object-position: top;" 
-                 src="${data.image_url}" alt="${data.title}">
-            <span data-product-id="${data.product_id}" onclick="like(event)" 
-                  class="position-absolute z-2 bottom-0 end-0">
-              <input value="favorite-button" name="favorite-checkbox" class="favorite" type="checkbox"
-               ${likeData != null && likeData[i] != null ? 'checked' : ''} />
-              <label class="favorite-container" for="favorite">
-                <svg class="feather feather-heart" stroke-linejoin="round" stroke-linecap="round" 
-                     stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" 
-                     height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-              </label>
-            </span>
-          </div>
-          <div class="px-3 pt-2 pb-4 mb-2">
-            <span class="fs-13 fw-bold">${data.store_name}</span>
-            <span class="lh-sm my-1" style="display: -webkit-box; -webkit-box-orient: vertical; 
-                  -webkit-line-clamp: 1; overflow: hidden;">${data.title}</span>
-            <div class="d-inline-flex gap-1 my-1">
-              ${data.discount_rate != null ? `<span class="fw-bold main-text-strong-color">${data.discount_rate}%</span>` : ''}
-              <span class="fw-bold letter-spacing-05">${data.discount_rate != null ? formatPrice(data.rep_sale_price) : formatPrice(data.rep_price)}원</span>
+      <div class="p-0 col-6 position-relative">
+        <a href="/product?id=${data.product_id}">
+          <div class="d-flex flex-column fs-14">
+            <div class="position-relative overflow-hidden">
+              <img style="width: 100%; height: 230px; object-fit: cover; object-position: top;" 
+                  src="${data.image_url}" alt="${data.title}">
+              <span class="position-absolute z-2 bottom-0 end-0" data-product-id="${data.product_id}" onclick="like(event)">
+                <input value="favorite-button" name="favorite-checkbox" class="favorite" type="checkbox"
+                ${likeData != null && likeData[i] != null ? 'checked' : ''} />
+                <label class="favorite-container" for="favorite">
+                  <svg class="feather feather-heart" stroke-linejoin="round" stroke-linecap="round" 
+                      stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" 
+                      height="24" width="24">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </label>
+              </span>
             </div>
-            ${data.keywords && data.keywords.length !== 0 ? `
+            <div class="px-3 pt-2 pb-4 mb-3">
+              <span class="fs-13 fw-bold">${data.store_name}</span>
+              <span class="lh-sm my-1" style="display: -webkit-box; -webkit-box-orient: vertical; 
+                    -webkit-line-clamp: 1; overflow: hidden;">${data.title}</span>
+              <div class="d-inline-flex gap-1 my-1">
+                ${data.discount_rate != null 
+                  ? `<span class="fw-bold main-text-strong-color">${data.discount_rate}%</span>
+                    <span class="fw-bold letter-spacing-05">${formatPrice(data.rep_sale_price)}원</span>`
+                  : `<span class="fw-bold letter-spacing-05">${formatPrice(data.rep_price)}원</span>`}
+              </div>
               <div class="d-flex fs-13 gap-1 mt-1 position-absolute">
                 ${data.keywords.map(keyword => `
                   <span class="badge rounded-0" style="background: #f0f0f0; color: #9c9c9c;">${keyword}</span>
                 `).join('')}
                 <div class="fw-medium" style="color: #99a1a8; font-size: 12px; letter-spacing: -0.5px;">
                   ${data.avgRating != null ? `
-                    <span class="rating-color" style="font-size: 0.8em;">★ </span>
+                    <span class="rating-color" style="font-size: 0.8em;">★</span>
                     <span>${data.avgRating}</span>
                   ` : ''}
-                  ${data.reviewCount && data.reviewCount != 0 ? `
-                    <span>(${data.reviewCount})</span>
-                  ` : ''}
+                  ${data.reviewCount && data.reviewCount != 0 ? `<span>(${data.reviewCount})</span>` : ''}
                 </div>
               </div>
-            ` : ''}
+            </div>
           </div>
-        </div>
-      </a>
-    </div>`;
+        </a>
+      </div>
+    `;
 
     container.insertAdjacentHTML('afterbegin', productHtml);
   });
-  */
+  
 }
 
 

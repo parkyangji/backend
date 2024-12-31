@@ -206,3 +206,16 @@ const fetchStatisticsOthersBestTop5 = async (productId) => {
   if (!response.ok) throw new Error('Failed to fetch data');
   return response.json();
 }
+
+
+const fetchReviewData = async (tab) => {
+  const response = await fetch('/api/mydata/review', {
+    method : 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body : `tab=${tab}` // 직렬화 시켜 보내기
+  });
+  if (!response.ok) throw new Error('Failed to fetch data');
+  return response.json();
+}

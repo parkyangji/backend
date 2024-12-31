@@ -23,6 +23,8 @@ import com.parkyangji.openmarket.backend.admin.service.ProductService;
 import com.parkyangji.openmarket.backend.dto.ProductDto;
 import com.parkyangji.openmarket.backend.dto.SellerDto;
 
+import com.parkyangji.openmarket.backend.common.SessionConstants;
+
 import jakarta.servlet.http.HttpSession;
 
 // Controller: HTTP 요청/응답 처리 및 사용자와의 인터페이스를 담당.
@@ -41,7 +43,7 @@ public class AdminController {
   @RequestMapping("dashboard")
   public String dashboardPage(HttpSession httpSession, Model model){
 
-    System.out.println("admin "+httpSession.getAttribute("sellerInfo"));
+    System.out.println("admin "+httpSession.getAttribute(SessionConstants.SELLER_INFO));
 
     return "admin/admin_dashboard";
   }
@@ -49,9 +51,9 @@ public class AdminController {
   @RequestMapping("")
   public String loginPage(HttpSession httpSession, Model model){
 
-    SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
+    SellerDto sellerDto = (SellerDto) httpSession.getAttribute(SessionConstants.SELLER_INFO);
 
-    model.addAttribute("sellerInfo", sellerDto);
+    model.addAttribute(SessionConstants.SELLER_INFO, sellerDto);
     
     return "admin/admin_login";
   }
@@ -61,7 +63,7 @@ public class AdminController {
 
     SellerDto sellerDto = sellerService.loginCheck(params);
 
-    httpSession.setAttribute("sellerInfo", sellerDto);
+    httpSession.setAttribute(SessionConstants.SELLER_INFO, sellerDto);
 
     return "redirect:/admin/dashboard";
   }
@@ -162,7 +164,7 @@ public class AdminController {
   @RequestMapping("products")
   public String products(HttpSession httpSession, Model model){
 
-    SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
+    SellerDto sellerDto = (SellerDto) httpSession.getAttribute(SessionConstants.SELLER_INFO);
 
     List<ProductDto> productList = productService.sellerProducts(sellerDto.getSeller_id());
 
@@ -241,11 +243,11 @@ public class AdminController {
   @RequestMapping("order")
   public String orders(HttpSession httpSession, Model model){
 
-    SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
+    SellerDto sellerDto = (SellerDto) httpSession.getAttribute(SessionConstants.SELLER_INFO);
     
     model.addAttribute("orderList", orderService.getAllOrders(sellerDto.getSeller_id()));
     model.addAttribute("data", DebugUtil.toJsonString(orderService.getAllOrders(sellerDto.getSeller_id())));
-    // System.out.println(orderService.getAllOrders(sellerDto.getSeller_id()));
+
     return "admin/admin_order";
   }
 
@@ -265,7 +267,7 @@ public class AdminController {
   @RequestMapping("review")
   public String review(HttpSession httpSession, Model model){
 
-    SellerDto sellerDto = (SellerDto) httpSession.getAttribute("sellerInfo");
+    SellerDto sellerDto = (SellerDto) httpSession.getAttribute(SessionConstants.SELLER_INFO);
 
     List<Map<String, Object>> reviewList = sellerService.getAllReviews(sellerDto.getSeller_id());
     // System.out.println(reviewList);

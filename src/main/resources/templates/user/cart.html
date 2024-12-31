@@ -11,73 +11,82 @@
     <script th:src="@{/api.js}"></script>
   </head>
   <body>
-    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px;">
+    <div id="wrap" class="d-flex flex-column min-vh-100" style="padding-top: 48px; padding-bottom: 68px;">
       <!-- 네비/헤더 -->
       <!-- <div th:insert="~{fragments/header::header}" class="container-sm fixed-top main-bg-color main-text-ligth-color"></div> -->
       <div th:insert="~{fragments/sideheader::sideheader('장바구니')}" class="px-0 container-sm fixed-top"></div>
       <!-- 컨텐츠 -->
-      <div class="container-sm" style="padding-bottom: 48px;">
+      <div class="container-sm p-4" style="padding-bottom: 48px;">
       <!-- <div class="container-sm" style="padding-bottom: 48px;"> -->
       <!-- <div class="container-sm" style="height: calc(100vh - 48px - 45px); width: 100vw;"> -->
-        <div th:if="${cartItems != null}" th:each="brand : ${cartItems}" class="mb-4 border rounded p-3">
+
+        <div th:if="${cartItems != null}" th:each="brand : ${cartItems}" class="mb-4 rounded border p-3">
           <!-- 브랜드 이름 -->
           <div class="d-flex align-items-center mb-3">
-            <span class="fw-bold fs-5" th:text="${brand.store_name}"></span>
+            <div class="me-2">
+              <input type="checkbox" name="check" class="chk">
+              <label for="chk"></label>
+            </div>
+            <a th:href="@{/brand(name=${brand.store_name})}">
+              <span class="fs-1-5 fw-medium" th:text="${brand.store_name}"></span>
+            </a>
           </div>
-      
           <!-- 상품 반복 -->
           <div th:each="product : ${brand.products}" class="border-bottom pb-3 mb-3">
             <div class="orderProduct mt-3" th:each="inventory : ${product.options}">
+              <input type="hidden" name="combination_id" th:value="${inventory.combination_id}">
               <div class="d-flex align-items-start" >
+                <div class="me-3">
+                  <input type="checkbox" name="check" class="chkd">
+                  <label for="chkd"></label>
+                </div>
                 <!-- 상품 이미지 -->
                  <a th:href="|/product?id=${product.product_id}|">
                    <img th:src="${product.image_url}" alt="Product Image" class="me-3" style="max-width: 80px; height: auto;" />
                  </a>
-        
                 <!-- 상품 정보 -->
                 <div class="flex-grow-1">
-                  <p class="fw-bold mb-1" th:text="${product.title}"></p>
+                  <p class="fs-14 mb-1" th:text="${product.title}"></p>
                   <!-- <p class="small text-muted mb-1">12.02(월) 이내 발송 예정</p>
                   <div class="d-inline-flex align-items-center gap-1 mb-2">
                     <span class="badge bg-secondary small">직배송</span>
                   </div> -->
-                  <div class="d-flex align-items-center">
+                  <div class="d-flex align-items-center text-secondary">
                     <th:block th:each="data : ${inventory.option}">
                       <th:block th:each="entry : ${data}">
-                        <span class="text-muted" th:text="${entry.value}"></span>
+                        <span th:text="${entry.value}"></span>
                       </th:block>
-                      <span class="text-muted mx-2" th:if="${!dataStat.last}"> x </span>
+                      <span class="mx-2" th:if="${!dataStat.last}"> x </span>
                     </th:block>
                     <!-- <span class="mx-2"> / </span> -->
                     <!-- <span th:text="|${inventory.quantity}개|"></span> -->
                   </div>
                 </div>
-        
                 <!-- 삭제 버튼 -->
-                <button th:data-combination-id="${inventory.combination_id}" onclick="optionDelete(event)" class="btn btn-outline-danger btn-sm ms-3">X</button>
+                <button onclick="optionDelete(event)" class="ps-2">X</button>
               </div>
-      
               <!-- 가격 정보 -->
-              <div class="mt-3 d-flex justify-content-between">
+              <div class="mt-3 d-flex justify-content-between align-items-center">
                 <div>
-                  <span>상품 금액</span>
-                  <span class="fw-bold ms-2 formattedPrice" ></span>
+                  <span class="text-decoration-line-through text-muted fs-14 originPrice"></span>
+                  <span class="fw-semibold formattedPrice" ></span>
                 </div>
-                <div th:data-combination-id="${inventory.combination_id}" class="optionChangeContainer d-flex align-items-center">
-                  <button class="decrement btn btn-outline-secondary btn-sm">-</button>
+
+                <div class="optionChangeContainer d-flex align-items-center">
+                  <button class="decrement">-</button>
                   <span class="optionValue form-control text-center mx-2" style="width: 50px;" th:text="${inventory.quantity}">1</span>
-                  <button class="increment btn btn-outline-secondary btn-sm">+</button>
+                  <button class="increment">+</button>
                 </div>
               </div>
             </div>
           </div>
-      
           <!-- 브랜드당 금액 -->
-          <div class="d-flex justify-content-center align-items-center gap-1">
+          <div class="d-flex justify-content-center align-items-center gap-1 main-text-sub-color">
             <span>합계 :</span>
-            <span class="brandSumPrice"></span>
+            <span class="brandSumPrice fw-medium"></span>
           </div>
         </div>
+
       </div>
 
       <!-- 하단 푸터 -->
@@ -101,45 +110,79 @@
 
     let totalOriginPrice = 0;
     let totalBrandPrice = 0;
+    let checked_combination = [];
 
-    if (cartItems != null) {
-      const formattedPrice = document.querySelectorAll('.formattedPrice');
-      const brandSumPrice = document.querySelectorAll('.brandSumPrice');
-
-      let customIndex = 0;
-      let brandIndex = 0;
-
-      let details = null;
-      let prices = null;
-
-      cartItems.forEach((item) => {
-          item.products.forEach(product => {
-            product.options.forEach((option) => {
-
-                details = option;
-                prices = calculatePrices(details.origin_price, details.sale_price, details.discount_rate, details.quantity);
-
-                if (formattedPrice[customIndex]) {
-                    formattedPrice[customIndex].innerText = formatPrice(prices.TotalPrice) + "원";
-                }
-
-                // 총 가격 계산
-                totalOriginPrice += prices.TotalPrice;
-                totalBrandPrice += prices.TotalPrice;
-
-                // 커스텀 인덱스를 증가
-                customIndex++;
-            });
-          });
-
-        if (brandSumPrice[brandIndex]) {
-          brandSumPrice[brandIndex].innerText = formatPrice(totalBrandPrice) + "원";
-          totalBrandPrice = 0
-        }
-
-        brandIndex++;
-      });
+    function checkedUpdate(){
+      checked_combination = [];
+      document.querySelectorAll('.chkd[type="checkbox"]:checked').forEach((input)=>{
+        const combination_id = input.parentElement.parentElement.parentElement.querySelector('input[type="hidden"]').value;
+        if (checked_combination.every(x=>x!=combination_id)) checked_combination.push(parseInt(combination_id));
+      })
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      updateTotalPrices();
+
+      // 이벤트 리스너 추가
+      document.querySelectorAll(".increment").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const combinationId = event.target.parentElement.parentElement.parentElement.querySelector('input[type="hidden"]').value;
+          const quantityElement = event.target.parentElement.querySelector(".optionValue");
+
+          updateQuantityUI(true, combinationId, quantityElement); // 증가
+        });
+      });
+
+      document.querySelectorAll(".decrement").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const combinationId = event.target.parentElement.parentElement.parentElement.querySelector('input[type="hidden"]').value;
+          const quantityElement = event.target.parentElement.querySelector(".optionValue");
+
+          updateQuantityUI(false, combinationId, quantityElement); // 감소
+        });
+      });
+
+      document.querySelectorAll('.chk[type="checkbox"]').forEach((brandCheckbox) => {
+        // 각 브랜드 체크박스에 이벤트 리스너 추가
+        brandCheckbox.addEventListener('change', (event) => {
+          const brandContainer = event.target.closest('.mb-4'); // 해당 브랜드의 컨테이너
+          const productCheckboxes = brandContainer.querySelectorAll('.chkd[type="checkbox"]');
+
+
+            // 브랜드 체크박스 상태에 따라 하위 상품 체크박스 상태 변경
+            productCheckboxes.forEach((productCheckbox) => {
+              productCheckbox.checked = event.target.checked;
+            });
+
+            checkedUpdate();
+            updateTotalPrices();
+          });
+      });
+
+      document.querySelectorAll('.chkd[type="checkbox"]').forEach((check) => {
+        check.addEventListener('change', (event) => {
+          const brandContainer = check.parentElement.parentElement.parentElement.parentElement.parentElement;
+          const brandCheckbox = brandContainer.querySelector('.chk');
+          const productCheckbox = brandContainer.querySelectorAll('.chkd');
+
+          let allState = false;
+          for ( box of productCheckbox) {
+            if (box.checked == false) {
+              allState = false;
+              brandCheckbox.checked = false;
+              break
+            }
+            allState = true
+            brandCheckbox.checked = true;
+          }
+
+          checkedUpdate();
+          updateTotalPrices();
+        })
+      });
+    })
+
+
 
     async function optionDelete(event){
       event.preventDefault();
@@ -147,10 +190,7 @@
 
       let self = event.currentTarget;
       let productContainer = self.parentElement.parentElement;
-      // let combinationId = self.dataset.combinationId;
-
-      const idx = Array.from(document.querySelectorAll('.orderProduct')).indexOf(productContainer);
-      const combinationId = getCombinationIdByIndex(idx, cartItems);
+      let combinationId = productContainer.querySelector('input[type="hidden"]').value;
 
       const result = await fetchDeleteCartItem(combinationId);
       
@@ -161,24 +201,6 @@
     } 
 
 
-    // 클릭한 인덱스를 기반으로 combination_id를 찾는 함수
-    function getCombinationIdByIndex(index, data) {
-      let count = 0; // 전체 상품 옵션 순회 인덱스
-      for (const brand of data) {
-        for (const product of brand.products) {
-          for (const option of product.options) {
-            // 인덱스가 일치하면 해당 combination_id 반환
-            if (count === index) {
-              return option.combination_id;
-            }
-            count++;
-          }
-        }
-      }
-      return null; // 일치하는 데이터가 없을 경우 null 반환
-    }
-
-
     async function updateQuantity(quantity, combination_id){
       const requestData = {
         combination_id: parseInt(combination_id),
@@ -186,50 +208,100 @@
       };
 
       const result = await fetchUpdateQuantity(requestData);
-      console.log(result);
+      // console.log(result);
 
-      window.location.reload(); // 새로고침
+      // window.location.reload();
     }
 
+    // 전체 가격 업데이트 함수
+    function updateTotalPrices() {
+      const formattedPriceElements = document.querySelectorAll('.formattedPrice');
+      const brandSumPriceElements = document.querySelectorAll('.brandSumPrice');
+      const OrignPriceElements = document.querySelectorAll('.originPrice');
+
+      let customIndex = 0;
+      let brandIndex = 0;
+
+      totalOriginPrice = 0;
+
+      if (cartItems === null) return;
+      cartItems.forEach((item) => {
+        totalBrandPrice = 0;
+
+        item.products.forEach((product) => {
+          product.options.forEach((option) => {
+            const prices = calculatePrices(option.origin_price, option.sale_price, option.discount_rate, option.quantity);
+
+            // UI 업데이트
+            if (formattedPriceElements[customIndex]) {
+              formattedPriceElements[customIndex].innerText = formatPrice(prices.TotalPrice) + "원";
+            }
+            if (OrignPriceElements[customIndex] && option.discount_rate != null) {
+              OrignPriceElements[customIndex].innerText = formatPrice(prices.TotalOriginPrice) + "원";
+            }
 
 
-    // 이벤트 리스너 추가
-    document.querySelectorAll(".increment").forEach(item=>{
-      item.addEventListener("click", (event) => {
-        const combinationId = event.target.parentElement.dataset.combinationId;
+            // totalOriginPrice += prices.TotalPrice;
+            // totalBrandPrice += prices.TotalPrice;
+            checked_combination.forEach((x)=>{
+              if (x == option.combination_id) {
+                totalOriginPrice += prices.TotalPrice;
+                totalBrandPrice += prices.TotalPrice;
+              }
+            })
 
-        const quantityElement = event.target.parentElement.querySelector(".optionValue");
-        let currentQuantity = parseInt(quantityElement.textContent);
+            customIndex++;
+          });
+        });
 
-        currentQuantity += 1;
-        quantityElement.textContent = currentQuantity;
-
-        updateQuantity(currentQuantity , combinationId); // 증가
-      });
-    })
-    document.querySelectorAll(".decrement").forEach(item=>{
-      item.addEventListener("click", (event) => {
-        const combinationId = event.target.parentElement.dataset.combinationId;
-
-        const quantityElement = event.target.parentElement.querySelector(".optionValue");
-        let currentQuantity = parseInt(quantityElement.textContent);
-
-        if (currentQuantity > 1) {
-            currentQuantity -= 1;
-            quantityElement.textContent = currentQuantity;
-    
-            updateQuantity(currentQuantity , combinationId); // 감소
+        if (brandSumPriceElements[brandIndex]) {
+          brandSumPriceElements[brandIndex].innerText = formatPrice(totalBrandPrice) + "원";
         }
+
+        brandIndex++;
       });
-    })
 
-
-    const orderFooterButton = document.querySelector('#purchase button');
-    if (totalOriginPrice == 0 || totalOriginPrice == null) {
-      orderFooterButton.textContent = "구매하기";
-    } else {
-      orderFooterButton.textContent = `${formatPrice(totalOriginPrice)}원 구매하기`;
+      const orderFooterButton = document.querySelector('#purchase button');
+      if (totalOriginPrice > 0) {
+        orderFooterButton.textContent = `${formatPrice(totalOriginPrice)}원 구매하기`;
+      } else {
+        orderFooterButton.textContent = "구매하기";
+      }
     }
+
+    // 수량 변경 함수
+    function updateQuantityUI(isIncrement, combinationId, quantityElement) {
+      let currentQuantity = parseInt(quantityElement.textContent);
+
+      // 수량 변경
+      if (isIncrement) {
+        currentQuantity += 1;
+      } else if (currentQuantity > 1) {
+        currentQuantity -= 1;
+      }
+
+      // 업데이트된 수량을 UI에 반영
+      quantityElement.textContent = currentQuantity;
+
+      // cartItems 데이터 업데이트
+      for (const brand of cartItems) {
+        for (const product of brand.products) {
+          for (const option of product.options) {
+            if (option.combination_id === parseInt(combinationId)) {
+              option.quantity = currentQuantity;
+              break;
+            }
+          }
+        }
+      }
+
+      // 전체 가격 업데이트
+      updateTotalPrices();
+      // 서버에 업데이트 요청
+      updateQuantity(currentQuantity, combinationId);
+    }
+
+
 
   </script>
   </body>

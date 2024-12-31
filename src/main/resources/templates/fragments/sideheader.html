@@ -10,6 +10,13 @@
     <div th:fragment="sideheader(titleText)" class="bg-white border-bottom border-light-subtle d-flex px-2 text-center align-items-center justify-content-between" style="min-height: 48px;">
       <div class="back-icon position-absolute" onclick="back()"><i class="fs-4 bi bi-arrow-left"></i></div>
       <div class="flex-fill fs-1-5 fw-semibold" th:text="${titleText}">메뉴</div>
+      <!-- <div class="position-absolute" style="right: 50px;">
+        <svg class="" stroke-linejoin="round" stroke-linecap="round" 
+              stroke-width="2" stroke="currentColor" fill="none" viewBox="0 -1 30 28" 
+              height="28" width="28" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+      </div> -->
       <a th:if="${titleText != '로그인' && titleText != '회원가입' && titleText != '장바구니'}" th:href="@{/cart}" class="position-absolute end-0" style="padding-right: 18px;">
         <div>
           <i class="fs-3 bi bi-cart"></i>

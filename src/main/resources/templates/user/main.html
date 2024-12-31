@@ -19,7 +19,7 @@
         <div class="scrollNone">
           <div class="d-inline-flex">
             <div th:each="ex : ${exList}" class="position-relative" style="width: 100vw;">
-              <img class="img-fluid" th:src="|/uploadFiles/${ex}|" alt="Slide Image" >
+              <img class="img-fluid" th:src="|/${ex}|" alt="Slide Image" >
               <div style="position: absolute;
               left: 0px;
               right: 0px;

@@ -24,7 +24,7 @@ import com.parkyangji.openmarket.backend.dto.CartItemReturnDto;
 @Mapper
 public interface UserSqlMapper extends CommonSqlMapper{
   // 회원가입
-  public int getAddressCountByCustomerId(int customerId);
+  public List<AddressDto> getAddressCountByCustomerId(int customerId);
   public void insertCustomer(CustomerDto customerDto);
   public void insertAddress(AddressDto addressDto);
   public AddressDto selectDefalutAddress(int customerId);
@@ -43,6 +43,8 @@ public interface UserSqlMapper extends CommonSqlMapper{
 
   // 배송지 가져오기
   public List<String> selectAddressList(int customer_id);
+  public void updateAddressIsDefaultFalse(int customer_id);
+  public AddressDto selectOrderAddress(int order_id);
 
   // 주문 내역 가져오기
   //public List<OrderDto> selectOrderList(int customer_id);
@@ -90,6 +92,8 @@ public interface UserSqlMapper extends CommonSqlMapper{
 
   // 마이페이지
   public List<OrderItemReturnDto> selectOrderList(int customer_id);
+  public List<OrderItemReturnDto> selectWriteReviews(int customer_id);
+  public List<OrderItemReturnDto> selectWrittenReviews(int customer_id);
 
   public List<Map<String, Object>> selectProductIdRatingChart(int product_id);
 

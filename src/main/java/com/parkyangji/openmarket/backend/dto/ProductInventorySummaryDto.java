@@ -1,6 +1,7 @@
 package com.parkyangji.openmarket.backend.dto;
 
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -17,7 +18,11 @@ public class ProductInventorySummaryDto {
   private int origin_price; // 옵션당 원래가격
   private Integer discount_rate;
   private Integer sale_price;
+  private int buy_price; // 구입 가격
   private Integer rating;
+  private Date rating_created;
   private String review_content;
+  private Date review_created;
   private String seller_reply;
+  private Date seller_reply_created;
 }
